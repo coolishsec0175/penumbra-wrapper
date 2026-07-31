@@ -244,7 +244,7 @@ async fn replace_binary_with_retry(temp_path: &Path, target_path: &Path) -> Resu
 async fn fetch_nightly_release() -> Result<ReleaseInfo> {
     let client = reqwest::Client::new();
     let response = client
-        .get("https://api.github.com/repos/coolishsec0175/penumbra/releases/tags/nightly")
+        .get("https://api.github.com/repos/ardiandideyashidiq/penumbra/releases/tags/nightly")
         .header("User-Agent", "penumbra-wrapper")
         .header("Accept", "application/vnd.github+json")
         .send()

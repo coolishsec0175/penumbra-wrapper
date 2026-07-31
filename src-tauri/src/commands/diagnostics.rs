@@ -207,7 +207,7 @@ fn check_github_connectivity() -> bool {
     thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().unwrap();
         let result = rt.block_on(async {
-            reqwest::get("https://api.github.com/repos/coolishsec0175/penumbra").await
+            reqwest::get("https://api.github.com/repos/ardiandideyashidiq/penumbra").await
                 .map(|response| response.status().is_success())
                 .unwrap_or(false)
         });
