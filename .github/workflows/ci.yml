@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.publish-release.outputs.release_id }}
+    steps:
+      - name: Create or reuse nightly release
+        id: publish-release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const tagName = 'nightly';
+            const releaseBody = [
+              '## PenumbraWrapper nightly',
+              '',
+              'Built from the latest push to `main`.',
+              '',
+              '### Downloads',
+              '',
+              '- Debian-based Linux: `.deb`',
+              '- Fedora/openSUSE Linux: `.rpm`',
+              '- Windows: `.exe` and `.msi`',
+            ].join('\n');
+
+            let release;
+
+            try {
+              const response = await github.rest.repos.createRelease({
+                owner,
+                repo,
+                tag_name: tagName,
+                name: 'PenumbraWrapper nightly',
+                body: releaseBody,
+                draft: false,
+                prerelease: false,
+                generate_release_notes: false,
+                target_commitish: context.sha,
+              });
+
+              release = response.data;
+            } catch (error) {
+              if (error.status !== 422) {
+                throw error;
+              }
+
+              const response = await github.rest.repos.getReleaseByTag({
+                owner,
+                repo,
+                tag: tagName,
+              });
+
+              release = response.data;
+            }
+
+            core.setOutput('release_id', String(release.id));
+
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-24.04
+            bundles: deb,rpm
+          - platform: windows-latest
+            bundles: nsis,msi
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        continue-on-error: true
+        with:
+          workspaces: src-tauri
+          cache-on-failure: true
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libudev-dev \
+            pkg-config
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build and upload Tauri app
+        uses: tauri-apps/tauri-action@v0.5.24
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          retryAttempts: 2
+          includeUpdaterJson: false
+          tauriScript: npx tauri
+          args: --bundles ${{ matrix.bundles }}
