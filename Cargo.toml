@@ -15,3 +15,10 @@ license = "AGPL-3.0-or-later"
 authors = ["Shomy <shomy@shomy.is-a.dev>"]
 homepage = "https://penumbra.itssho.my"
 repository = "https://github.com/shomykohai/penumbra"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
