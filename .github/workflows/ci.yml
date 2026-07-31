@@ -72,8 +72,6 @@ jobs:
   build:
     needs: create-release
     runs-on: windows-latest
-    env:
-      CARGO_TARGET_DIR: ${{ runner.temp }}/cargo-target
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
