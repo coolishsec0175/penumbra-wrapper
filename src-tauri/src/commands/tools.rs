@@ -44,6 +44,53 @@ pub async fn read_all_partitions(
 }
 
 #[tauri::command]
+pub async fn write_all_partitions(
+    app: AppHandle,
+    da_path: String,
+    input_dir: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    log::info!(
+        "Writing all partitions from directory: {} (operation_id: {})",
+        input_dir,
+        operation_id
+    );
+
+    validate_output_dir(&input_dir, "Input directory")?;
+
+    execute_antumbra_command(
+        app,
+        operation_id,
+        &da_path,
+        preloader_path.as_deref(),
+        vec!["write-all".to_string(), input_dir],
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn crash_command(
+    app: AppHandle,
+    da_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    log::info!("Crashing device for debug (operation_id: {})", operation_id);
+
+    execute_antumbra_command(
+        app,
+        operation_id,
+        &da_path,
+        preloader_path.as_deref(),
+        vec!["crash".to_string()],
+    )
+    .await
+}
+
+#[tauri::command]
 pub async fn seccfg_operation(
     app: AppHandle,
     da_path: String,

@@ -14,6 +14,12 @@ pub struct AppSettings {
     #[serde(default)]
     pub preloader_path: Option<String>,
     #[serde(default)]
+    pub auth_path: Option<String>,
+    #[serde(default)]
+    pub usb_log: bool,
+    #[serde(default)]
+    pub verbose: bool,
+    #[serde(default)]
     pub default_output_path: Option<String>,
     #[serde(default)]
     pub auto_check_updates: bool,
@@ -26,6 +32,9 @@ impl Default for AppSettings {
         Self {
             da_path: None,
             preloader_path: None,
+            auth_path: None,
+            usb_log: false,
+            verbose: false,
             default_output_path: None,
             auto_check_updates: true,
             antumbra_version: None,

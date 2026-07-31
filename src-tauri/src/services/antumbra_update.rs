@@ -261,6 +261,42 @@ async fn fetch_nightly_release() -> Result<ReleaseInfo> {
     Ok(release)
 }
 
+#[derive(Debug, serde::Deserialize, Clone)]
+struct ReleaseNote {
+    tag_name: String,
+    name: String,
+    body: Option<String>,
+    published_at: Option<String>,
+}
+
+pub async fn fetch_release_notes() -> Result<Vec<crate::commands::updates::AntumbraReleaseNote>> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get("https://api.github.com/repos/coolishsec0175/penumbra/releases?per_page=20")
+        .header("User-Agent", "penumbra-wrapper")
+        .header("Accept", "application/vnd.github+json")
+        .send()
+        .await
+        .context("Failed to fetch release notes")?;
+
+    let notes = response
+        .error_for_status()
+        .context("GitHub API returned an error status")?
+        .json::<Vec<ReleaseNote>>()
+        .await
+        .context("Failed to parse release notes")?;
+
+    Ok(notes
+        .into_iter()
+        .map(|n| crate::commands::updates::AntumbraReleaseNote {
+            tag_name: n.tag_name,
+            name: n.name,
+            body: n.body,
+            published_at: n.published_at,
+        })
+        .collect())
+}
+
 fn find_asset_with_digest(release: &ReleaseInfo) -> Result<(String, String, String)> {
     let asset_name = select_asset_name()?;
     let asset = release
@@ -326,4 +362,30 @@ pub fn get_installed_version(app: &AppHandle) -> Result<String> {
 fn normalize_version(version: &str) -> Option<String> {
     let token = version.split_whitespace().find(|part| part.chars().any(|c| c.is_ascii_digit()))?;
     Some(token.trim_start_matches('v').to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_version_strips_v_prefix() {
+        assert_eq!(normalize_version("v1.2.3").as_deref(), Some("1.2.3"));
+    }
+
+    #[test]
+    fn test_normalize_version_finds_first_token_with_digit() {
+        assert_eq!(normalize_version("antumbra 2.0.1").as_deref(), Some("2.0.1"));
+        assert_eq!(normalize_version("nightly-2026-01-01").as_deref(), Some("2026-01-01"));
+    }
+
+    #[test]
+    fn test_normalize_version_returns_none_without_digit() {
+        assert_eq!(normalize_version("no version here"), None);
+    }
+
+    #[test]
+    fn test_normalize_version_empty() {
+        assert_eq!(normalize_version(""), None);
+    }
 }

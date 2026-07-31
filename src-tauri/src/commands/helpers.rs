@@ -154,18 +154,47 @@ fn validate_writable_dir(path: &Path, label: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct AntumbraFlags {
+    pub auth_path: Option<String>,
+    pub usb_log: bool,
+    pub verbose: bool,
+}
+
 pub fn build_antumbra_args(
     da_path: &str,
     preloader_path: Option<&str>,
     command_args: Vec<String>,
 ) -> Vec<String> {
-    let mut args = Vec::with_capacity(command_args.len() + 4);
+    build_antumbra_args_with_flags(da_path, preloader_path, command_args, &AntumbraFlags::default())
+}
+
+pub fn build_antumbra_args_with_flags(
+    da_path: &str,
+    preloader_path: Option<&str>,
+    command_args: Vec<String>,
+    flags: &AntumbraFlags,
+) -> Vec<String> {
+    let mut args = Vec::with_capacity(command_args.len() + 8);
     args.push("--da".to_string());
     args.push(da_path.to_string());
 
     if let Some(pl) = preloader_path {
         args.push("--pl".to_string());
         args.push(pl.to_string());
+    }
+
+    if let Some(auth) = &flags.auth_path {
+        args.push("--auth".to_string());
+        args.push(auth.clone());
+    }
+
+    if flags.usb_log {
+        args.push("--usb-log".to_string());
+    }
+
+    if flags.verbose {
+        args.push("--verbose".to_string());
     }
 
     args.extend(command_args);
@@ -235,7 +264,14 @@ pub async fn execute_antumbra_command(
 
     let should_retry_timeout = !is_download_command(&args);
     let max_attempts = if should_retry_timeout { 2 } else { 1 };
-    let cmd_args = build_antumbra_args(da_path, preloader_path, args);
+
+    let settings = crate::services::config::load_settings().unwrap_or_default();
+    let flags = AntumbraFlags {
+        auth_path: settings.auth_path,
+        usb_log: settings.usb_log,
+        verbose: settings.verbose,
+    };
+    let cmd_args = build_antumbra_args_with_flags(da_path, preloader_path, args, &flags);
 
     let mut last_error: Option<String> = None;
 

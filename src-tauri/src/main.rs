@@ -69,6 +69,7 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(commands::mtk::MtkState::new())
         .invoke_handler(tauri::generate_handler![
             commands::get_antumbra_version,
@@ -81,6 +82,8 @@ async fn main() {
             commands::format::format_partition,
             commands::erase::erase_partition,
             commands::tools::read_all_partitions,
+            commands::tools::write_all_partitions,
+            commands::tools::crash_command,
             commands::tools::seccfg_operation,
             commands::scatter::parse_scatter_file,
             commands::scatter::detect_image_files,
@@ -89,11 +92,13 @@ async fn main() {
             commands::updates::get_antumbra_updatable_path,
             commands::updates::check_antumbra_update,
             commands::updates::download_antumbra_update,
+            commands::updates::get_antumbra_changelog,
             commands::diagnostics::get_wrapper_log_path,
             commands::diagnostics::read_wrapper_log,
             commands::diagnostics::read_antumbra_log,
             commands::diagnostics::get_last_antumbra_command,
             commands::diagnostics::check_windows_environment,
+            commands::diagnostics::export_diagnostics,
             commands::fastboot::force_fastboot,
             commands::adb::adb_list_devices,
             commands::adb::adb_shell_command,
@@ -139,6 +144,10 @@ async fn main() {
             commands::mtk::mtk_read_rpmb,
             commands::mtk::mtk_write_rpmb,
             commands::mtk::mtk_auth_rpmb,
+            commands::mtk::mtk_wipe_rpmb,
+            commands::mtk::mtk_provision_rpmb,
+            commands::mtk::mtk_read_flash,
+            commands::mtk::mtk_write_flash,
             commands::mtk::mtk_get_bootctrl,
         ])
         .setup(|_app| {

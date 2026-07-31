@@ -102,9 +102,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_TARGET_DIR: ${{ runner.temp }}/cargo-target
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           retryAttempts: 2
-          includeUpdaterJson: false
+          includeUpdaterJson: true
           tauriScript: npx tauri
-          args: --bundles nsis,msi
+          args: --bundles nsis,msi,app

@@ -413,6 +413,54 @@ pub async fn mtk_write_offset(
 }
 
 #[tauri::command]
+pub async fn mtk_read_flash(
+    state: State<'_, MtkState>,
+    size: u64,
+    output_path: String,
+) -> Result<(), AppError> {
+    with_device(&state, |device| {
+        let pk = PartitionKind::Emmc(penumbra::core::storage::emmc::EmmcPartition::User);
+        let file = std::fs::File::create(&output_path)
+            .map_err(|e| AppError::command(format!("Cannot create '{output_path}': {e}")))?;
+        let writer = std::io::BufWriter::new(file);
+        let progress = |read: usize, total: usize| {
+            if total > 0 {
+                info!("Flash read progress: {}/{} ({:.1}%)", read, total, read as f64 / total as f64 * 100.0);
+            }
+        };
+        device
+            .read_offset(0, size as usize, pk, writer, progress)
+            .map_err(|e| AppError::command(format!("Raw flash read failed: {e}")))?;
+        info!("Raw flash read {} bytes to '{output_path}'", size);
+        Ok(())
+    })
+}
+
+#[tauri::command]
+pub async fn mtk_write_flash(
+    state: State<'_, MtkState>,
+    input_path: String,
+) -> Result<(), AppError> {
+    with_device(&state, |device| {
+        let pk = PartitionKind::Emmc(penumbra::core::storage::emmc::EmmcPartition::User);
+        let data = std::fs::read(&input_path)
+            .map_err(|e| AppError::command(format!("Cannot read '{input_path}': {e}")))?;
+        let size = data.len();
+        let reader = std::io::Cursor::new(data);
+        let progress = |written: usize, total: usize| {
+            if total > 0 {
+                info!("Flash write progress: {}/{} ({:.1}%)", written, total, written as f64 / total as f64 * 100.0);
+            }
+        };
+        device
+            .write_offset(0, size, pk, reader, progress)
+            .map_err(|e| AppError::command(format!("Raw flash write failed: {e}")))?;
+        info!("Raw flash written {} bytes from '{input_path}'", size);
+        Ok(())
+    })
+}
+
+#[tauri::command]
 pub async fn mtk_download(
     state: State<'_, MtkState>,
     partition_name: String,
@@ -541,6 +589,60 @@ pub async fn mtk_auth_rpmb(
             .map_err(|e| AppError::command(format!("Invalid hex key: {e}")))?;
         device.auth_rpmb(r, &key).map_err(|e| AppError::command(format!("RPMB auth failed: {e}")))?;
         info!("RPMB authenticated for region {region}");
+        Ok(())
+    })
+}
+
+#[tauri::command]
+pub async fn mtk_wipe_rpmb(
+    state: State<'_, MtkState>,
+    region: String,
+    sector_count: u32,
+) -> Result<(), AppError> {
+    with_device(&state, |device| {
+        let r = match region.to_lowercase().as_str() {
+            "1" | "r1" => RpmbRegion::R1,
+            "2" | "r2" => RpmbRegion::R2,
+            "3" | "r3" => RpmbRegion::R3,
+            "4" | "r4" => RpmbRegion::R4,
+            _ => return Err(AppError::command(format!("Unknown RPMB region: '{region}'. Use: 1, 2, 3, 4"))),
+        };
+        let zeros = vec![0u8; sector_count as usize * 256];
+        let reader = std::io::Cursor::new(zeros);
+        let progress = |written: usize, total: usize| {
+            if total > 0 {
+                info!("RPMB wipe progress: {}/{}", written, total);
+            }
+        };
+        device
+            .write_rpmb(r, 0, sector_count, reader, progress)
+            .map_err(|e| AppError::command(format!("RPMB wipe failed: {e}")))?;
+        info!("RPMB wiped: region={region}, sectors={sector_count}");
+        Ok(())
+    })
+}
+
+#[tauri::command]
+pub async fn mtk_provision_rpmb(
+    state: State<'_, MtkState>,
+    region: String,
+    key_hex: String,
+) -> Result<(), AppError> {
+    with_device(&state, |device| {
+        let r = match region.to_lowercase().as_str() {
+            "1" | "r1" => RpmbRegion::R1,
+            "2" | "r2" => RpmbRegion::R2,
+            "3" | "r3" => RpmbRegion::R3,
+            "4" | "r4" => RpmbRegion::R4,
+            _ => return Err(AppError::command(format!("Unknown RPMB region: '{region}'. Use: 1, 2, 3, 4"))),
+        };
+        let key = hex::decode(&key_hex)
+            .map_err(|e| AppError::command(format!("Invalid hex key: {e}")))?;
+        if key.len() != 32 {
+            return Err(AppError::command(format!("RPMB provisioning key must be 32 bytes, got {}", key.len())));
+        }
+        device.auth_rpmb(r, &key).map_err(|e| AppError::command(format!("RPMB provisioning failed: {e}")))?;
+        info!("RPMB provisioned for region {region}");
         Ok(())
     })
 }

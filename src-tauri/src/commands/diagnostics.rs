@@ -42,6 +42,64 @@ pub async fn get_last_antumbra_command() -> Result<Option<AntumbraCommandInfo>, 
     Ok(get_last_command_info())
 }
 
+#[tauri::command]
+pub async fn export_diagnostics(app: AppHandle, output_path: String) -> Result<String, AppError> {
+    use std::io::Write;
+
+    let config_dir = app
+        .path()
+        .app_config_dir()
+        .map_err(|e| AppError::other(e.to_string()))?;
+    let wrapper_log_path = dirs::config_dir()
+        .map(|dir| dir.join("penumbra-wrapper").join("penumbra-wrapper.log"))
+        .unwrap_or_else(|| config_dir.join("penumbra-wrapper.log"));
+    let antumbra_log_path = config_dir.join("antumbra.log");
+
+    let wrapper_log = std::fs::read_to_string(&wrapper_log_path).unwrap_or_else(|_| "".to_string());
+    let antumbra_log = std::fs::read_to_string(&antumbra_log_path).unwrap_or_else(|_| "".to_string());
+
+    let diagnostics = check_windows_environment(app).await?;
+    let diagnostics_json = serde_json::to_string_pretty(&diagnostics)
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    let last_command_json = serde_json::to_string_pretty(&get_last_command_info())
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    let file = std::fs::File::create(&output_path)
+        .map_err(|e| AppError::command(format!("Cannot create '{output_path}': {e}")))?;
+    let mut zip = zip::ZipWriter::new(std::io::BufWriter::new(file));
+
+    let options = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    zip.start_file("wrapper.log", options)
+        .map_err(|e| AppError::other(e.to_string()))?;
+    zip.write_all(wrapper_log.as_bytes())
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    zip.start_file("antumbra.log", options)
+        .map_err(|e| AppError::other(e.to_string()))?;
+    zip.write_all(antumbra_log.as_bytes())
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    zip.start_file("diagnostics.json", options)
+        .map_err(|e| AppError::other(e.to_string()))?;
+    zip.write_all(diagnostics_json.as_bytes())
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    zip.start_file("last_command.json", options)
+        .map_err(|e| AppError::other(e.to_string()))?;
+    zip.write_all(last_command_json.as_bytes())
+        .map_err(|e| AppError::other(e.to_string()))?;
+
+    let writer = zip
+        .finish()
+        .map_err(|e| AppError::other(e.to_string()))?;
+    drop(writer);
+
+    log::info!("Diagnostics exported to {}", output_path);
+    Ok(output_path)
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WindowsDiagnostics {
     pub os_info: String,

@@ -25,3 +25,19 @@ pub async fn check_antumbra_update(app: AppHandle) -> Result<AntumbraUpdateInfo,
 pub async fn download_antumbra_update(app: AppHandle) -> Result<AntumbraUpdateResult, AppError> {
     download_and_install(&app).await.map_err(|e| e.into())
 }
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AntumbraReleaseNote {
+    pub tag_name: String,
+    pub name: String,
+    pub body: Option<String>,
+    pub published_at: Option<String>,
+}
+
+#[tauri::command]
+pub async fn get_antumbra_changelog() -> Result<Vec<AntumbraReleaseNote>, AppError> {
+    crate::services::antumbra_update::fetch_release_notes()
+        .await
+        .map_err(|e| AppError::command(e.to_string()))
+}

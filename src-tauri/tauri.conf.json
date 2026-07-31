@@ -11,7 +11,8 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": ["nsis", "msi", "app"],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -19,6 +20,14 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYyMzc5Q0I4Q0FENTMxMzcKUldRM01kWEt1SnczOG02NFYrNDNlcU5ndzVNa2tVUEk0NDFVaWNmaWc4dHh1OUVIYTdCbzh3WFUK",
+      "endpoints": [
+        "https://github.com/coolishsec0175/penumbra-wrapper/releases/latest/download/latest.json"
+      ]
+    }
   },
   "app": {
     "windows": [
