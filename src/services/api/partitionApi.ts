@@ -146,4 +146,28 @@ export class PartitionApi {
       operationId: operationId || uuidv4(),
     });
   }
+
+  /**
+   * Write all partitions (restore) from a backup directory.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param inputDir - Directory containing the backup partition images
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking (auto-generated if not provided)
+   * @returns Promise resolving when the restore completes
+   * @throws Error if any write operation fails
+   */
+  static async writeAll(
+    daPath: string,
+    inputDir: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('write_all_partitions', {
+      daPath,
+      inputDir,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
 }

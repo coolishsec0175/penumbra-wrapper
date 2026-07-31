@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import type { AntumbraCommandInfo, AntumbraUpdateInfo, AntumbraUpdateResult } from '../../types'
+import type { AntumbraCommandInfo, AntumbraReleaseNote, AntumbraUpdateInfo, AntumbraUpdateResult } from '../../types'
 
 export class AntumbraApi {
   static async getUpdatablePath(): Promise<string> {
@@ -28,5 +28,9 @@ export class AntumbraApi {
 
   static async getLastCommand(): Promise<AntumbraCommandInfo | null> {
     return invoke('get_last_antumbra_command')
+  }
+
+  static async getChangelog(): Promise<AntumbraReleaseNote[]> {
+    return invoke('get_antumbra_changelog')
   }
 }

@@ -94,6 +94,22 @@ export class MtkApi {
     return invoke('mtk_auth_rpmb', { keyHex, region });
   }
 
+  static async wipeRpmb(region: string, sectorCount: number): Promise<void> {
+    return invoke('mtk_wipe_rpmb', { region, sectorCount });
+  }
+
+  static async provisionRpmb(keyHex: string, region: string): Promise<void> {
+    return invoke('mtk_provision_rpmb', { keyHex, region });
+  }
+
+  static async readFlash(size: number, outputPath: string): Promise<void> {
+    return invoke('mtk_read_flash', { size, outputPath });
+  }
+
+  static async writeFlash(inputPath: string): Promise<void> {
+    return invoke('mtk_write_flash', { inputPath });
+  }
+
   static async getBootctrl(): Promise<MtkBootCtrl> {
     return invoke('mtk_get_bootctrl');
   }

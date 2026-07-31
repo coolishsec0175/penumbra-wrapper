@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { v4 as uuidv4 } from 'uuid';
 import type { PartitionListResult } from '../../types';
 
 /**
@@ -86,6 +87,25 @@ export class DeviceApi {
       action,
       preloaderPath: preloaderPath || null,
       operationId: operationId || null,
+    });
+  }
+
+  /**
+   * Send the debug crash command to antumbra.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async crash(
+    daPath: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('crash_command', {
+      daPath,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
     });
   }
 }

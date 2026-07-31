@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useDeviceStore } from '../store/deviceStore';
 import { useOperationStore } from '../store/operationStore';
+import { useConfirmation } from '../hooks/useConfirmation';
+import { useFileSelection } from '../hooks/useFileSelection';
 import { MtkApi } from '../services/api/mtkApi';
+import { DeviceApi } from '../services/api/deviceApi';
+import { DialogType } from '../services/dialogs/fileDialogService';
 import type { MtkDeviceInfo, MtkPartitionInfo, MtkBootCtrl } from '../types';
 import { Button } from '../components/ui/button';
 
 export function MtkTools() {
   const { daPath } = useDeviceStore();
   const { addLog } = useOperationStore();
+  const { confirm } = useConfirmation();
+  const { selectFile, saveFile } = useFileSelection();
 
   const [serialPort, setSerialPort] = useState('');
   const [baudRate, setBaudRate] = useState(115200);
@@ -25,6 +31,15 @@ export function MtkTools() {
   const [pokeValue, setPokeValue] = useState('');
   const [offsetAddress, setOffsetAddress] = useState('');
   const [offsetSize, setOffsetSize] = useState('');
+  const [offsetReadOutput, setOffsetReadOutput] = useState<string | null>(null);
+  const [offsetWriteInput, setOffsetWriteInput] = useState<string | null>(null);
+  const [flashReadSize, setFlashReadSize] = useState('');
+  const [flashReadOutput, setFlashReadOutput] = useState<string | null>(null);
+  const [flashWriteInput, setFlashWriteInput] = useState<string | null>(null);
+  const [rpmbRegion, setRpmbRegion] = useState('1');
+  const [rpmbKey, setRpmbKey] = useState('');
+  const [rpmbWipeSectors, setRpmbWipeSectors] = useState('4096');
+  const [isRunning, setIsRunning] = useState(false);
   const [knownPorts, setKnownPorts] = useState<string[]>([]);
 
   useEffect(() => {
@@ -144,6 +159,199 @@ export function MtkTools() {
       setBootCtrl(bc);
     } catch (err) {
       toast.error(`Failed to get bootctrl: ${err}`);
+    }
+  };
+
+  const handleSelectOffsetOutput = async () => {
+    const path = await saveFile({
+      title: 'Save offset dump',
+      defaultPath: `offset_0x${offsetAddress.replace(/^0x/i, '') || '0000'}.bin`,
+      filters: [{ name: 'Binary', extensions: ['bin'] }, { name: 'All Files', extensions: ['*'] }],
+    });
+    if (path) setOffsetReadOutput(path);
+  };
+
+  const handleSelectOffsetInput = async () => {
+    const path = await selectFile(DialogType.IMAGE_FILE);
+    if (path) setOffsetWriteInput(path);
+  };
+
+  const handleOffsetRead = async () => {
+    const addr = parseInt(offsetAddress, 16);
+    const size = parseInt(offsetSize, 10);
+    if (isNaN(addr) || isNaN(size)) {
+      toast.error('Invalid address or size');
+      return;
+    }
+    if (!offsetReadOutput) {
+      toast.error('Select an output file first');
+      return;
+    }
+    setIsRunning(true);
+    try {
+      await MtkApi.readOffset(addr, size, offsetReadOutput);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `Offset read 0x${addr.toString(16)} -> ${offsetReadOutput}` });
+      toast.success('Offset read complete');
+    } catch (err) {
+      toast.error(`Offset read failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleOffsetWrite = async () => {
+    const addr = parseInt(offsetAddress, 16);
+    if (isNaN(addr)) {
+      toast.error('Invalid address');
+      return;
+    }
+    if (!offsetWriteInput) {
+      toast.error('Select an input file first');
+      return;
+    }
+    setIsRunning(true);
+    try {
+      await MtkApi.writeOffset(addr, offsetWriteInput);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `Offset write 0x${addr.toString(16)} <- ${offsetWriteInput}` });
+      toast.success('Offset write complete');
+    } catch (err) {
+      toast.error(`Offset write failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleSelectFlashOutput = async () => {
+    const path = await saveFile({
+      title: 'Save flash dump',
+      defaultPath: 'flash.bin',
+      filters: [{ name: 'Binary', extensions: ['bin'] }, { name: 'All Files', extensions: ['*'] }],
+    });
+    if (path) setFlashReadOutput(path);
+  };
+
+  const handleSelectFlashInput = async () => {
+    const path = await selectFile(DialogType.IMAGE_FILE);
+    if (path) setFlashWriteInput(path);
+  };
+
+  const handleFlashRead = async () => {
+    const size = parseInt(flashReadSize, 10);
+    if (isNaN(size) || size <= 0) {
+      toast.error('Invalid size');
+      return;
+    }
+    if (!flashReadOutput) {
+      toast.error('Select an output file first');
+      return;
+    }
+    setIsRunning(true);
+    try {
+      await MtkApi.readFlash(size, flashReadOutput);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `Flash read ${size} bytes -> ${flashReadOutput}` });
+      toast.success('Flash read complete');
+    } catch (err) {
+      toast.error(`Flash read failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleFlashWrite = async () => {
+    if (!flashWriteInput) {
+      toast.error('Select an input file first');
+      return;
+    }
+    const ok = await confirm({
+      title: 'Write Flash',
+      message: 'This writes the selected image to the raw flash region. Ensure you selected the correct file. Continue?',
+      variant: 'danger',
+      confirmText: 'Write',
+    });
+    if (!ok) return;
+    setIsRunning(true);
+    try {
+      await MtkApi.writeFlash(flashWriteInput);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `Flash write <- ${flashWriteInput}` });
+      toast.success('Flash write complete');
+    } catch (err) {
+      toast.error(`Flash write failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleProvisionRpmb = async () => {
+    const key = rpmbKey.trim().replace(/^0x/i, '');
+    if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+      toast.error('RPMB key must be exactly 64 hex characters (32 bytes)');
+      return;
+    }
+    const ok = await confirm({
+      title: 'Provision RPMB Key',
+      message: `Provisioning a new RPMB key for region ${rpmbRegion}. This permanently changes the device key and cannot be undone. Continue?`,
+      variant: 'danger',
+      confirmText: 'Provision',
+    });
+    if (!ok) return;
+    setIsRunning(true);
+    try {
+      await MtkApi.provisionRpmb(key, rpmbRegion);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `RPMB key provisioned for region ${rpmbRegion}` });
+      toast.success('RPMB key provisioned');
+    } catch (err) {
+      toast.error(`RPMB provision failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleWipeRpmb = async () => {
+    const sectors = parseInt(rpmbWipeSectors, 10);
+    if (isNaN(sectors) || sectors <= 0) {
+      toast.error('Invalid sector count');
+      return;
+    }
+    const ok = await confirm({
+      title: 'Wipe RPMB',
+      message: `Zero-fill ${sectors} sectors of RPMB region ${rpmbRegion}. This erases all RPMB contents. Continue?`,
+      variant: 'danger',
+      confirmText: 'Wipe',
+    });
+    if (!ok) return;
+    setIsRunning(true);
+    try {
+      await MtkApi.wipeRpmb(rpmbRegion, sectors);
+      addLog({ timestamp: new Date().toISOString(), level: 'success', message: `RPMB region ${rpmbRegion} wiped (${sectors} sectors)` });
+      toast.success('RPMB wiped');
+    } catch (err) {
+      toast.error(`RPMB wipe failed: ${err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleCrash = async () => {
+    if (!daPath) {
+      toast.error('Please set DA path in settings');
+      return;
+    }
+    const ok = await confirm({
+      title: 'Send Crash Command',
+      message: 'This sends the debug crash command to antumbra, intentionally crashing the DA for testing. Continue?',
+      variant: 'danger',
+      confirmText: 'Crash',
+    });
+    if (!ok) return;
+    setIsRunning(true);
+    try {
+      await DeviceApi.crash(daPath);
+      addLog({ timestamp: new Date().toISOString(), level: 'warning', message: 'Crash command sent' });
+      toast.success('Crash command sent');
+    } catch (err) {
+      toast.error(`Crash command failed: ${err}`);
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -316,8 +524,91 @@ export function MtkTools() {
               value={offsetSize}
               onChange={e => setOffsetSize(e.target.value)}
             />
-            <span className="text-xs text-muted-foreground">(Use Tools page for file-based operations)</span>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Read to:</span>
+              <span className="text-xs font-mono bg-background rounded px-2 py-1 max-w-[220px] truncate">
+                {offsetReadOutput || 'no file selected'}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleSelectOffsetOutput} disabled={isRunning}>Browse</Button>
+              <Button size="sm" onClick={handleOffsetRead} disabled={!isConnected || isRunning}>Read Offset</Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Write from:</span>
+              <span className="text-xs font-mono bg-background rounded px-2 py-1 max-w-[220px] truncate">
+                {offsetWriteInput || 'no file selected'}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleSelectOffsetInput} disabled={isRunning}>Browse</Button>
+              <Button size="sm" onClick={handleOffsetWrite} disabled={!isConnected || isRunning}>Write Offset</Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Raw Flash Read/Write Section */}
+        <section className="rounded-lg border border-border bg-surface p-4 space-y-3">
+          <h3 className="font-semibold text-lg">Raw Flash Read/Write</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs w-24"
+              placeholder="Size"
+              value={flashReadSize}
+              onChange={e => setFlashReadSize(e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">Read to:</span>
+            <span className="text-xs font-mono bg-background rounded px-2 py-1 max-w-[220px] truncate">
+              {flashReadOutput || 'no file selected'}
+            </span>
+            <Button size="sm" variant="outline" onClick={handleSelectFlashOutput} disabled={isRunning}>Browse</Button>
+            <Button size="sm" onClick={handleFlashRead} disabled={!isConnected || isRunning}>Read Flash</Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">Write from:</span>
+            <span className="text-xs font-mono bg-background rounded px-2 py-1 max-w-[220px] truncate">
+              {flashWriteInput || 'no file selected'}
+            </span>
+            <Button size="sm" variant="outline" onClick={handleSelectFlashInput} disabled={isRunning}>Browse</Button>
+            <Button size="sm" onClick={handleFlashWrite} disabled={!isConnected || isRunning}>Write Flash</Button>
+          </div>
+        </section>
+
+        {/* RPMB Operations Section */}
+        <section className="rounded-lg border border-border bg-surface p-4 space-y-3">
+          <h3 className="font-semibold text-lg">RPMB Operations</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs w-16"
+              placeholder="Region"
+              value={rpmbRegion}
+              onChange={e => setRpmbRegion(e.target.value)}
+            />
+            <input
+              type="text"
+              className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs font-mono flex-1 min-w-[280px]"
+              placeholder="Key (64 hex chars)"
+              value={rpmbKey}
+              onChange={e => setRpmbKey(e.target.value)}
+            />
+            <Button size="sm" onClick={handleProvisionRpmb} disabled={!isConnected || isRunning}>Provision Key</Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs w-24"
+              placeholder="Sectors"
+              value={rpmbWipeSectors}
+              onChange={e => setRpmbWipeSectors(e.target.value)}
+            />
+            <Button size="sm" onClick={handleWipeRpmb} disabled={!isConnected || isRunning}>Wipe RPMB</Button>
+          </div>
+        </section>
+
+        {/* Debug Section */}
+        <section className="rounded-lg border border-border bg-surface p-4 space-y-3">
+          <h3 className="font-semibold text-lg">Debug</h3>
+          <Button size="sm" onClick={handleCrash} disabled={!daPath || isRunning}>Send Crash Command</Button>
         </section>
       </main>
     </div>

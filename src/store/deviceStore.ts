@@ -7,6 +7,9 @@ interface DeviceState {
   // Configuration (persisted)
   daPath: string | null;
   preloaderPath: string | null;
+  authPath: string | null;
+  usbLog: boolean;
+  verbose: boolean;
   defaultOutputPath: string | null;
   antumbraVersion: string | null;
   autoCheckUpdates: boolean;
@@ -24,6 +27,9 @@ interface DeviceState {
   // Actions
   setDaPath: (path: string) => Promise<void>;
   setPreloaderPath: (path: string | null) => Promise<void>;
+  setAuthPath: (path: string | null) => Promise<void>;
+  setUsbLog: (enabled: boolean) => Promise<void>;
+  setVerbose: (enabled: boolean) => Promise<void>;
   setDefaultOutputPath: (path: string | null) => Promise<void>;
   setAutoCheckUpdates: (enabled: boolean) => Promise<void>;
   updateSettings: (partial: Partial<DeviceState>) => Promise<void>;
@@ -40,6 +46,9 @@ interface DeviceState {
 const buildSettings = (state: DeviceState): AppSettings => ({
   da_path: state.daPath || undefined,
   preloader_path: state.preloaderPath || undefined,
+  auth_path: state.authPath || undefined,
+  usb_log: state.usbLog,
+  verbose: state.verbose,
   default_output_path: state.defaultOutputPath || undefined,
   auto_check_updates: state.autoCheckUpdates,
   antumbra_version: state.antumbraVersion || undefined,
@@ -49,6 +58,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   // Configuration
   daPath: null,
   preloaderPath: null,
+  authPath: null,
+  usbLog: false,
+  verbose: false,
   defaultOutputPath: null,
   antumbraVersion: null,
   autoCheckUpdates: true,
@@ -70,6 +82,18 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   setPreloaderPath: async (path) => {
     await get().updateSettings({ preloaderPath: path });
+  },
+
+  setAuthPath: async (path) => {
+    await get().updateSettings({ authPath: path });
+  },
+
+  setUsbLog: async (enabled) => {
+    await get().updateSettings({ usbLog: enabled });
+  },
+
+  setVerbose: async (enabled) => {
+    await get().updateSettings({ verbose: enabled });
   },
 
   setDefaultOutputPath: async (path) => {
@@ -120,6 +144,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       set({
         daPath: settings.da_path || null,
         preloaderPath: settings.preloader_path || null,
+        authPath: settings.auth_path || null,
+        usbLog: settings.usb_log,
+        verbose: settings.verbose,
         defaultOutputPath: settings.default_output_path || null,
         antumbraVersion: settings.antumbra_version || null,
         autoCheckUpdates: settings.auto_check_updates,

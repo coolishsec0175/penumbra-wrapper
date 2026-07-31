@@ -37,6 +37,9 @@ export interface LogEvent {
 export interface AppSettings {
   da_path?: string;
   preloader_path?: string;
+  auth_path?: string;
+  usb_log: boolean;
+  verbose: boolean;
   default_output_path?: string;
   auto_check_updates: boolean;
   antumbra_version?: string;
@@ -64,6 +67,13 @@ export interface AntumbraCommandInfo {
 export interface AntumbraUpdateResult {
   version: string;
   path: string;
+}
+
+export interface AntumbraReleaseNote {
+  tag_name: string;
+  name: string;
+  body: string | null;
+  published_at: string | null;
 }
 
 export interface DownloadProgress {

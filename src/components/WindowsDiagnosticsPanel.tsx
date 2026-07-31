@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { AlertCircle, CheckCircle, Info, Terminal } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, Terminal, Package } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useDeviceStore } from '../store/deviceStore';
+import { useFileSelection } from '../hooks/useFileSelection';
 import type { WindowsDiagnostics } from '../types';
 import { DiagnosticsApi } from '../services/api/diagnosticsApi';
 
 export function WindowsDiagnosticsPanel() {
   const { isConnected, isConnecting } = useDeviceStore();
+  const { saveFile } = useFileSelection();
   const [diagnostics, setDiagnostics] = useState<WindowsDiagnostics | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const runDiagnostics = async () => {
@@ -37,6 +41,27 @@ export function WindowsDiagnosticsPanel() {
     setError(null);
   };
 
+  const exportDiagnostics = async () => {
+    const path = await saveFile({
+      title: 'Export Diagnostics',
+      defaultPath: `penumbra-diagnostics-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.zip`,
+      filters: [{ name: 'Zip Archive', extensions: ['zip'] }, { name: 'All Files', extensions: ['*'] }],
+    });
+    if (!path) return;
+
+    setIsExporting(true);
+    try {
+      await DiagnosticsApi.exportDiagnostics(path);
+      toast.success('Diagnostics exported');
+    } catch (err) {
+      const { parseTauriError } = await import('../services/utils/errorParser');
+      const parsedError = parseTauriError(err);
+      setError(parsedError.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const getStatusIcon = (status: boolean) => {
     return status ? 
       <CheckCircle className="w-4 h-4 text-success" /> : 
@@ -64,12 +89,22 @@ export function WindowsDiagnosticsPanel() {
             </button>
           )}
           {diagnostics && (
-            <button
-              onClick={clearDiagnostics}
-              className="px-4 py-2 bg-surface-alt hover:bg-surface-hover text-foreground rounded-md transition-colors"
-            >
-              Clear
-            </button>
+            <>
+              <button
+                onClick={exportDiagnostics}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-surface hover:bg-surface-hover text-foreground rounded-md transition-colors disabled:opacity-50"
+              >
+                <Package className="w-4 h-4" />
+                {isExporting ? 'Exporting...' : 'Export Zip'}
+              </button>
+              <button
+                onClick={clearDiagnostics}
+                className="px-4 py-2 bg-surface-alt hover:bg-surface-hover text-foreground rounded-md transition-colors"
+              >
+                Clear
+              </button>
+            </>
           )}
         </div>
       </div>

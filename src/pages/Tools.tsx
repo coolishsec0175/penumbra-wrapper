@@ -12,6 +12,7 @@ import { FastbootApi } from '../services/api/fastbootApi';
 import { executeOperation } from '../services/operations/executeOperation';
 import { ConnectionWarning } from '../components/tools/ConnectionWarning';
 import { ReadAllSection } from '../components/tools/ReadAllSection';
+import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
 
@@ -23,6 +24,8 @@ export function Tools() {
   const { selectFile } = useFileSelection();
 
   const [isReadAllRunning, setIsReadAllRunning] = useState(false);
+  const [isRestoreRunning, setIsRestoreRunning] = useState(false);
+  const [restoreDir, setRestoreDir] = useState<string | null>(null);
   const [isSeccfgRunning, setIsSeccfgRunning] = useState(false);
   const [isFastbootRunning, setIsFastbootRunning] = useState(false);
   const [skipPartitions, setSkipPartitions] = useState<Set<string>>(new Set());
@@ -109,6 +112,72 @@ export function Tools() {
       });
     } finally {
       setIsReadAllRunning(false);
+    }
+  };
+
+  const handleSelectRestoreDir = async () => {
+    const dir = await selectFile(DialogType.BACKUP_FOLDER);
+    if (dir) {
+      setRestoreDir(dir);
+      toast.success('Backup folder selected');
+    }
+  };
+
+  const handleClearRestoreDir = () => {
+    setRestoreDir(null);
+  };
+
+  const handleRestoreAll = async () => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+    if (!restoreDir) {
+      toast.error('Select a backup folder first');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Restore All Partitions',
+      message: (
+        <div>
+          <p className="font-semibold text-danger mb-2">WARNING: THIS WILL OVERWRITE ALL PARTITIONS</p>
+          <p>This will write every image from:</p>
+          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{restoreDir}</p>
+          <p className="mt-3 text-muted-foreground">All current data on matching partitions will be replaced. Continue?</p>
+        </div>
+      ),
+      variant: 'danger',
+      confirmText: 'Restore',
+    });
+
+    if (!confirmed) {
+      toast('Restore cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
+    setIsRestoreRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Restore all partitions',
+        type: 'write',
+        partitionName: 'all-partitions',
+        partitionSize: 'restore',
+        successMessage: 'Restore complete!',
+        errorMessage: 'Failed to restore partitions',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: 'Starting write-all restore...',
+          });
+        },
+        run: (operationId) =>
+          PartitionApi.writeAll(daPath, restoreDir, preloaderPath || undefined, operationId),
+      });
+    } finally {
+      setIsRestoreRunning(false);
     }
   };
 
@@ -213,6 +282,16 @@ export function Tools() {
           onClearAllSkip={handleClearAllSkip}
           onToggleSkip={handleToggleSkip}
           onReadAll={handleReadAll}
+        />
+
+        <RestoreSection
+          isConnected={isConnected}
+          isRestoreRunning={isRestoreRunning}
+          isSettingsLoading={isSettingsLoading}
+          backupDir={restoreDir}
+          onSelectDir={handleSelectRestoreDir}
+          onClearDir={handleClearRestoreDir}
+          onRestore={handleRestoreAll}
         />
 
         <BootloaderSection
