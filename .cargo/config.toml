@@ -3,6 +3,3 @@
 # so build-time import-library generation (windows-link) and GCC linking work.
 [build]
 target-dir = "C:\\Users\\MYPC~1\\AppData\\Local\\penumbra-wrapper-target"
-
-[target.x86_64-unknown-linux-gnu]
-rustflags = ["-C", "link-arg=-Wl,--exclude-libs,ALL"]
