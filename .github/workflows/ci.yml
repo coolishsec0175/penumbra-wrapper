@@ -61,7 +61,11 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Run backend tests
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/cargo-target
         run: cargo test --workspace
 
       - name: Check backend compiles
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/cargo-target
         run: cargo check --workspace
