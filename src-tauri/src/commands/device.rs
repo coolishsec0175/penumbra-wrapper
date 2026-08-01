@@ -1,6 +1,6 @@
 /*
     SPDX-License-Identifier: AGPL-3.0-or-later
-    SPDX-FileCopyrightText: 2025 Shomy
+    SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
 use crate::commands::{build_antumbra_args, execute_antumbra_command, validate_da_preloader_paths};
