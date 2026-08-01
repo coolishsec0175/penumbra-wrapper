@@ -29,12 +29,11 @@ export function formatBytes(bytes: number): string {
  * formatHexSize("100000") // "1.00 MB"
  */
 export function formatHexSize(hexSize: string): string {
-  try {
-    const bytes = parseInt(hexSize, 16);
-    return formatBytes(bytes);
-  } catch {
+  const bytes = parseInt(hexSize, 16);
+  if (Number.isNaN(bytes)) {
     return hexSize;
   }
+  return formatBytes(bytes);
 }
 
 /**

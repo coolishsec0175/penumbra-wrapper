@@ -10,12 +10,14 @@ import { MtkTools } from './pages/MtkTools';
 import { LogPanel } from './components/LogPanel';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { UpdateAvailableModal } from './components/UpdateAvailableModal';
+import { WrapperUpdateModal } from './components/WrapperUpdateModal';
 import { useOperationStream } from './hooks/useOperationStream';
 import { useSettings } from './hooks/useSettings';
 import { ConfirmationProvider } from './hooks/confirmationProvider';
 import { DeviceApi } from './services/api/deviceApi';
 import { useDeviceStore } from './store/deviceStore';
 import { useUpdateStore } from './store/updateStore';
+import { useWrapperUpdateStore } from './store/wrapperUpdateStore';
 
 function AppContent() {
   useOperationStream();
@@ -24,6 +26,7 @@ function AppContent() {
   const autoCheckUpdates = useDeviceStore((state) => state.autoCheckUpdates);
   const isSettingsLoaded = useDeviceStore((state) => state.isSettingsLoaded);
   const hasPromptedUpdate = useRef(false);
+  const hasPromptedWrapperUpdate = useRef(false);
   const updateInfo = useUpdateStore((state) => state.updateInfo);
   const isUpdateModalOpen = useUpdateStore((state) => state.isUpdateModalOpen);
   const isDownloadingUpdate = useUpdateStore((state) => state.isDownloadingUpdate);
@@ -32,6 +35,12 @@ function AppContent() {
   const downloadUpdate = useUpdateStore((state) => state.downloadUpdate);
   const setUpdateModalOpen = useUpdateStore((state) => state.setUpdateModalOpen);
   const startProgressListener = useUpdateStore((state) => state.startProgressListener);
+  const wrapperUpdateInfo = useWrapperUpdateStore((state) => state.updateInfo);
+  const isWrapperUpdateModalOpen = useWrapperUpdateStore((state) => state.isUpdateModalOpen);
+  const isDownloadingWrapperUpdate = useWrapperUpdateStore((state) => state.isDownloadingUpdate);
+  const checkForWrapperUpdate = useWrapperUpdateStore((state) => state.checkForUpdate);
+  const downloadAndInstallWrapperUpdate = useWrapperUpdateStore((state) => state.downloadAndInstall);
+  const setWrapperUpdateModalOpen = useWrapperUpdateStore((state) => state.setUpdateModalOpen);
 
   useEffect(() => {
     let cleanup: (() => void) | null = null;
@@ -56,6 +65,14 @@ function AppContent() {
 
     checkUpdate({ showToast: false });
   }, [autoCheckUpdates, checkUpdate, isSettingsLoaded]);
+
+  useEffect(() => {
+    if (!isSettingsLoaded || !autoCheckUpdates) return;
+    if (hasPromptedWrapperUpdate.current) return;
+    hasPromptedWrapperUpdate.current = true;
+
+    checkForWrapperUpdate({ showToast: false });
+  }, [autoCheckUpdates, checkForWrapperUpdate, isSettingsLoaded]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -100,6 +117,14 @@ function AppContent() {
         updateInfo={updateInfo}
         isDownloading={isDownloadingUpdate}
         downloadProgress={downloadProgress}
+      />
+
+      <WrapperUpdateModal
+        isOpen={isWrapperUpdateModalOpen}
+        onClose={() => setWrapperUpdateModalOpen(false)}
+        onDownload={downloadAndInstallWrapperUpdate}
+        updateInfo={wrapperUpdateInfo}
+        isDownloading={isDownloadingWrapperUpdate}
       />
 
       <ErrorBoundary>

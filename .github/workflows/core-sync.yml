@@ -1,0 +1,70 @@
+name: Core Sync
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-core-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch upstream penumbra core
+        run: |
+          rm -rf /tmp/upstream-penumbra
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/shomykohai/penumbra.git /tmp/upstream-penumbra
+          cd /tmp/upstream-penumbra
+          git sparse-checkout set core
+          git checkout HEAD -- core
+
+      - name: Compare vendored core with upstream
+        id: compare
+        run: |
+          if diff -rq --exclude=.git penumbra-core/core /tmp/upstream-penumbra/core > /tmp/core.diff.txt 2>&1; then
+            echo "No drift detected."
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Drift detected:"
+            cat /tmp/core.diff.txt
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update vendored core
+        if: steps.compare.outputs.drifted == 'true'
+        run: |
+          rm -rf penumbra-core/core
+          cp -r /tmp/upstream-penumbra/core penumbra-core/core
+          rm -rf penumbra-core/core/.git
+          rm -rf /tmp/upstream-penumbra
+
+      - name: Open pull request if drifted
+        if: steps.compare.outputs.drifted == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "core sync: update penumbra-core from upstream"
+          branch: core-sync/upstream
+          delete-branch: true
+          title: "Auto core sync: penumbra-core drifted from upstream"
+          body: |
+            Automated sync of `penumbra-core/core` from upstream `shomykohai/penumbra`.
+
+            The scheduled core-sync check detected that the vendored core has drifted
+            from upstream. This PR updates it. Review and verify the wrapper still
+            builds before merging.
+
+            Triggered by the scheduled Core Sync workflow.
+          labels:
+            - core-sync
+            - dependencies

@@ -18,9 +18,11 @@ This file orients coding agents to the Antumbra GUI repo. Keep changes aligned w
 - Tauri build: `npm run tauri:build` (uses env vars in script).
 
 ## Tests
-- There is no test runner configured (no `test` script, no Vitest/Jest deps).
-- Single-test workflow is therefore not available yet.
-- If you introduce tests, also add an npm script and document the single-test command here.
+- Test runner: Vitest (configured in `vitest.config.ts`).
+- Run all frontend tests: `npm test` (i.e. `vitest run`).
+- Run a single test file: `npx vitest run <file>` (e.g. `npx vitest run src/store/operationStore.test.ts`).
+- Backend Rust tests: `cargo test --workspace` from the repo root.
+- Test files live next to the code they cover (e.g. `src/services/utils/utils.test.ts`).
 
 ## Repo Structure
 - `src/components/`: shared UI components.
@@ -134,9 +136,9 @@ ESLint is configured in `eslint.config.js` with these rules:
 - No Copilot rules found in `.github/copilot-instructions.md`.
 
 ## If You Add Tests
-- There is currently no test runner configured.
-- If you introduce tests, add a `test` script to `package.json` (e.g., `vitest` or `jest`).
-- Document the single-test command here (e.g., `npm test -- --run <file>` or `npm test -- <test-name>`).
+- Vitest is configured. Add test files as `*.test.ts`/`*.test.tsx` next to the code.
+- Run them with `npm test` (all) or `npx vitest run <file>` (single file).
+- Keep tests free of Tauri/webview APIs unless they're mocked; target pure utils and stores.
 
 ## When in Doubt
 - Follow established patterns in the nearest file.
