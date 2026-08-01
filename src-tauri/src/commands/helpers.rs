@@ -55,21 +55,6 @@ pub fn emit_operation_progress(
     let _ = app.emit("operation:progress", event);
 }
 
-pub fn result_with_emit<T>(
-    result: Result<T, AppError>,
-    app: &AppHandle,
-    op_id: &str,
-) -> Result<T, AppError> {
-    match result {
-        Ok(val) => Ok(val),
-        Err(err) => {
-            emit_operation_output(app, op_id, &err.message(), true);
-            emit_operation_complete(app, op_id, false, Some(err.message()));
-            Err(err)
-        }
-    }
-}
-
 pub fn validate_da_preloader_paths(
     da_path: &str,
     preloader_path: Option<&str>,

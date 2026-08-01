@@ -97,20 +97,6 @@ impl AppError {
         }
     }
 
-    /// Get the error message
-    pub fn message(&self) -> String {
-        match self {
-            AppError::Io { message, .. } => message.clone(),
-            AppError::Command { message, .. } => message.clone(),
-            AppError::DeviceNotConnected => "Device not connected".to_string(),
-            AppError::Cancelled => "Operation cancelled".to_string(),
-            AppError::InvalidPartition(msg) => msg.clone(),
-            AppError::Parse(msg) => msg.clone(),
-            AppError::Update { message, .. } => message.clone(),
-            AppError::Other { message, .. } => message.clone(),
-        }
-    }
-
     #[cfg(test)]
     pub fn category(&self) -> ErrorCategory {
         match self {

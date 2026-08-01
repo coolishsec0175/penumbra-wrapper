@@ -3,16 +3,13 @@
     SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
-pub mod adb;
 pub mod device;
 pub mod diagnostics;
 pub mod erase;
 pub mod fastboot;
-pub mod fastboot_tools;
 pub mod flash;
 pub mod format;
 pub mod helpers;
-pub mod mtk;
 pub mod read;
 pub mod scatter;
 pub mod settings;
@@ -25,8 +22,7 @@ use tauri::AppHandle;
 
 pub use helpers::{
     build_antumbra_args, emit_operation_complete, emit_operation_output, execute_antumbra_command,
-    result_with_emit, validate_da_preloader_paths, validate_input_file, validate_output_dir,
-    validate_output_parent,
+    validate_da_preloader_paths, validate_input_file, validate_output_dir, validate_output_parent,
 };
 
 #[tauri::command]
