@@ -109,4 +109,4 @@ jobs:
           retryAttempts: 2
           includeUpdaterJson: true
           tauriScript: npx tauri
-          args: --bundles nsis,msi,app
+          args: --bundles nsis,msi
