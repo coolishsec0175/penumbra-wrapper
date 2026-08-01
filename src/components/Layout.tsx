@@ -4,7 +4,7 @@
 */
 
 import { Outlet, NavLink } from 'react-router-dom';
-import { Terminal, Grid, FileStack, Wrench, Sun, Moon, Cpu, Zap, Microchip } from 'lucide-react';
+import { Terminal, Grid, FileStack, Wrench, Sun, Moon, Zap } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { useFlasherStore } from '../store/flasherStore';
 import { Button } from './ui/button';
@@ -77,35 +77,6 @@ export function Layout() {
             <span className="font-medium">Tools</span>
           </NavLink>
 
-          <NavLink
-            to="/adb-fastboot"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-surface-alt hover:text-foreground'
-              )
-            }
-          >
-            <Cpu className="h-5 w-5" />
-            <span className="font-medium">ADB & Fastboot</span>
-          </NavLink>
-
-          <NavLink
-            to="/mtk-tools"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-surface-alt hover:text-foreground'
-              )
-            }
-          >
-            <Microchip className="h-5 w-5" />
-            <span className="font-medium">MTK Tools</span>
-          </NavLink>
         </div>
 
         <div className="space-y-2 border-t border-border p-3">

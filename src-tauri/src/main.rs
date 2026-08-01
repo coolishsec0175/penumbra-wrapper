@@ -77,6 +77,7 @@ async fn main() {
             commands::device::reboot_device,
             commands::device::shutdown_device,
             commands::flash::flash_partition,
+            commands::flash::xflash_rsc_flash,
             commands::read::read_partition,
             commands::format::format_partition,
             commands::erase::erase_partition,

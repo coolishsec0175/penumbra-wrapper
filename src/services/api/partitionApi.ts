@@ -170,4 +170,31 @@ export class PartitionApi {
       operationId: operationId || uuidv4(),
     });
   }
+
+  /**
+   * Flash a partition using the XFlash RSC protocol (V5 devices).
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param partition - Name of the partition to flash
+   * @param imagePath - Path to the image file to flash
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking (auto-generated if not provided)
+   * @returns Promise resolving when the flash completes
+   * @throws Error if the flash fails
+   */
+  static async rscFlash(
+    daPath: string,
+    partition: string,
+    imagePath: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('xflash_rsc_flash', {
+      daPath,
+      partition,
+      imagePath,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
 }

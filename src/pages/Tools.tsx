@@ -15,6 +15,7 @@ import { ReadAllSection } from '../components/tools/ReadAllSection';
 import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
+import { XflashRscSection } from '../components/tools/XflashRscSection';
 
 export function Tools() {
   const { daPath, preloaderPath, isConnected, isSettingsLoading } = useDeviceStore();
@@ -28,6 +29,9 @@ export function Tools() {
   const [restoreDir, setRestoreDir] = useState<string | null>(null);
   const [isSeccfgRunning, setIsSeccfgRunning] = useState(false);
   const [isFastbootRunning, setIsFastbootRunning] = useState(false);
+  const [isRscRunning, setIsRscRunning] = useState(false);
+  const [rscPartition, setRscPartition] = useState('');
+  const [rscImage, setRscImage] = useState<string | null>(null);
   const [skipPartitions, setSkipPartitions] = useState<Set<string>>(new Set());
 
   const handleSelectAllSkip = () => {
@@ -264,6 +268,81 @@ export function Tools() {
     }
   };
 
+  const handleSelectRscImage = async () => {
+    const path = await selectFile(DialogType.IMAGE_FILE);
+    if (path) {
+      setRscImage(path);
+      toast.success('Image file selected');
+    }
+  };
+
+  const handleClearRscImage = () => {
+    setRscImage(null);
+  };
+
+  const handleRscFlash = async () => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+    if (!rscPartition.trim() || !rscImage) {
+      toast.error('Select a partition and image file first');
+      return;
+    }
+
+    const partition = rscPartition.trim();
+
+    const confirmed = await confirm({
+      title: 'Flash RSC Partition',
+      message: (
+        <div>
+          <p className="font-semibold text-danger mb-2">WARNING: THIS WILL OVERWRITE THE PARTITION</p>
+          <p>This will flash partition:</p>
+          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{partition}</p>
+          <p className="mt-3 text-muted-foreground">with image:</p>
+          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{rscImage}</p>
+          <p className="mt-3 text-muted-foreground">using the XFlash V5 RSC protocol. Continue?</p>
+        </div>
+      ),
+      variant: 'danger',
+      confirmText: 'Flash',
+    });
+
+    if (!confirmed) {
+      toast('Flash cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
+    setIsRscRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Flash RSC partition',
+        type: 'write',
+        partitionName: partition,
+        successMessage: `RSC flash of '${partition}' complete!`,
+        errorMessage: `Failed to flash '${partition}'`,
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Starting XFlash V5 RSC flash of '${partition}'...`,
+          });
+        },
+        run: (operationId) =>
+          PartitionApi.rscFlash(
+            daPath,
+            partition,
+            rscImage,
+            preloaderPath || undefined,
+            operationId
+          ),
+      });
+    } finally {
+      setIsRscRunning(false);
+    }
+  };
+
   const backupCount = partitions.length - skipPartitions.size;
 
   return (
@@ -305,6 +384,18 @@ export function Tools() {
         <FastbootSection
           isRunning={isFastbootRunning}
           onForceFastboot={handleForceFastboot}
+        />
+
+        <XflashRscSection
+          isConnected={isConnected}
+          isRscRunning={isRscRunning}
+          isSettingsLoading={isSettingsLoading}
+          partitionName={rscPartition}
+          imagePath={rscImage}
+          onPartitionNameChange={setRscPartition}
+          onSelectImage={handleSelectRscImage}
+          onClearImage={handleClearRscImage}
+          onFlash={handleRscFlash}
         />
       </main>
     </div>
