@@ -35,3 +35,31 @@ pub async fn read_partition(
     )
     .await
 }
+
+#[tauri::command]
+pub async fn read_flash_partition(
+    app: AppHandle,
+    da_path: String,
+    partition: String,
+    output_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    validate_output_parent(&output_path, "Output file")?;
+    log::info!(
+        "Reading flash partition '{}' to file: {} (operation_id: {})",
+        partition,
+        output_path,
+        operation_id
+    );
+
+    execute_antumbra_command(
+        app,
+        operation_id,
+        &da_path,
+        preloader_path.as_deref(),
+        vec!["read-flash".to_string(), partition, output_path],
+    )
+    .await
+}

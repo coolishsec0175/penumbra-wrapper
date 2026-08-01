@@ -1,19 +1,27 @@
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Zap, HardDrive } from 'lucide-react';
 
 interface BootloaderSectionProps {
   isConnected: boolean;
   isSeccfgRunning: boolean;
   isSettingsLoading: boolean;
+  isSlotRunning: boolean;
+  isCrashRunning: boolean;
   onUnlock: () => void;
   onLock: () => void;
+  onSetSlot: (slot: 'a' | 'b') => void;
+  onCrash: () => void;
 }
 
 export function BootloaderSection({
   isConnected,
   isSeccfgRunning,
   isSettingsLoading,
+  isSlotRunning,
+  isCrashRunning,
   onUnlock,
   onLock,
+  onSetSlot,
+  onCrash,
 }: BootloaderSectionProps) {
   return (
     <section className="rounded-lg border border-border bg-surface-alt p-4">
@@ -46,6 +54,44 @@ export function BootloaderSection({
       >
           <Lock className="w-5 h-5" />
           {isSeccfgRunning ? 'Processing...' : 'Lock Bootloader'}
+        </button>
+      </div>
+
+      <div className="mt-4 border-t border-border pt-4">
+        <p className="text-sm text-muted-foreground mb-2">
+          Set the active A/B boot slot.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={() => onSetSlot('a')}
+            disabled={!isConnected || isSlotRunning || isSettingsLoading}
+            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <HardDrive className="w-5 h-5" />
+            {isSlotRunning ? 'Setting slot A...' : 'Set Slot A'}
+          </button>
+          <button
+            onClick={() => onSetSlot('b')}
+            disabled={!isConnected || isSlotRunning || isSettingsLoading}
+            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <HardDrive className="w-5 h-5" />
+            {isSlotRunning ? 'Setting slot B...' : 'Set Slot B'}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 border-t border-border pt-4">
+        <p className="text-sm text-muted-foreground mb-2">
+          Send the debug crash command to the antumbra CLI.
+        </p>
+        <button
+          onClick={onCrash}
+          disabled={!isConnected || isCrashRunning || isSettingsLoading}
+          className="flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-2.5 font-medium text-secondary-foreground transition-colors hover:bg-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Zap className="w-5 h-5" />
+          {isCrashRunning ? 'Crashing...' : 'Send Crash Command'}
         </button>
       </div>
     </section>

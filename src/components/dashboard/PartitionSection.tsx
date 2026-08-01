@@ -16,6 +16,9 @@ interface PartitionSectionProps {
   onToggleRebootDropdown: () => void;
   onRebootNormal: () => void;
   onRebootFastboot: () => void;
+  onRebootHomeScreen: () => void;
+  onRebootMeta: () => void;
+  onRebootTest: () => void;
   onShutdown: () => void;
   onRead: (partition: Partition) => void;
   onWrite: (partition: Partition) => void;
@@ -34,6 +37,9 @@ export function PartitionSection({
   onToggleRebootDropdown,
   onRebootNormal,
   onRebootFastboot,
+  onRebootHomeScreen,
+  onRebootMeta,
+  onRebootTest,
   onShutdown,
   onRead,
   onWrite,
@@ -67,7 +73,7 @@ export function PartitionSection({
               <ChevronDown className="h-4 w-4" />
             </Button>
             {rebootDropdownOpen && (
-              <Card className="absolute right-0 z-50 mt-2 w-36 overflow-hidden border-border bg-surface p-1 shadow-lg">
+              <Card className="absolute right-0 z-50 mt-2 w-40 overflow-hidden border-border bg-surface p-1 shadow-lg">
                 <button
                   onClick={onRebootNormal}
                   className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
@@ -75,10 +81,28 @@ export function PartitionSection({
                   Normal
                 </button>
                 <button
+                  onClick={onRebootHomeScreen}
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                >
+                  Home Screen
+                </button>
+                <button
                   onClick={onRebootFastboot}
                   className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
                 >
                   Fastboot
+                </button>
+                <button
+                  onClick={onRebootMeta}
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                >
+                  Meta
+                </button>
+                <button
+                  onClick={onRebootTest}
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                >
+                  Test
                 </button>
                 <div className="my-1 border-t border-border" />
                 <button

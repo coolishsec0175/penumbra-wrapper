@@ -167,7 +167,7 @@ export function Dashboard() {
     await connect();
   };
 
-  const handleReboot = async (mode: 'normal' | 'fastboot') => {
+  const handleReboot = async (mode: 'normal' | 'home-screen' | 'fastboot' | 'meta' | 'test') => {
     if (!daPath || !isConnected) return;
 
     setRebootDropdownOpen(false);
@@ -436,6 +436,9 @@ export function Dashboard() {
           onToggleRebootDropdown={() => setRebootDropdownOpen(!rebootDropdownOpen)}
           onRebootNormal={() => handleReboot('normal')}
           onRebootFastboot={() => handleReboot('fastboot')}
+          onRebootHomeScreen={() => handleReboot('home-screen')}
+          onRebootMeta={() => handleReboot('meta')}
+          onRebootTest={() => handleReboot('test')}
           onShutdown={handleShutdown}
           onRead={handleRead}
           onWrite={handleWrite}

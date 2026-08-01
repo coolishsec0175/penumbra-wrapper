@@ -33,14 +33,15 @@ export class DeviceApi {
    * Reboot device to the specified mode.
    * 
    * @param daPath - Path to the Download Agent (DA) file
-   * @param mode - Reboot mode: 'normal' for standard reboot, 'fastboot' for fastboot mode
+   * @param mode - Reboot mode: 'normal' for standard reboot, 'fastboot' for fastboot mode,
+   *               'home-screen', 'meta', or 'test' for other modes
    * @param preloaderPath - Optional path to preloader file
    * @returns Promise resolving when reboot command is sent
    * @throws Error if reboot fails
    */
   static async reboot(
     daPath: string,
-    mode: 'normal' | 'fastboot',
+    mode: 'normal' | 'home-screen' | 'fastboot' | 'meta' | 'test',
     preloaderPath?: string
   ): Promise<void> {
     return invoke('reboot_device', {

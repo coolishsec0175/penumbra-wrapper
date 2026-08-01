@@ -9,6 +9,7 @@ import { DialogType } from '../services/dialogs/fileDialogService';
 import { PartitionApi } from '../services/api/partitionApi';
 import { DeviceApi } from '../services/api/deviceApi';
 import { FastbootApi } from '../services/api/fastbootApi';
+import { AdvancedApi } from '../services/api/advancedApi';
 import { executeOperation } from '../services/operations/executeOperation';
 import { ConnectionWarning } from '../components/tools/ConnectionWarning';
 import { ReadAllSection } from '../components/tools/ReadAllSection';
@@ -16,6 +17,9 @@ import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
 import { XflashRscSection } from '../components/tools/XflashRscSection';
+import { MemorySection } from '../components/tools/MemorySection';
+import { RpmbSection } from '../components/tools/RpmbSection';
+import { ReadFlashSection } from '../components/tools/ReadFlashSection';
 
 export function Tools() {
   const { daPath, preloaderPath, isConnected, isSettingsLoading } = useDeviceStore();
@@ -33,6 +37,11 @@ export function Tools() {
   const [rscPartition, setRscPartition] = useState('');
   const [rscImage, setRscImage] = useState<string | null>(null);
   const [skipPartitions, setSkipPartitions] = useState<Set<string>>(new Set());
+  const [isSlotRunning, setIsSlotRunning] = useState(false);
+  const [isCrashRunning, setIsCrashRunning] = useState(false);
+  const [isMemoryRunning, setIsMemoryRunning] = useState(false);
+  const [isRpmbRunning, setIsRpmbRunning] = useState(false);
+  const [isReadFlashRunning, setIsReadFlashRunning] = useState(false);
 
   const handleSelectAllSkip = () => {
     setSkipPartitions(new Set(partitions.map((p) => p.name)));
@@ -343,6 +352,374 @@ export function Tools() {
     }
   };
 
+  const handleSetSlot = async (slot: 'a' | 'b') => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: `Set Slot ${slot.toUpperCase()}`,
+      message: `Set the active boot slot to ${slot.toUpperCase()}?`,
+      variant: 'warning',
+      confirmText: 'Set',
+    });
+
+    if (!confirmed) {
+      toast('Operation cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
+    setIsSlotRunning(true);
+
+    try {
+      await executeOperation({
+        operation: `Set active slot ${slot.toUpperCase()}`,
+        type: 'write',
+        partitionName: `slot-${slot}`,
+        partitionSize: 'bootloader',
+        successMessage: `Active slot set to ${slot.toUpperCase()} successfully!`,
+        errorMessage: `Failed to set active slot to ${slot.toUpperCase()}`,
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Setting active boot slot to ${slot.toUpperCase()}...`,
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.setActiveSlot(daPath, slot, preloaderPath || undefined, operationId),
+      });
+    } finally {
+      setIsSlotRunning(false);
+    }
+  };
+
+  const handleCrash = async () => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Send Crash Command',
+      message:
+        'Send the debug crash command to the antumbra CLI. This will cause the CLI to crash on purpose. Continue?',
+      variant: 'danger',
+      confirmText: 'Send',
+    });
+
+    if (!confirmed) {
+      toast('Operation cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
+    setIsCrashRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Send crash command',
+        type: 'write',
+        partitionName: 'crash',
+        partitionSize: 'debug',
+        successMessage: 'Crash command sent successfully!',
+        errorMessage: 'Failed to send crash command',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: 'Sending crash command to antumbra...',
+          });
+        },
+        run: (operationId) =>
+          DeviceApi.crash(daPath, preloaderPath || undefined, operationId),
+      });
+    } finally {
+      setIsCrashRunning(false);
+    }
+  };
+
+  const handleMemoryRead = async (address: string, length: string, outputPath: string) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsMemoryRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Peek memory',
+        type: 'read',
+        partitionName: `memory@${address}`,
+        partitionSize: length,
+        successMessage: 'Memory read complete!',
+        errorMessage: 'Failed to read memory',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Reading ${length} bytes from memory address ${address}...`,
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.peek({
+            daPath,
+            address,
+            length,
+            filePath: outputPath,
+            preloaderPath: preloaderPath || undefined,
+            operationId,
+          }),
+      });
+    } finally {
+      setIsMemoryRunning(false);
+    }
+  };
+
+  const handleMemoryWrite = async (address: string, filePath: string) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsMemoryRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Poke memory',
+        type: 'write',
+        partitionName: `memory@${address}`,
+        partitionSize: 'memory',
+        successMessage: 'Memory write complete!',
+        errorMessage: 'Failed to write memory',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Writing file to memory address ${address}...`,
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.poke({
+            daPath,
+            address,
+            filePath,
+            preloaderPath: preloaderPath || undefined,
+            operationId,
+          }),
+      });
+    } finally {
+      setIsMemoryRunning(false);
+    }
+  };
+
+  const handleRpmbRead = async (options: {
+    filePath: string;
+    region?: number;
+    startSector?: number;
+    numSectors?: number;
+  }) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsRpmbRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'RPMB read',
+        type: 'read',
+        partitionName: 'rpmb',
+        partitionSize: options.numSectors ? `${options.numSectors} sectors` : undefined,
+        successMessage: 'RPMB read complete!',
+        errorMessage: 'Failed to read RPMB',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: 'Reading RPMB partition...',
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.rpmbRead({
+            daPath,
+            filePath: options.filePath,
+            region: options.region,
+            startSector: options.startSector,
+            numSectors: options.numSectors,
+            preloaderPath: preloaderPath || undefined,
+            operationId,
+          }),
+      });
+    } finally {
+      setIsRpmbRunning(false);
+    }
+  };
+
+  const handleRpmbWrite = async (options: {
+    filePath: string;
+    region?: number;
+    startSector?: number;
+    numSectors?: number;
+  }) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsRpmbRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'RPMB write',
+        type: 'write',
+        partitionName: 'rpmb',
+        partitionSize: options.numSectors ? `${options.numSectors} sectors` : undefined,
+        successMessage: 'RPMB write complete!',
+        errorMessage: 'Failed to write RPMB',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: 'Writing RPMB partition...',
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.rpmbWrite({
+            daPath,
+            filePath: options.filePath,
+            region: options.region,
+            startSector: options.startSector,
+            numSectors: options.numSectors,
+            preloaderPath: preloaderPath || undefined,
+            operationId,
+          }),
+      });
+    } finally {
+      setIsRpmbRunning(false);
+    }
+  };
+
+  const handleRpmbAuth = async (key: string, region?: number) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsRpmbRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'RPMB auth',
+        type: 'write',
+        partitionName: 'rpmb',
+        partitionSize: 'auth',
+        successMessage: 'RPMB authentication successful!',
+        errorMessage: 'Failed to authenticate RPMB',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: 'Authenticating with RPMB partition...',
+          });
+        },
+        run: (operationId) =>
+          AdvancedApi.rpmbAuth({
+            daPath,
+            key,
+            region,
+            preloaderPath: preloaderPath || undefined,
+            operationId,
+          }),
+      });
+    } finally {
+      setIsRpmbRunning(false);
+    }
+  };
+
+  const handleReadFlash = async (partition: string, outputPath: string) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    setIsReadFlashRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Read flash partition',
+        type: 'read',
+        partitionName: partition,
+        successMessage: `Read of '${partition}' complete!`,
+        errorMessage: `Failed to read '${partition}'`,
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Reading flash partition '${partition}'...`,
+          });
+        },
+        run: (operationId) =>
+          PartitionApi.readFlash(daPath, partition, outputPath, preloaderPath || undefined, operationId),
+      });
+    } finally {
+      setIsReadFlashRunning(false);
+    }
+  };
+
+  const handleWriteFlash = async (partition: string, imagePath: string) => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Write Flash Partition',
+      message: (
+        <div>
+          <p className="font-semibold text-danger mb-2">WARNING: THIS WILL OVERWRITE THE PARTITION</p>
+          <p>This will write to partition:</p>
+          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{partition}</p>
+          <p className="mt-3 text-muted-foreground">with image:</p>
+          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{imagePath}</p>
+          <p className="mt-3 text-muted-foreground">Continue?</p>
+        </div>
+      ),
+      variant: 'danger',
+      confirmText: 'Write',
+    });
+
+    if (!confirmed) {
+      toast('Write cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
+    setIsReadFlashRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Write flash partition',
+        type: 'write',
+        partitionName: partition,
+        successMessage: `Write to '${partition}' complete!`,
+        errorMessage: `Failed to write '${partition}'`,
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Writing flash partition '${partition}'...`,
+          });
+        },
+        run: (operationId) =>
+          PartitionApi.writeFlash(daPath, partition, imagePath, preloaderPath || undefined, operationId),
+      });
+    } finally {
+      setIsReadFlashRunning(false);
+    }
+  };
+
   const backupCount = partitions.length - skipPartitions.size;
 
   return (
@@ -377,8 +754,12 @@ export function Tools() {
           isConnected={isConnected}
           isSeccfgRunning={isSeccfgRunning}
           isSettingsLoading={isSettingsLoading}
+          isSlotRunning={isSlotRunning}
+          isCrashRunning={isCrashRunning}
           onUnlock={() => handleSeccfg('unlock')}
           onLock={() => handleSeccfg('lock')}
+          onSetSlot={handleSetSlot}
+          onCrash={handleCrash}
         />
 
         <FastbootSection
@@ -396,6 +777,31 @@ export function Tools() {
           onSelectImage={handleSelectRscImage}
           onClearImage={handleClearRscImage}
           onFlash={handleRscFlash}
+        />
+
+        <ReadFlashSection
+          isConnected={isConnected}
+          isRunning={isReadFlashRunning}
+          isSettingsLoading={isSettingsLoading}
+          onRead={handleReadFlash}
+          onWrite={handleWriteFlash}
+        />
+
+        <MemorySection
+          isConnected={isConnected}
+          isRunning={isMemoryRunning}
+          isSettingsLoading={isSettingsLoading}
+          onRead={handleMemoryRead}
+          onWrite={handleMemoryWrite}
+        />
+
+        <RpmbSection
+          isConnected={isConnected}
+          isRunning={isRpmbRunning}
+          isSettingsLoading={isSettingsLoading}
+          onRead={handleRpmbRead}
+          onWrite={handleRpmbWrite}
+          onAuth={handleRpmbAuth}
         />
       </main>
     </div>

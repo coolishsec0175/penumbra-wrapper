@@ -37,6 +37,34 @@ pub async fn flash_partition(
 }
 
 #[tauri::command]
+pub async fn write_flash_partition(
+    app: AppHandle,
+    da_path: String,
+    partition: String,
+    image_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    validate_input_file(&image_path, "Image file")?;
+    log::info!(
+        "Writing flash partition '{}' with image: {} (operation_id: {})",
+        partition,
+        image_path,
+        operation_id
+    );
+
+    execute_antumbra_command(
+        app,
+        operation_id,
+        &da_path,
+        preloader_path.as_deref(),
+        vec!["write-flash".to_string(), partition, image_path],
+    )
+    .await
+}
+
+#[tauri::command]
 pub async fn xflash_rsc_flash(
     app: AppHandle,
     da_path: String,

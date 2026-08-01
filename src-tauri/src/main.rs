@@ -77,7 +77,9 @@ async fn main() {
             commands::device::shutdown_device,
             commands::flash::flash_partition,
             commands::flash::xflash_rsc_flash,
+            commands::flash::write_flash_partition,
             commands::read::read_partition,
+            commands::read::read_flash_partition,
             commands::format::format_partition,
             commands::erase::erase_partition,
             commands::tools::read_all_partitions,
@@ -99,6 +101,14 @@ async fn main() {
             commands::diagnostics::check_windows_environment,
             commands::diagnostics::export_diagnostics,
             commands::fastboot::force_fastboot,
+            commands::raw::peek_memory,
+            commands::raw::poke_memory,
+            commands::raw::read_offset,
+            commands::raw::write_offset,
+            commands::raw::rpmb_read,
+            commands::raw::rpmb_write,
+            commands::raw::rpmb_auth,
+            commands::raw::set_active_slot,
         ])
         .setup(|_app| {
             // Initialize services on startup
