@@ -361,7 +361,8 @@ pub fn get_installed_version(app: &AppHandle) -> Result<String> {
 
 fn normalize_version(version: &str) -> Option<String> {
     let token = version.split_whitespace().find(|part| part.chars().any(|c| c.is_ascii_digit()))?;
-    Some(token.trim_start_matches('v').to_string())
+    let version_start = token.find(|c: char| c.is_ascii_digit())?;
+    Some(token[version_start..].trim_end().to_string())
 }
 
 #[cfg(test)]
