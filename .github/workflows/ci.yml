@@ -1,5 +1,7 @@
 name: CI
 
+# Re-register this workflow on GitHub (was showing stale "deleted" state)
+
 on:
   push:
     branches:
