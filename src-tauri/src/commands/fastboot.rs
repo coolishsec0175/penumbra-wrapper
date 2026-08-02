@@ -8,6 +8,8 @@ use crate::error::AppError;
 use crate::services::device_discovery;
 use serde::Serialize;
 use std::io::Write;
+#[cfg(target_os = "linux")]
+use std::path::Path;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 use uuid::Uuid;
@@ -16,12 +18,16 @@ const VENDOR_ID: u16 = 0x0E8D;
 const BOOT_MODE_CMD: &[u8] = b"FASTBOOT";
 const KEYWORDS: [&str; 3] = ["MediaTek", "PreLoader", "MTK"];
 const BAUDS: [u32; 3] = [115_200, 921_600, 57_600];
-const SCAN_WINDOW_SECS: f32 = 60.0;
+const SCAN_WINDOW_SECS: f32 = 120.0;
 const PORT_ATTEMPT_SECS: f32 = 2.5;
 const POLL_INTERVAL_SECS: f32 = 0.2;
 const READ_TIMEOUT_SECS: f32 = 0.0;
 const WRITE_TIMEOUT_SECS: f32 = 0.3;
 const FLOOD_INTERVAL_SECS: f32 = 0.03;
+const FASTBOOT_MODE_POLL_SECS: f32 = 0.5;
+const FASTBOOT_IFACE_CLASS: u8 = 0xff;
+const FASTBOOT_IFACE_SUBCLASS: u8 = 0x42;
+const FASTBOOT_IFACE_PROTOCOL: u8 = 0x03;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -81,6 +87,17 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
         );
     }
 
+    if in_fastboot_mode() {
+        let message = "Device already in Fastboot mode.".to_string();
+        emit_status(&app, FastbootStatus::Success, &message);
+        emit_operation_output(&app, &operation_id, &message, false);
+        emit_operation_complete(&app, &operation_id, true, None);
+        return FastbootResult {
+            status: FastbootStatus::Success,
+            message,
+        };
+    }
+
     let expected_ack = build_expected_ack();
     let scan_deadline = Instant::now() + Duration::from_secs_f32(SCAN_WINDOW_SECS);
     let mut saw_device = false;
@@ -88,8 +105,23 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
     let mut saw_open_error = false;
     let mut last_attempt: std::collections::HashMap<String, Instant> =
         std::collections::HashMap::new();
+    let mut last_mode_check = Instant::now();
 
     while Instant::now() < scan_deadline {
+        if last_mode_check.elapsed() >= Duration::from_secs_f32(FASTBOOT_MODE_POLL_SECS) {
+            if in_fastboot_mode() {
+                let message = "Device switched to Fastboot during handshake.".to_string();
+                emit_status(&app, FastbootStatus::Success, &message);
+                emit_operation_output(&app, &operation_id, &message, false);
+                emit_operation_complete(&app, &operation_id, true, None);
+                return FastbootResult {
+                    status: FastbootStatus::Success,
+                    message,
+                };
+            }
+            last_mode_check = Instant::now();
+        }
+
         let ports = match serialport::available_ports() {
             Ok(ports) => ports,
             Err(err) => {
@@ -162,11 +194,30 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
                     AttemptResult::NoAck => {
                         saw_no_ack = true;
                     }
+                    AttemptResult::Disconnected => {
+                        let dropped_message = format!(
+                            "Port {} dropped mid-handshake; device may be switching to Fastboot.",
+                            port.port_name
+                        );
+                        log::info!("{}", dropped_message);
+                        emit_operation_output(&app, &operation_id, &dropped_message, false);
+                    }
                 }
             }
         }
 
         std::thread::sleep(Duration::from_secs_f32(POLL_INTERVAL_SECS));
+    }
+
+    if in_fastboot_mode() {
+        let message = "Device switched to Fastboot during handshake.".to_string();
+        emit_status(&app, FastbootStatus::Success, &message);
+        emit_operation_output(&app, &operation_id, &message, false);
+        emit_operation_complete(&app, &operation_id, true, None);
+        return FastbootResult {
+            status: FastbootStatus::Success,
+            message,
+        };
     }
 
     if !saw_device {
@@ -213,11 +264,85 @@ fn emit_status(app: &AppHandle, status: FastbootStatus, message: &str) {
     let _ = app.emit("fastboot:status", payload);
 }
 
+/// Check whether a device is already exposed in Fastboot mode over USB by
+/// matching the fastboot interface class/subclass/protocol (ff/42/03).
+fn in_fastboot_mode() -> bool {
+    if nusb_fastboot_mode() {
+        return true;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        if linux_sysfs_fastboot_mode() {
+            return true;
+        }
+    }
+    false
+}
+
+fn nusb_fastboot_mode() -> bool {
+    let devices = match pollster::block_on(nusb::list_devices()) {
+        Ok(devices) => devices,
+        Err(err) => {
+            log::warn!("Failed to enumerate USB devices: {}", err);
+            return false;
+        }
+    };
+
+    for dev in devices {
+        let matched = dev.interfaces().any(|intf| {
+            intf.class() == FASTBOOT_IFACE_CLASS
+                && intf.subclass() == FASTBOOT_IFACE_SUBCLASS
+                && intf.protocol() == FASTBOOT_IFACE_PROTOCOL
+        });
+        if matched {
+            log::info!("Fastboot interface detected (VID {:04x}).", dev.vendor_id());
+            return true;
+        }
+    }
+
+    false
+}
+
+#[cfg(target_os = "linux")]
+fn linux_sysfs_fastboot_mode() -> bool {
+    let root = Path::new("/sys/bus/usb/devices");
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return false;
+    };
+
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.contains(':') {
+            continue;
+        }
+
+        let base = entry.path();
+        let class = read_trimmed(base.join("bInterfaceClass"));
+        let subclass = read_trimmed(base.join("bInterfaceSubClass"));
+        let protocol = read_trimmed(base.join("bInterfaceProtocol"));
+
+        if class == "ff" && subclass == "42" && protocol == "03" {
+            log::info!("Fastboot interface detected via sysfs ({})", name);
+            return true;
+        }
+    }
+
+    false
+}
+
+#[cfg(target_os = "linux")]
+fn read_trimmed(path: std::path::PathBuf) -> String {
+    std::fs::read_to_string(path)
+        .map(|s| s.trim().to_ascii_lowercase())
+        .unwrap_or_default()
+}
+
 #[derive(Debug)]
 enum AttemptResult {
     Success,
     OpenError(String),
     NoAck,
+    Disconnected,
 }
 
 fn attempt_fastboot(
@@ -237,17 +362,22 @@ fn attempt_fastboot(
         Err(err) => return AttemptResult::OpenError(err.to_string()),
     };
 
-
     let start = Instant::now();
     let flood_duration = attempt_window.mul_f32(0.6).min(Duration::from_secs_f32(1.5));
     let probe_duration = attempt_window
         .checked_sub(flood_duration)
         .unwrap_or(Duration::from_secs_f32(0.2))
         .max(Duration::from_secs_f32(0.2));
+    let mut last_mode_check = Instant::now();
 
     while Instant::now().duration_since(start) < flood_duration {
-        if let Err(err) = port.write_all(BOOT_MODE_CMD) {
-            return AttemptResult::OpenError(err.to_string());
+        if port.write_all(BOOT_MODE_CMD).is_err() {
+            // Write failure usually means the device switched modes and dropped
+            // the serial port. Confirm via USB before declaring a problem.
+            if in_fastboot_mode() {
+                return AttemptResult::Success;
+            }
+            return AttemptResult::Disconnected;
         }
 
         if let Some(resp) = read_response(port.as_mut(), 32) {
@@ -256,6 +386,13 @@ fn attempt_fastboot(
             {
                 return AttemptResult::Success;
             }
+        }
+
+        if last_mode_check.elapsed() >= Duration::from_secs_f32(FASTBOOT_MODE_POLL_SECS) {
+            if in_fastboot_mode() {
+                return AttemptResult::Success;
+            }
+            last_mode_check = Instant::now();
         }
 
         std::thread::sleep(flood_interval);
@@ -273,9 +410,22 @@ fn attempt_fastboot(
         }
 
         if last_write.elapsed() >= Duration::from_millis(200) {
-            let _ = port.write_all(BOOT_MODE_CMD);
+            if port.write_all(BOOT_MODE_CMD).is_err() {
+                if in_fastboot_mode() {
+                    return AttemptResult::Success;
+                }
+                return AttemptResult::Disconnected;
+            }
             last_write = Instant::now();
         }
+
+        if last_mode_check.elapsed() >= Duration::from_secs_f32(FASTBOOT_MODE_POLL_SECS) {
+            if in_fastboot_mode() {
+                return AttemptResult::Success;
+            }
+            last_mode_check = Instant::now();
+        }
+
         std::thread::sleep(Duration::from_millis(50));
     }
 
