@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { listen } from '@tauri-apps/api/event';
+import type { UnlistenFn } from '@tauri-apps/api/event';
+import type { FastbootStatus, FastbootStatusEvent } from '../types';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useOperationStore } from '../store/operationStore';
@@ -16,9 +19,11 @@ import { ReadAllSection } from '../components/tools/ReadAllSection';
 import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
+import { WindowsDiagnosticsPanel } from '../components/WindowsDiagnosticsPanel';
 
 export function Tools() {
-  const { daPath, preloaderPath, isConnected, isSettingsLoading } = useDeviceStore();
+  const { daPath, preloaderPath, isConnected, isSettingsLoading, isSettingsLoaded } = useDeviceStore();
+  const { backupSkipPartitions, setBackupSkipPartitions } = useDeviceStore();
   const { partitions } = usePartitionStore();
   const { addLog } = useOperationStore();
   const { confirm } = useConfirmation();
@@ -29,9 +34,43 @@ export function Tools() {
   const [restoreDir, setRestoreDir] = useState<string | null>(null);
   const [isSeccfgRunning, setIsSeccfgRunning] = useState(false);
   const [isFastbootRunning, setIsFastbootRunning] = useState(false);
+  const [fastbootStatus, setFastbootStatus] = useState<FastbootStatus | null>(null);
+  const [fastbootMessage, setFastbootMessage] = useState('');
   const [skipPartitions, setSkipPartitions] = useState<Set<string>>(new Set());
   const [isSlotRunning, setIsSlotRunning] = useState(false);
   const [isCrashRunning, setIsCrashRunning] = useState(false);
+
+  useEffect(() => {
+    let unlisten: UnlistenFn | null = null;
+    let isMounted = true;
+
+    const setup = async () => {
+      unlisten = await listen<FastbootStatusEvent>('fastboot:status', (event) => {
+        if (!isMounted) return;
+        setFastbootStatus(event.payload.status);
+        setFastbootMessage(event.payload.message);
+      });
+    };
+
+    setup();
+
+    return () => {
+      isMounted = false;
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSettingsLoaded) return;
+    if (skipPartitions.size === 0 && backupSkipPartitions.length > 0) {
+      setSkipPartitions(new Set(backupSkipPartitions));
+    }
+  }, [isSettingsLoaded, backupSkipPartitions, skipPartitions.size, setSkipPartitions]);
+
+  useEffect(() => {
+    if (!isSettingsLoaded) return;
+    setBackupSkipPartitions(Array.from(skipPartitions));
+  }, [skipPartitions, isSettingsLoaded, setBackupSkipPartitions]);
 
   const handleSelectAllSkip = () => {
     setSkipPartitions(new Set(partitions.map((p) => p.name)));
@@ -258,12 +297,40 @@ export function Tools() {
     if (isFastbootRunning) return;
 
     setIsFastbootRunning(true);
+    setFastbootStatus('start');
+    setFastbootMessage('Starting fastboot attempt...');
     try {
-      await FastbootApi.forceFastboot();
+      const result = await FastbootApi.forceFastboot();
+      setFastbootStatus(result.status);
+      setFastbootMessage(result.message);
+      switch (result.status) {
+        case 'success':
+          toast.success(result.message || 'Device switched to Fastboot mode');
+          break;
+        case 'cancelled':
+          toast('Fastboot attempt cancelled', { icon: 'ℹ️' });
+          break;
+        case 'no_device':
+        case 'no_ack':
+        case 'open_error':
+        case 'error':
+          toast.error(result.message || 'Fastboot attempt failed');
+          break;
+        default:
+          break;
+      }
     } catch {
       toast.error('Failed to start fastboot attempt');
     } finally {
       setIsFastbootRunning(false);
+    }
+  };
+
+  const handleCancelFastboot = async () => {
+    try {
+      await FastbootApi.cancelForceFastboot();
+    } catch {
+      toast.error('Failed to cancel fastboot attempt');
     }
   };
 
@@ -398,8 +465,13 @@ export function Tools() {
 
         <FastbootSection
           isRunning={isFastbootRunning}
+          status={fastbootStatus}
+          statusMessage={fastbootMessage}
           onForceFastboot={handleForceFastboot}
+          onCancel={handleCancelFastboot}
         />
+
+        <WindowsDiagnosticsPanel />
       </main>
     </div>
   );

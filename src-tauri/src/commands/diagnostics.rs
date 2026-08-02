@@ -220,7 +220,7 @@ fn get_os_info() -> String {
     use std::process::Command;
     
     match Command::new("cmd")
-        .args(&["/C", "ver"])
+        .args(["/C", "ver"])
         .output()
     {
         Ok(output) => String::from_utf8_lossy(&output.stdout).trim().to_string(),
@@ -238,7 +238,7 @@ fn check_running_antumbra() -> Vec<String> {
     use std::process::Command;
     
     match Command::new("tasklist")
-        .args(&["/FO", "CSV", "/NH", "/FI", "IMAGENAME eq antumbra.exe"])
+        .args(["/FO", "CSV", "/NH", "/FI", "IMAGENAME eq antumbra.exe"])
         .output()
     {
         Ok(output) => {

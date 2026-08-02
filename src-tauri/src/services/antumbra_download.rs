@@ -295,7 +295,7 @@ async fn try_download_async_streaming(app: &AppHandle, url: &str, temp_path: &Pa
 
                 let now = Instant::now();
                 if now.duration_since(last_progress_emit).as_millis() > 100
-                    || downloaded % 262_144 == 0
+                    || downloaded.is_multiple_of(262_144)
                 {
                     let percentage = if total_bytes > 0 {
                         (downloaded as f32 / total_bytes as f32) * 100.0
@@ -360,17 +360,19 @@ fn try_download_blocking(url: &str, temp_path: &Path) -> Result<()> {
 #[cfg(windows)]
 fn try_download_powershell(url: &str, temp_path: &Path) -> Result<()> {
     log::info!("Using PowerShell for download");
+    let command = format!(
+        "Invoke-WebRequest -Uri '{}' -OutFile '{}' -UseBasicParsing",
+        url,
+        temp_path.display()
+    );
 
     let output = std::process::Command::new("powershell")
-        .args(&[
+        .args([
             "-NoProfile",
-            "-ExecutionPolicy", "Bypass",
+            "-ExecutionPolicy",
+            "Bypass",
             "-Command",
-            &format!(
-                "Invoke-WebRequest -Uri '{}' -OutFile '{}' -UseBasicParsing",
-                url,
-                temp_path.display()
-            ),
+            command.as_str(),
         ])
         .output()?;
 

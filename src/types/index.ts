@@ -43,6 +43,7 @@ export interface AppSettings {
   default_output_path?: string;
   auto_check_updates: boolean;
   antumbra_version?: string;
+  backup_skip_partitions?: string[];
 }
 
 export interface AntumbraUpdateInfo {
@@ -86,7 +87,7 @@ export interface DownloadProgress {
   message: string;
 }
 
-export type FastbootStatus = 'start' | 'success' | 'no_device' | 'open_error' | 'no_ack' | 'error';
+export type FastbootStatus = 'start' | 'success' | 'no_device' | 'open_error' | 'no_ack' | 'error' | 'cancelled';
 
 export interface FastbootStatusEvent {
   status: FastbootStatus;

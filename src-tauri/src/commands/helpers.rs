@@ -84,6 +84,29 @@ pub fn validate_output_dir(path: &str, label: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+pub fn validate_restore_dir(path: &str) -> Result<(), AppError> {
+    let target = Path::new(path);
+    if !target.is_dir() {
+        return Err(AppError::command(format!("Restore folder not found: {}", path)));
+    }
+
+    let has_images = std::fs::read_dir(target)
+        .map_err(|err| {
+            AppError::command(format!("Cannot read restore folder: {} ({})", path, err))
+        })?
+        .filter_map(Result::ok)
+        .find(|entry| entry.file_type().map(|t| t.is_file()).unwrap_or(false))
+        .is_some();
+
+    if !has_images {
+        return Err(AppError::command(format!(
+            "No image files found in restore folder: {}",
+            path
+        )));
+    }
+    Ok(())
+}
+
 pub fn validate_output_parent(path: &str, label: &str) -> Result<(), AppError> {
     let parent = Path::new(path)
         .parent()
@@ -327,6 +350,23 @@ mod tests {
     #[test]
     fn test_validate_input_file_nonexistent() {
         assert!(validate_input_file("/nonexistent/file.txt", "Test").is_err());
+    }
+
+    #[test]
+    fn test_validate_restore_dir_empty() {
+        let temp = std::env::temp_dir().join(format!(".penumbra-empty-restore-{}", Uuid::new_v4()));
+        fs::create_dir_all(&temp).unwrap();
+        assert!(validate_restore_dir(&temp.to_string_lossy()).is_err());
+        let _ = fs::remove_dir_all(&temp);
+    }
+
+    #[test]
+    fn test_validate_restore_dir_with_images() {
+        let temp = std::env::temp_dir().join(format!(".penumbra-restore-{}", Uuid::new_v4()));
+        fs::create_dir_all(&temp).unwrap();
+        fs::write(temp.join("super.img"), "test").unwrap();
+        assert!(validate_restore_dir(&temp.to_string_lossy()).is_ok());
+        let _ = fs::remove_dir_all(&temp);
     }
 
     #[test]

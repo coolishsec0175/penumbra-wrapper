@@ -5,14 +5,25 @@ A Windows GUI for **antumbra**, the flash tool from the Penumbra project.
 ## About
 
 PenumbraWrapper is a Tauri + React GUI that wraps **antumbra** (the CLI flash
-tool from Penumbra). It provides a friendly interface for flashing firmware,
-readback, bootloader unlocking, and other MediaTek device operations.
+tool from Penumbra). It provides a friendly interface for MediaTek device
+operations including full partition backup/restore, preloader fastboot
+handshake, bootloader unlocking, and Windows environment diagnostics.
 
 ## Downloads
 
 Nightly builds (NSIS `.exe` installer and MSI) are published to the
 [nightly release](https://github.com/coolishsec0175/penumbra-wrapper/releases/tag/nightly)
 on every push to `main`.
+
+## Features
+
+- **Backup All / Restore All** — read or write every partition with a
+  partition skip-list (persisted in settings).
+- **Force Fastboot** — preloader serial handshake to switch MTK devices into
+  Fastboot mode, with fastboot-mode detection and cancellation.
+- **Bootloader** — unlock/lock (`seccfg`), set active slot, debug crash
+  command.
+- **Windows Diagnostics** — environment checks with exportable zip bundle.
 
 ## Building from source
 

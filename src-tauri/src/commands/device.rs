@@ -116,12 +116,12 @@ fn parse_pgpt_output(output: &str) -> Result<Vec<Partition>, AppError> {
             let mut size_human = String::new();
             let mut in_parens = false;
             for part in parts.iter().skip(size_i + 2) {
-                if part.starts_with('(') {
+                if let Some(rest) = part.strip_prefix('(') {
                     in_parens = true;
-                    size_human.push_str(&part[1..]);
-                } else if part.ends_with(')') {
+                    size_human.push_str(rest);
+                } else if let Some(rest) = part.strip_suffix(')') {
                     size_human.push(' ');
-                    size_human.push_str(&part[..part.len() - 1]);
+                    size_human.push_str(rest);
                     break;
                 } else if in_parens {
                     size_human.push(' ');

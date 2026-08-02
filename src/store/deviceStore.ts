@@ -13,6 +13,7 @@ interface DeviceState {
   defaultOutputPath: string | null;
   antumbraVersion: string | null;
   autoCheckUpdates: boolean;
+  backupSkipPartitions: string[];
 
   // Settings hydration
   isSettingsLoading: boolean;
@@ -32,6 +33,7 @@ interface DeviceState {
   setVerbose: (enabled: boolean) => Promise<void>;
   setDefaultOutputPath: (path: string | null) => Promise<void>;
   setAutoCheckUpdates: (enabled: boolean) => Promise<void>;
+  setBackupSkipPartitions: (partitions: string[]) => Promise<void>;
   updateSettings: (partial: Partial<DeviceState>) => Promise<void>;
   setConnecting: (connecting: boolean) => void;
   setConnected: (connected: boolean) => void;
@@ -52,6 +54,7 @@ const buildSettings = (state: DeviceState): AppSettings => ({
   default_output_path: state.defaultOutputPath || undefined,
   auto_check_updates: state.autoCheckUpdates,
   antumbra_version: state.antumbraVersion || undefined,
+  backup_skip_partitions: state.backupSkipPartitions,
 });
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
@@ -64,6 +67,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   defaultOutputPath: null,
   antumbraVersion: null,
   autoCheckUpdates: true,
+  backupSkipPartitions: [],
 
   // Connection State
   isConnecting: false,
@@ -102,6 +106,10 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   setAutoCheckUpdates: async (enabled) => {
     await get().updateSettings({ autoCheckUpdates: enabled });
+  },
+
+  setBackupSkipPartitions: async (partitions) => {
+    await get().updateSettings({ backupSkipPartitions: partitions });
   },
 
   updateSettings: async (partial) => {
@@ -150,6 +158,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
         defaultOutputPath: settings.default_output_path || null,
         antumbraVersion: settings.antumbra_version || null,
         autoCheckUpdates: settings.auto_check_updates,
+        backupSkipPartitions: settings.backup_skip_partitions || [],
         isSettingsLoaded: true,
       });
     } catch (error) {

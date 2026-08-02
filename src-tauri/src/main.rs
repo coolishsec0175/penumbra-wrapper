@@ -98,8 +98,10 @@ async fn main() {
             commands::diagnostics::check_windows_environment,
             commands::diagnostics::export_diagnostics,
             commands::fastboot::force_fastboot,
+            commands::fastboot::cancel_fastboot,
             commands::raw::set_active_slot,
         ])
+        .manage(commands::fastboot::FastbootCancel::default())
         .setup(|_app| {
             // Initialize services on startup
             log::info!("PenumbraWrapper starting...");

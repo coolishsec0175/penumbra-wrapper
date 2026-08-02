@@ -112,10 +112,8 @@ pub async fn check_for_updates(app: &AppHandle) -> Result<AntumbraUpdateInfo> {
                         (installed_checksum.as_deref(), Some(checksum.as_str()))
                     {
                         installed_checksum != expected_checksum
-                    } else if normalize_version(installed).as_deref() != Some(latest) {
-                        true
                     } else {
-                        false
+                        normalize_version(installed).as_deref() != Some(latest)
                     }
                 }
                 (Some(_), Some(installed), None) => {

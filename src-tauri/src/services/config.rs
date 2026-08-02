@@ -25,6 +25,8 @@ pub struct AppSettings {
     pub auto_check_updates: bool,
     #[serde(default)]
     pub antumbra_version: Option<String>,
+    #[serde(default)]
+    pub backup_skip_partitions: Vec<String>,
 }
 
 impl Default for AppSettings {
@@ -38,6 +40,7 @@ impl Default for AppSettings {
             default_output_path: None,
             auto_check_updates: true,
             antumbra_version: None,
+            backup_skip_partitions: Vec::new(),
         }
     }
 }

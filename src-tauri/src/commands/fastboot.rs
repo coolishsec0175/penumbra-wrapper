@@ -10,8 +10,10 @@ use serde::Serialize;
 use std::io::Write;
 #[cfg(target_os = "linux")]
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
 use uuid::Uuid;
 
 const VENDOR_ID: u16 = 0x0E8D;
@@ -22,7 +24,6 @@ const SCAN_WINDOW_SECS: f32 = 120.0;
 const PORT_ATTEMPT_SECS: f32 = 2.5;
 const POLL_INTERVAL_SECS: f32 = 0.2;
 const READ_TIMEOUT_SECS: f32 = 0.0;
-const WRITE_TIMEOUT_SECS: f32 = 0.3;
 const FLOOD_INTERVAL_SECS: f32 = 0.03;
 const FASTBOOT_MODE_POLL_SECS: f32 = 0.5;
 const FASTBOOT_IFACE_CLASS: u8 = 0xff;
@@ -37,8 +38,13 @@ pub enum FastbootStatus {
     NoDevice,
     OpenError,
     NoAck,
+    Cancelled,
     Error,
 }
+
+/// Shared cancellation flag for the (long-running) force-fastboot attempt.
+#[derive(Default)]
+pub struct FastbootCancel(Arc<AtomicBool>);
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,16 +61,27 @@ pub struct FastbootResult {
 }
 
 #[tauri::command]
-pub async fn force_fastboot(app: AppHandle) -> Result<FastbootResult, AppError> {
+pub async fn force_fastboot(
+    app: AppHandle,
+    state: State<'_, FastbootCancel>,
+) -> Result<FastbootResult, AppError> {
+    state.0.store(false, Ordering::SeqCst);
+    let cancel_flag = state.0.clone();
     let app_handle = app.clone();
-    let result = tokio::task::spawn_blocking(move || force_fastboot_blocking(app_handle))
+    let result = tokio::task::spawn_blocking(move || force_fastboot_blocking(app_handle, cancel_flag))
         .await
         .map_err(|err| AppError::command(err.to_string()))?;
 
     Ok(result)
 }
 
-fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
+#[tauri::command]
+pub async fn cancel_fastboot(state: State<'_, FastbootCancel>) -> Result<(), AppError> {
+    state.0.store(true, Ordering::SeqCst);
+    Ok(())
+}
+
+fn force_fastboot_blocking(app: AppHandle, cancel_flag: Arc<AtomicBool>) -> FastbootResult {
     let operation_id = Uuid::new_v4().to_string();
     emit_status(
         &app,
@@ -108,6 +125,10 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
     let mut last_mode_check = Instant::now();
 
     while Instant::now() < scan_deadline {
+        if cancel_flag.load(Ordering::SeqCst) {
+            return cancelled_result(&app, &operation_id);
+        }
+
         if last_mode_check.elapsed() >= Duration::from_secs_f32(FASTBOOT_MODE_POLL_SECS) {
             if in_fastboot_mode() {
                 let message = "Device switched to Fastboot during handshake.".to_string();
@@ -165,10 +186,10 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
                     &port.port_name,
                     baud,
                     Duration::from_secs_f32(READ_TIMEOUT_SECS),
-                    Duration::from_secs_f32(WRITE_TIMEOUT_SECS),
                     Duration::from_secs_f32(PORT_ATTEMPT_SECS),
                     Duration::from_secs_f32(FLOOD_INTERVAL_SECS),
                     &expected_ack,
+                    &cancel_flag,
                 );
 
                 match attempt {
@@ -201,6 +222,9 @@ fn force_fastboot_blocking(app: AppHandle) -> FastbootResult {
                         );
                         log::info!("{}", dropped_message);
                         emit_operation_output(&app, &operation_id, &dropped_message, false);
+                    }
+                    AttemptResult::Cancelled => {
+                        return cancelled_result(&app, &operation_id);
                     }
                 }
             }
@@ -262,6 +286,17 @@ fn emit_status(app: &AppHandle, status: FastbootStatus, message: &str) {
         message: message.to_string(),
     };
     let _ = app.emit("fastboot:status", payload);
+}
+
+fn cancelled_result(app: &AppHandle, operation_id: &str) -> FastbootResult {
+    let message = "Fastboot attempt cancelled.".to_string();
+    emit_status(app, FastbootStatus::Cancelled, &message);
+    emit_operation_output(app, operation_id, &message, true);
+    emit_operation_complete(app, operation_id, false, Some(message.clone()));
+    FastbootResult {
+        status: FastbootStatus::Cancelled,
+        message,
+    }
 }
 
 /// Check whether a device is already exposed in Fastboot mode over USB by
@@ -343,16 +378,17 @@ enum AttemptResult {
     OpenError(String),
     NoAck,
     Disconnected,
+    Cancelled,
 }
 
 fn attempt_fastboot(
     port_name: &str,
     baud: u32,
     timeout: Duration,
-    _write_timeout: Duration,
     attempt_window: Duration,
     flood_interval: Duration,
     expected_ack: &[u8],
+    cancel_flag: &AtomicBool,
 ) -> AttemptResult {
     let mut port: Box<dyn serialport::SerialPort> = match serialport::new(port_name, baud)
         .timeout(timeout)
@@ -371,6 +407,9 @@ fn attempt_fastboot(
     let mut last_mode_check = Instant::now();
 
     while Instant::now().duration_since(start) < flood_duration {
+        if cancel_flag.load(Ordering::SeqCst) {
+            return AttemptResult::Cancelled;
+        }
         if port.write_all(BOOT_MODE_CMD).is_err() {
             // Write failure usually means the device switched modes and dropped
             // the serial port. Confirm via USB before declaring a problem.
@@ -401,6 +440,10 @@ fn attempt_fastboot(
     let mut last_write = Instant::now();
     let probe_start = Instant::now();
     while Instant::now().duration_since(probe_start) < probe_duration {
+        if cancel_flag.load(Ordering::SeqCst) {
+            return AttemptResult::Cancelled;
+        }
+
         if let Some(resp) = read_response(port.as_mut(), 64) {
             if resp.windows(expected_ack.len()).any(|w| w == expected_ack)
                 || resp.windows(5).any(|w| w == b"READY")
@@ -499,4 +542,51 @@ fn build_expected_ack() -> Vec<u8> {
     let mut ack = b"READY".to_vec();
     ack.extend(tail);
     ack
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn usb_port(
+        name: &str,
+        vid: u16,
+        product: &str,
+        manufacturer: &str,
+    ) -> serialport::SerialPortInfo {
+        serialport::SerialPortInfo {
+            port_name: name.to_string(),
+            port_type: serialport::SerialPortType::UsbPort(serialport::UsbPortInfo {
+                vid,
+                pid: 0x0001,
+                serial_number: None,
+                manufacturer: Some(manufacturer.to_string()),
+                product: Some(product.to_string()),
+            }),
+        }
+    }
+
+    #[test]
+    fn build_expected_ack_should_be_ready_plus_reversed_tail() {
+        assert_eq!(build_expected_ack(), b"READYTOO");
+    }
+
+    #[test]
+    fn rank_ports_should_score_vid_and_keywords() {
+        let ports = vec![
+            usb_port("COM3", 0x0E8D, "MTK USB Port", "MediaTek"),
+            usb_port("COM5", 0x1234, "Serial", "Acme"),
+            usb_port("COM7", 0x0E8D, "Serial", "Acme"),
+        ];
+        let ranked = rank_ports(ports, VENDOR_ID, &KEYWORDS);
+        assert_eq!(ranked.len(), 2);
+        assert_eq!(ranked[0].port_name, "COM3");
+        assert_eq!(ranked[1].port_name, "COM7");
+    }
+
+    #[test]
+    fn rank_ports_should_be_empty_when_nothing_matches() {
+        let ports = vec![usb_port("COM9", 0x1234, "Serial", "Acme")];
+        assert!(rank_ports(ports, VENDOR_ID, &KEYWORDS).is_empty());
+    }
 }

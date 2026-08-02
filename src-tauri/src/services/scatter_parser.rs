@@ -28,7 +28,6 @@ impl ScatterParser {
 
         let selected = scatter.selected_layouts(mtk_scatter_parser::StorageSelect::Auto);
         let mut partitions: Vec<ScatterPartition> = selected.into_values().flatten()
-            .into_iter()
             .map(|p| ScatterPartition {
                 index: p.index.unwrap_or_default(),
                 partition_name: p.name,

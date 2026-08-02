@@ -62,14 +62,10 @@ pub async fn detect_image_files(
     // Synthesize _b image entries for any _a lacking a _b counterpart.
     // The crate's slot synthesis only creates _b actions when _b exists
     // in the scatter file, so we handle the common case where only _a is defined.
-    for name in image_map.keys().cloned().collect::<Vec<_>>() {
+    for (name, image) in image_map.clone() {
         if let Some(base) = name.strip_suffix("_a") {
             let b_name = format!("{}_b", base);
-            if !image_map.contains_key(&b_name) {
-                if let Some(image) = image_map.get(&name).cloned() {
-                    image_map.insert(b_name, image);
-                }
-            }
+            image_map.entry(b_name).or_insert(image);
         }
     }
 

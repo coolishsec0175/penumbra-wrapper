@@ -5,6 +5,7 @@
 
 use crate::commands::execute_antumbra_command;
 use crate::commands::validate_output_dir;
+use crate::commands::validate_restore_dir;
 use crate::error::AppError;
 use tauri::{AppHandle, Window};
 
@@ -59,6 +60,7 @@ pub async fn write_all_partitions(
     );
 
     validate_output_dir(&input_dir, "Input directory")?;
+    validate_restore_dir(&input_dir)?;
 
     execute_antumbra_command(
         app,

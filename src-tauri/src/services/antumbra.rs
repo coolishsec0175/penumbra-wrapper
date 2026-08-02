@@ -8,7 +8,7 @@ use crate::models::{OperationCompleteEvent, OperationOutputEvent};
 use anyhow::{Context, Result};
 use chrono::Utc;
 use std::collections::HashSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -17,17 +17,9 @@ use tauri::{AppHandle, Emitter, Manager};
 use tokio::io::AsyncReadExt;
 use tokio::process::Command as TokioCommand;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct StreamingOptions {
     pub inactivity_timeout: Option<Duration>,
-}
-
-impl Default for StreamingOptions {
-    fn default() -> Self {
-        Self {
-            inactivity_timeout: None,
-        }
-    }
 }
 
 pub const DEFAULT_INACTIVITY_TIMEOUT_SECS: u64 = 300;
@@ -115,33 +107,28 @@ async fn stream_lines<R>(
     let mut buffer = Vec::new();
     let mut byte = [0u8; 1];
 
-    loop {
-        match reader.read_exact(&mut byte).await {
-            Ok(_) => {
-                last_output.store(now_millis(), Ordering::Relaxed);
-                if byte[0] == b'\n' || byte[0] == b'\r' {
-                    // Emit line if buffer is not empty
-                    if !buffer.is_empty() {
-                        if let Ok(line) = String::from_utf8(buffer.clone()) {
-                            let line = line.trim().to_string();
-                            if !line.is_empty() {
-                                emit_stream_line(
-                                    &app,
-                                    &operation_id,
-                                    is_stderr,
-                                    &lines_storage,
-                                    &seen_lines,
-                                    line,
-                                );
-                            }
-                        }
-                        buffer.clear();
+    while reader.read_exact(&mut byte).await.is_ok() {
+        last_output.store(now_millis(), Ordering::Relaxed);
+        if byte[0] == b'\n' || byte[0] == b'\r' {
+            // Emit line if buffer is not empty
+            if !buffer.is_empty() {
+                if let Ok(line) = String::from_utf8(buffer.clone()) {
+                    let line = line.trim().to_string();
+                    if !line.is_empty() {
+                        emit_stream_line(
+                            &app,
+                            &operation_id,
+                            is_stderr,
+                            &lines_storage,
+                            &seen_lines,
+                            line,
+                        );
                     }
-                } else {
-                    buffer.push(byte[0]);
                 }
+                buffer.clear();
             }
-            Err(_) => break, // EOF or error
+        } else {
+            buffer.push(byte[0]);
         }
     }
 
@@ -579,7 +566,7 @@ pub fn sync_detected_version_to_config(_app: &AppHandle, detected_version: &str)
     Ok(())
 }
 
-fn store_last_command(binary_path: &PathBuf, working_dir: &PathBuf, args: &[String]) {
+fn store_last_command(binary_path: &Path, working_dir: &Path, args: &[String]) {
     let info = AntumbraCommandInfo {
         command: binary_path.display().to_string(),
         args: args.to_vec(),
