@@ -10,6 +10,7 @@ pub mod fastboot;
 pub mod flash;
 pub mod format;
 pub mod helpers;
+pub mod logs;
 pub mod raw;
 pub mod read;
 pub mod scatter;

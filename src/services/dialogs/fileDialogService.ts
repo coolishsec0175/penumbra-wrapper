@@ -113,7 +113,7 @@ export class FileDialogService {
    */
   static async saveFile(options?: {
     defaultPath?: string;
-    defaultExtension?: 'img' | 'bin';
+    defaultExtension?: string;
     title?: string;
     filters?: Array<{ name: string; extensions: string[] }>;
   }): Promise<string | null> {

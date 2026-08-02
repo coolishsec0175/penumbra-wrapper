@@ -234,6 +234,25 @@ export function WindowsDiagnosticsPanel() {
           )}
         </div>
       )}
+
+      {/* Driver Setup Help */}
+      <div className="mt-4 rounded-md border border-border bg-surface p-4">
+        <h4 className="text-md font-medium text-foreground mb-2">Driver Setup Help</h4>
+        <p className="text-sm text-muted-foreground">
+          MTK devices on Windows need the <span className="font-medium text-foreground">WinUSB</span> or{' '}
+          <span className="font-medium text-foreground">LibUSB</span> driver installed for
+          preloader/DA communication. Use{' '}
+          <a
+            href="https://zadig.akeo.ie"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline hover:text-primary-hover"
+          >
+            Zadig
+          </a>{' '}
+          to install the driver for the device interface, then reconnect the device and try again.
+        </p>
+      </div>
     </div>
   );
 }

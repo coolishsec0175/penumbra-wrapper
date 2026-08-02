@@ -6,6 +6,7 @@
 use crate::commands::{emit_operation_complete, emit_operation_output};
 use crate::error::AppError;
 use crate::services::device_discovery;
+use nusb::MaybeFuture;
 use serde::Serialize;
 use std::io::Write;
 #[cfg(target_os = "linux")]
@@ -315,7 +316,10 @@ fn in_fastboot_mode() -> bool {
 }
 
 fn nusb_fastboot_mode() -> bool {
-    let devices = match pollster::block_on(nusb::list_devices()) {
+    // nusb requires an async runtime (tokio/smol feature) to `.await` blocking
+    // syscalls. This code runs on a blocking thread (spawn_blocking), so use
+    // `.wait()` to run the enumeration synchronously and avoid a panic.
+    let devices = match nusb::list_devices().wait() {
         Ok(devices) => devices,
         Err(err) => {
             log::warn!("Failed to enumerate USB devices: {}", err);

@@ -11,12 +11,12 @@ interface FastbootSectionProps {
 
 const statusStyles: Record<FastbootStatus, string> = {
   start: 'text-muted-foreground',
-  success: 'text-emerald-500',
+  success: 'text-success',
   cancelled: 'text-muted-foreground',
-  no_device: 'text-red-500',
-  open_error: 'text-red-500',
-  no_ack: 'text-red-500',
-  error: 'text-red-500',
+  no_device: 'text-danger',
+  open_error: 'text-danger',
+  no_ack: 'text-danger',
+  error: 'text-danger',
 };
 
 export function FastbootSection({

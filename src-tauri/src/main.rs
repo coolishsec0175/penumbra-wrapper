@@ -99,6 +99,7 @@ async fn main() {
             commands::diagnostics::export_diagnostics,
             commands::fastboot::force_fastboot,
             commands::fastboot::cancel_fastboot,
+            commands::logs::export_log_file,
             commands::raw::set_active_slot,
         ])
         .manage(commands::fastboot::FastbootCancel::default())
