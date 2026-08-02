@@ -15,16 +15,6 @@ Nightly builds (NSIS `.exe` installer and MSI) are published to the
 [nightly release](https://github.com/coolishsec0175/penumbra-wrapper/releases/tag/nightly)
 on every push to `main`.
 
-## Features
-
-- **Backup All / Restore All** — read or write every partition with a
-  partition skip-list (persisted in settings).
-- **Force Fastboot** — preloader serial handshake to switch MTK devices into
-  Fastboot mode, with fastboot-mode detection and cancellation.
-- **Bootloader** — unlock/lock (`seccfg`), set active slot, debug crash
-  command.
-- **Windows Diagnostics** — environment checks with exportable zip bundle.
-
 ## Building from source
 
 - Install [Node.js](https://nodejs.org) and [Rust](https://rustup.rs).
