@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-import { applyTheme, getInitialTheme, THEME_STORAGE_KEY, type ThemeMode } from '../lib/theme';
+import {
+  applyTheme,
+  getInitialAccent,
+  getInitialTheme,
+  THEME_STORAGE_KEY,
+  ACCENT_STORAGE_KEY,
+  type ThemeMode,
+  type ThemeAccent,
+} from '../lib/theme';
 
 export type LogFilter = 'all' | 'info' | 'success' | 'warning' | 'error';
 export type LogPanelPosition = 'right' | 'bottom';
@@ -14,6 +22,8 @@ interface UIState {
   logFontSize: number;
   activeModal: string | null;
   theme: ThemeMode;
+  accent: ThemeAccent;
+  sidebarCollapsed: boolean;
 
   // Actions
   openLogPanel: () => void;
@@ -29,6 +39,8 @@ interface UIState {
   closeModal: () => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
+  setAccent: (accent: ThemeAccent) => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 function loadStoredNumber(key: string, fallback: number): number {
@@ -50,7 +62,7 @@ function loadStoredBoolean(key: string, fallback: boolean): boolean {
   return stored !== null ? stored === 'true' : fallback;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   isLogPanelOpen: false,
   logPanelWidth: (() => {
     if (typeof window === 'undefined') return 800;
@@ -69,9 +81,11 @@ export const useUIStore = create<UIState>((set) => ({
   activeModal: null,
   theme: (() => {
     const initialTheme = getInitialTheme();
-    applyTheme(initialTheme);
+    applyTheme(initialTheme, getInitialAccent());
     return initialTheme;
   })(),
+  accent: getInitialAccent(),
+  sidebarCollapsed: loadStoredBoolean('sidebarCollapsed', false),
 
   openLogPanel: () => set({ isLogPanelOpen: true }),
 
@@ -130,7 +144,7 @@ export const useUIStore = create<UIState>((set) => ({
     if (typeof window !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     }
-    applyTheme(theme);
+    applyTheme(theme, get().accent);
     if (typeof window !== 'undefined') {
       import('@tauri-apps/api/window')
         .then(({ getCurrentWindow }) => getCurrentWindow().setTheme(theme))
@@ -144,7 +158,7 @@ export const useUIStore = create<UIState>((set) => ({
       if (typeof window !== 'undefined') {
         localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
       }
-      applyTheme(nextTheme);
+      applyTheme(nextTheme, state.accent);
       if (typeof window !== 'undefined') {
         import('@tauri-apps/api/window')
           .then(({ getCurrentWindow }) => getCurrentWindow().setTheme(nextTheme))
@@ -152,4 +166,19 @@ export const useUIStore = create<UIState>((set) => ({
       }
       return { theme: nextTheme };
     }),
+
+  setAccent: (accent) => {
+    set({ accent });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ACCENT_STORAGE_KEY, accent);
+    }
+    applyTheme(get().theme, accent);
+  },
+
+  setSidebarCollapsed: (collapsed) => {
+    set({ sidebarCollapsed: collapsed });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarCollapsed', collapsed.toString());
+    }
+  },
 }));

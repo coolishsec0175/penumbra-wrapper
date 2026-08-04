@@ -425,53 +425,57 @@ export function Tools() {
 
   return (
     <div className="h-screen bg-background text-foreground flex flex-col">
-      <main className="flex-1 space-y-4 overflow-y-auto p-4">
-        {!isConnected && <ConnectionWarning />}
+      <main className="flex-1 overflow-y-auto p-4">
+        <div className="mx-auto max-w-6xl space-y-4">
+          {!isConnected && <ConnectionWarning />}
 
-        <ReadAllSection
-          isConnected={isConnected}
-          isReadAllRunning={isReadAllRunning}
-          isSettingsLoading={isSettingsLoading}
-          partitions={partitions}
-          skipPartitions={skipPartitions}
-          backupCount={backupCount}
-          onSelectAllSkip={handleSelectAllSkip}
-          onClearAllSkip={handleClearAllSkip}
-          onToggleSkip={handleToggleSkip}
-          onReadAll={handleReadAll}
-        />
+          <ReadAllSection
+            isConnected={isConnected}
+            isReadAllRunning={isReadAllRunning}
+            isSettingsLoading={isSettingsLoading}
+            partitions={partitions}
+            skipPartitions={skipPartitions}
+            backupCount={backupCount}
+            onSelectAllSkip={handleSelectAllSkip}
+            onClearAllSkip={handleClearAllSkip}
+            onToggleSkip={handleToggleSkip}
+            onReadAll={handleReadAll}
+          />
 
-        <RestoreSection
-          isConnected={isConnected}
-          isRestoreRunning={isRestoreRunning}
-          isSettingsLoading={isSettingsLoading}
-          backupDir={restoreDir}
-          onSelectDir={handleSelectRestoreDir}
-          onClearDir={handleClearRestoreDir}
-          onRestore={handleRestoreAll}
-        />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <RestoreSection
+              isConnected={isConnected}
+              isRestoreRunning={isRestoreRunning}
+              isSettingsLoading={isSettingsLoading}
+              backupDir={restoreDir}
+              onSelectDir={handleSelectRestoreDir}
+              onClearDir={handleClearRestoreDir}
+              onRestore={handleRestoreAll}
+            />
 
-        <BootloaderSection
-          isConnected={isConnected}
-          isSeccfgRunning={isSeccfgRunning}
-          isSettingsLoading={isSettingsLoading}
-          isSlotRunning={isSlotRunning}
-          isCrashRunning={isCrashRunning}
-          onUnlock={() => handleSeccfg('unlock')}
-          onLock={() => handleSeccfg('lock')}
-          onSetSlot={handleSetSlot}
-          onCrash={handleCrash}
-        />
+            <FastbootSection
+              isRunning={isFastbootRunning}
+              status={fastbootStatus}
+              statusMessage={fastbootMessage}
+              onForceFastboot={handleForceFastboot}
+              onCancel={handleCancelFastboot}
+            />
 
-        <FastbootSection
-          isRunning={isFastbootRunning}
-          status={fastbootStatus}
-          statusMessage={fastbootMessage}
-          onForceFastboot={handleForceFastboot}
-          onCancel={handleCancelFastboot}
-        />
+            <BootloaderSection
+              isConnected={isConnected}
+              isSeccfgRunning={isSeccfgRunning}
+              isSettingsLoading={isSettingsLoading}
+              isSlotRunning={isSlotRunning}
+              isCrashRunning={isCrashRunning}
+              onUnlock={() => handleSeccfg('unlock')}
+              onLock={() => handleSeccfg('lock')}
+              onSetSlot={handleSetSlot}
+              onCrash={handleCrash}
+            />
 
-        <WindowsDiagnosticsPanel />
+            <WindowsDiagnosticsPanel />
+          </div>
+        </div>
       </main>
     </div>
   );

@@ -20,8 +20,6 @@ import { ErrorHandler } from '../services/utils/errorHandler';
 import toast from 'react-hot-toast';
 import type { Partition } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { useUpdateStore } from '../store/updateStore';
-import { ChangelogModal } from '../components/ChangelogModal';
 import { mkdir } from '@tauri-apps/plugin-fs';
 
 const CRITICAL_PARTITIONS = ['nvram', 'nvdata', 'nvcfg', 'proinfo', 'protect1', 'protect2'];
@@ -31,15 +29,11 @@ export function Dashboard() {
     daPath,
     preloaderPath,
     authPath,
-    usbLog,
-    verbose,
     defaultOutputPath,
     isSettingsLoading,
     setDaPath,
     setPreloaderPath,
     setAuthPath,
-    setUsbLog,
-    setVerbose,
     setDefaultOutputPath,
   } = useDeviceStore();
   
@@ -67,10 +61,6 @@ export function Dashboard() {
   const [isFastBackupRunning, setIsFastBackupRunning] = useState(false);
   const [backupAbortController, setBackupAbortController] = useState<AbortController | null>(null);
   const backupCancelReasonRef = useRef<'disconnect' | null>(null);
-
-  const isCheckingUpdate = useUpdateStore((state) => state.isCheckingUpdate);
-  const checkUpdate = useUpdateStore((state) => state.checkUpdate);
-  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -157,10 +147,6 @@ export function Dashboard() {
   const handleClearOutput = async () => {
     await setDefaultOutputPath(null);
     toast.success('Default output folder cleared');
-  };
-
-  const handleCheckUpdates = async () => {
-    await checkUpdate({ showToast: true });
   };
 
   const handleConnect = async () => {
@@ -397,22 +383,15 @@ export function Dashboard() {
         daPath={daPath}
         preloaderPath={preloaderPath}
         authPath={authPath}
-        usbLog={usbLog}
-        verbose={verbose}
         defaultOutputPath={defaultOutputPath}
         isSettingsLoading={isSettingsLoading}
-        isCheckingUpdate={isCheckingUpdate}
         onSelectDa={handleSelectDa}
         onSelectPreloader={handleSelectPreloader}
         onClearPreloader={handleClearPreloader}
         onSelectAuth={handleSelectAuth}
         onClearAuth={handleClearAuth}
-        onToggleUsbLog={() => setUsbLog(!usbLog)}
-        onToggleVerbose={() => setVerbose(!verbose)}
         onSelectOutput={handleSelectOutput}
         onClearOutput={handleClearOutput}
-        onCheckUpdates={handleCheckUpdates}
-        onShowChangelog={() => setIsChangelogOpen(true)}
       />
 
       <main className="flex-1 overflow-hidden p-4">
@@ -453,9 +432,6 @@ export function Dashboard() {
         partition={modalState.partition}
         operation={modalState.operation}
       />
-
-      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
-
     </div>
   );
 }
