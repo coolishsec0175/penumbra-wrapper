@@ -2,10 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
-import { applyTheme, getInitialAccent, getInitialTheme } from './lib/theme';
+import { applyTheme, getInitialAccent, getInitialPreset, getInitialTheme } from './lib/theme';
 
 const initialTheme = getInitialTheme();
-applyTheme(initialTheme, getInitialAccent());
+applyTheme(initialTheme, getInitialAccent(), getInitialPreset());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -6,6 +6,8 @@ export interface ConfirmOptions {
   variant: 'danger' | 'warning' | 'info';
   confirmText?: string;
   cancelText?: string;
+  /** Override the mandatory read-warning countdown in seconds. 0 disables it. */
+  countdownSeconds?: number;
 }
 
 export interface ConfirmationContextValue {

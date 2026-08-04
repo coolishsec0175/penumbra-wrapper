@@ -34,6 +34,7 @@ interface OperationState {
   clearLogs: () => void;
   finishOperation: (success: boolean, error?: string) => void;
   clearOperation: () => void;
+  clearError: () => void;
 }
 
 export const useOperationStore = create<OperationState>((set, get) => ({
@@ -127,4 +128,6 @@ export const useOperationStore = create<OperationState>((set, get) => ({
     isStreaming: false,
     startTime: null,
   }),
+
+  clearError: () => set({ error: null }),
 }));

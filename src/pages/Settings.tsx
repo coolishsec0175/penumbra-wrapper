@@ -1,12 +1,26 @@
 import { useState } from 'react';
-import { Download, FileClock, Moon, Monitor, Palette, Sun, Usb, Bug, Check } from 'lucide-react';
+import {
+  Download,
+  FileClock,
+  Minus,
+  Moon,
+  Monitor,
+  Palette,
+  Plus,
+  Sun,
+  Usb,
+  Bug,
+  Check,
+  LayoutGrid,
+  Type,
+} from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { useDeviceStore } from '../store/deviceStore';
 import { useUpdateStore } from '../store/updateStore';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { cn } from '../lib/utils';
-import { THEME_ACCENTS, type ThemeAccent } from '../lib/theme';
+import { THEME_ACCENTS, THEME_PRESETS, type ThemeAccent } from '../lib/theme';
 import { ChangelogModal } from '../components/ChangelogModal';
 
 const ACCENT_SWATCHES: Array<{ accent: ThemeAccent; label: string; className: string }> =
@@ -22,11 +36,26 @@ const ACCENT_SWATCHES: Array<{ accent: ThemeAccent; label: string; className: st
     return { accent, label, className };
   });
 
+const PRESET_SWATCH_CLASSES: Record<string, string> = {
+  zinc: 'from-zinc-700 to-zinc-900',
+  charcoal: 'from-violet-500 to-zinc-900',
+  sunset: 'from-rose-400 to-slate-800',
+  warm: 'from-orange-500 to-red-900',
+  cool: 'from-cyan-400 to-blue-950',
+  hacker: 'from-lime-400 to-green-950',
+};
+
 export function Settings() {
   const theme = useUIStore((state) => state.theme);
   const setTheme = useUIStore((state) => state.setTheme);
   const accent = useUIStore((state) => state.accent);
   const setAccent = useUIStore((state) => state.setAccent);
+  const preset = useUIStore((state) => state.preset);
+  const setPreset = useUIStore((state) => state.setPreset);
+  const compactView = useUIStore((state) => state.compactView);
+  const setCompactView = useUIStore((state) => state.setCompactView);
+  const logFontSize = useUIStore((state) => state.logFontSize);
+  const setLogFontSize = useUIStore((state) => state.setLogFontSize);
 
   const usbLog = useDeviceStore((state) => state.usbLog);
   const verbose = useDeviceStore((state) => state.verbose);
@@ -41,8 +70,10 @@ export function Settings() {
     await checkUpdate({ showToast: true });
   };
 
+  const accentDisabled = theme !== 'dark' || preset !== 'zinc';
+
   return (
-    <div className="h-screen overflow-y-auto bg-background text-foreground">
+    <div className="h-full overflow-y-auto bg-background text-foreground">
       <main className="mx-auto max-w-4xl space-y-4 p-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Settings</h1>
@@ -83,25 +114,123 @@ export function Settings() {
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">Accent color</p>
+              <p className="mb-2 text-sm font-medium text-muted-foreground">
+                Interface theme
+                {theme !== 'dark' && <span className="ml-2 text-xs">(available in dark mode)</span>}
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                {THEME_PRESETS.map(({ preset: value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => theme === 'dark' && setPreset(value)}
+                    title={label}
+                    disabled={theme !== 'dark'}
+                    className={cn(
+                      'flex items-center gap-2 rounded-lg border p-1.5 pr-3 transition-colors',
+                      theme !== 'dark' && 'opacity-40',
+                      preset === value && theme === 'dark'
+                        ? 'border-primary bg-primary-soft'
+                        : 'border-border hover:border-primary'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'size-6 rounded bg-gradient-to-br',
+                        PRESET_SWATCH_CLASSES[value]
+                      )}
+                    />
+                    <span className="text-xs font-medium text-foreground">{label}</span>
+                    {preset === value && theme === 'dark' && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={cn(accentDisabled && 'opacity-40')}>
+              <p className="mb-2 text-sm font-medium text-muted-foreground">
+                Accent color
+                {accentDisabled && (
+                  <span className="ml-2 text-xs">(select the Zinc theme to use accents)</span>
+                )}
+              </p>
               <div className="flex flex-wrap items-center gap-3">
                 {ACCENT_SWATCHES.map(({ accent: value, label, className }) => (
                   <button
                     key={value}
-                    onClick={() => setAccent(value)}
+                    onClick={() => !accentDisabled && setAccent(value)}
+                    disabled={accentDisabled}
                     title={label}
                     className={cn(
                       'flex size-9 items-center justify-center rounded-full transition-transform hover:scale-110',
                       className,
-                      accent === value && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
+                      accent === value && !accentDisabled && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
                     )}
                   >
-                    {accent === value && <Check className="h-4 w-4 text-white" />}
+                    {accent === value && !accentDisabled && <Check className="h-4 w-4 text-white" />}
                   </button>
                 ))}
                 <span className="text-sm text-subtle-foreground">
                   {ACCENT_SWATCHES.find((s) => s.accent === accent)?.label ?? 'Blue'}
                 </span>
+              </div>
+            </div>
+
+            <div className="space-y-4 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium text-foreground">
+                    <LayoutGrid className="h-4 w-4 text-primary" />
+                    Compact View
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Tighter list and table margins.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setCompactView(!compactView)}
+                  variant={compactView ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-shrink-0"
+                >
+                  {compactView ? 'Enabled' : 'Disabled'}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium text-foreground">
+                    <Type className="h-4 w-4 text-primary" />
+                    Console Font Size
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust the size of text in the log consoles.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    onClick={() => setLogFontSize(Math.max(10, logFontSize - 1))}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Decrease font size"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-14 text-center text-sm tabular-nums text-foreground">
+                    {logFontSize}px
+                  </span>
+                  <Button
+                    onClick={() => setLogFontSize(Math.min(20, logFontSize + 1))}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Increase font size"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

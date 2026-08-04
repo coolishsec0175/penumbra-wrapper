@@ -1,27 +1,31 @@
-import { Package } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Loader2, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useMemo, useRef } from 'react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useFlasherStore } from '../store/flasherStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
 import { useFileSelection } from '../hooks/useFileSelection';
 import { usePartitionOperations } from '../hooks/usePartitionOperations';
+import { useConfirmation } from '../hooks/useConfirmation';
 import { ScatterApi } from '../services/api/scatterApi';
 import { DialogType } from '../services/dialogs/fileDialogService';
-import { FlasherHeader } from '../components/flasher/FlasherHeader';
+import { ScatterDropzone } from '../components/flasher/ScatterDropzone';
 import { ScatterInfoBar } from '../components/flasher/ScatterInfoBar';
 import { FlashPartitionTable } from '../components/flasher/FlashPartitionTable';
 import { FlashActionBar } from '../components/flasher/FlashActionBar';
 import { FlashProgressModal } from '../components/flasher/FlashProgressModal';
+import { OutputLogPanel } from '../components/flasher/OutputLogPanel';
 import { ErrorHandler } from '../services/utils/errorHandler';
 import { formatHexSize } from '../services/utils/formatUtils';
+import { findScatterInFolder } from '../services/utils/scatterFolder';
 import type { Partition } from '../types';
 
 export function Flasher() {
-  const { daPath, isSettingsLoading, isConnecting } = useDeviceStore();
-  const { connect, isConnected } = useDeviceConnection();
+  const { daPath } = useDeviceStore();
+  const { isConnected } = useDeviceConnection();
   const { selectFile } = useFileSelection();
   const { writePartition, isExecuting } = usePartitionOperations();
+  const { confirm } = useConfirmation();
   const {
     scatterFile,
     isLoadingScatter,
@@ -44,6 +48,7 @@ export function Flasher() {
   } = useFlasherStore();
 
   const flashingCancelled = useRef(false);
+  const [scatterError, setScatterError] = useState<string | null>(null);
 
   const selectedFlashOrder = useMemo(
     () => (scatterFile?.partitions ?? [])
@@ -59,65 +64,73 @@ export function Flasher() {
     [selectedFlashOrder, currentFlashIndex]
   );
 
-  const handleSelectScatter = async () => {
-    const selected = await selectFile(DialogType.SCATTER_FILE, undefined, {
-      title: 'Select Scatter File',
-    });
+  const loadScatterPath = async (path: string) => {
+    setLoadingScatter(true);
+    setScatterError(null);
 
-    if (selected) {
-      setLoadingScatter(true);
+    setSelectedPartitions(new Set());
+    setPartitionImages(new Map());
 
-      // Clear previous state before loading new scatter file
-      setSelectedPartitions(new Set());
-      setPartitionImages(new Map());
+    try {
+      const parsed = await ScatterApi.parseScatterFile(path);
+      setScatterFile(parsed);
 
-      try {
-        // Automatically parse the scatter file
-        const parsed = await ScatterApi.parseScatterFile(selected as string);
+      const detectedImages = await ScatterApi.detectImageFiles(path, parsed.partitions);
 
-        setScatterFile(parsed);
-
-        // Auto-detect image files
-        const detectedImages = await ScatterApi.detectImageFiles(selected as string, parsed.partitions);
-
-        // Ensure _b partitions share _a images if not already detected
-        for (const [name, image] of detectedImages) {
-          if (name.endsWith('_a')) {
-            const bName = name.slice(0, -2) + '_b';
-            if (!detectedImages.has(bName)) {
-              detectedImages.set(bName, image);
-            }
+      for (const [name, image] of detectedImages) {
+        if (name.endsWith('_a')) {
+          const bName = name.slice(0, -2) + '_b';
+          if (!detectedImages.has(bName)) {
+            detectedImages.set(bName, image);
           }
         }
-
-        setPartitionImages(detectedImages);
-
-        // Only auto-select partitions that have image files detected
-        const partitionsWithImages = new Set(
-          parsed.partitions
-            .filter((p) => p.is_download && detectedImages.has(p.partition_name))
-            .map((p) => p.partition_name)
-        );
-        setSelectedPartitions(partitionsWithImages);
-
-        const downloadableCount = parsed.partitions.filter((p) => p.is_download).length;
-        const aCount = parsed.partitions.filter((p) => p.partition_name.endsWith('_a')).length;
-        const bCount = parsed.partitions.filter((p) => p.partition_name.endsWith('_b')).length;
-        toast.success(`Loaded ${downloadableCount} partitions (_a:${aCount} _b:${bCount}) from ${parsed.platform}`);
-      } catch (error: unknown) {
-        // ErrorHandler now extracts message from structured errors automatically
-        ErrorHandler.handle(error, 'Parse scatter file', {
-          customMessage: 'Failed to parse scatter file',
-        });
-        setScatterFile(null);
-      } finally {
-        setLoadingScatter(false);
       }
+
+      setPartitionImages(detectedImages);
+
+      const partitionsWithImages = new Set(
+        parsed.partitions
+          .filter((p) => p.is_download && detectedImages.has(p.partition_name))
+          .map((p) => p.partition_name)
+      );
+      setSelectedPartitions(partitionsWithImages);
+
+      const downloadableCount = parsed.partitions.filter((p) => p.is_download).length;
+      const aCount = parsed.partitions.filter((p) => p.partition_name.endsWith('_a')).length;
+      const bCount = parsed.partitions.filter((p) => p.partition_name.endsWith('_b')).length;
+      toast.success(`Loaded ${downloadableCount} partitions (_a:${aCount} _b:${bCount}) from ${parsed.platform}`);
+    } catch (error: unknown) {
+      ErrorHandler.handle(error, 'Parse scatter file', {
+        customMessage: 'Failed to parse scatter file',
+      });
+      setScatterFile(null);
+      setScatterError('Failed to parse scatter file. Make sure it is a valid MediaTek scatter layout.');
+    } finally {
+      setLoadingScatter(false);
     }
   };
 
-  const handleConnectDevice = async () => {
-    await connect();
+  const handleSelectScatterFile = async () => {
+    const selected = await selectFile(DialogType.SCATTER_FILE, undefined, {
+      title: 'Select Scatter File',
+    });
+    if (selected) {
+      await loadScatterPath(selected as string);
+    }
+  };
+
+  const handleSelectScatterFolder = async () => {
+    const selected = await selectFile(DialogType.BACKUP_FOLDER, undefined, {
+      title: 'Select Firmware Folder',
+    });
+    if (selected) {
+      const scatter = await findScatterInFolder(selected as string);
+      if (!scatter) {
+        toast.error('No scatter file found in the selected folder');
+        return;
+      }
+      await loadScatterPath(scatter);
+    }
   };
 
   const handleTogglePartition = (partitionName: string) => {
@@ -138,7 +151,6 @@ export function Flasher() {
       next.set(partitionName, selected as string);
       setPartitionImages(next);
 
-      // Also auto-select this partition when image is selected
       const nextSelected = new Set(selectedPartitions);
       nextSelected.add(partitionName);
       setSelectedPartitions(nextSelected);
@@ -161,6 +173,11 @@ export function Flasher() {
     setSelectedPartitions(new Set());
   };
 
+  const handleClearScatter = () => {
+    setScatterFile(null);
+    setScatterError(null);
+  };
+
   const handleFlash = async () => {
     if (!daPath || !canFlash || !scatterFile || isFlashing || isExecuting) {
       if (!scatterFile) toast('Load a scatter file first');
@@ -171,9 +188,47 @@ export function Flasher() {
       return;
     }
 
+    const confirmed = await confirm({
+      title: 'Flash scatter layout?',
+      message: (
+        <div className="space-y-2">
+          <p className="font-semibold text-danger">
+            READ THIS BEFORE PROCEEDING
+          </p>
+          <ul className="list-inside list-disc space-y-1 text-sm">
+            <li>
+              Scatter flashing writes many partitions in a single run. If the scatter targets
+              the wrong chip, project, or storage type, the device will be{' '}
+              <span className="font-semibold">BRICKED</span>.
+            </li>
+            <li>
+              Confirm the scatter's platform ({scatterFile.platform}) matches the connected chip.
+            </li>
+            <li>
+              Keep the device on a reliable USB cable with enough charge; an interrupted scatter
+              flash almost always bricks.
+            </li>
+          </ul>
+          <p>
+            The following <span className="font-semibold">{selectedCount}</span> partition(s)
+            will be overwritten: {selectedFlashOrder.join(', ')}.
+          </p>
+          <p>Do you want to continue?</p>
+        </div>
+      ),
+      variant: 'danger',
+      confirmText: 'Flash',
+      countdownSeconds: 15,
+    });
+
+    if (!confirmed) {
+      toast('Flash cancelled', { icon: 'ℹ️' });
+      return;
+    }
+
     const selectedNames = selectedFlashOrder;
     const total = selectedNames.length;
-    
+
     flashingCancelled.current = false;
     setFlashing(true, 0, total);
     setFlashModalOpen(true);
@@ -190,7 +245,7 @@ export function Flasher() {
 
       const partitionName = selectedNames[i];
       const imagePath = partitionImages.get(partitionName);
-      
+
       if (!imagePath) continue;
 
       updateFlashProgress(i + 1);
@@ -198,7 +253,7 @@ export function Flasher() {
       const partition = scatterFile.partitions.find(
         (p) => p.partition_name === partitionName
       );
-      
+
       if (!partition) continue;
 
       const partitionData: Partition = {
@@ -208,13 +263,13 @@ export function Flasher() {
         display_size: formatHexSize(partition.partition_size),
       };
 
-      const success = await writePartition(partitionData, imagePath, false, false);      
+      const success = await writePartition(partitionData, imagePath, false, false);
       if (!success) {
         failed = true;
         failedPartitionName = partitionName;
         break;
       }
-      
+
       successCount++;
     }
 
@@ -240,17 +295,15 @@ export function Flasher() {
     setFlashModalMinimized(true);
   };
 
-  // Memoize derived state to avoid unnecessary recalculations
   const downloadPartitions = useMemo(
     () => scatterFile?.partitions.filter((p) => p.is_download) || [],
     [scatterFile]
   );
 
   const selectedCount = selectedPartitions.size;
-  
-  // Calculate how many selected partitions have image files
+
   const selectedWithImagesCount = useMemo(
-    () => Array.from(selectedPartitions).filter(name => partitionImages.has(name)).length,
+    () => Array.from(selectedPartitions).filter((name) => partitionImages.has(name)).length,
     [selectedPartitions, partitionImages]
   );
 
@@ -258,7 +311,7 @@ export function Flasher() {
   const canFlash = selectedCount > 0 && missingImagesCount === 0 && isConnected && !!daPath;
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col">
+    <div className="flex h-full flex-col bg-background text-foreground">
       <FlashProgressModal
         isOpen={showFlashModal && !flashModalMinimized}
         onClose={handleFlashModalClose}
@@ -267,34 +320,40 @@ export function Flasher() {
         currentIndex={currentFlashIndex}
         totalCount={totalFlashCount}
       />
-      <FlasherHeader
-        daPath={daPath}
-        isConnecting={isConnecting}
-        isConnected={isConnected}
-        isSettingsLoading={isSettingsLoading}
-        isLoadingScatter={isLoadingScatter}
-        onConnect={handleConnectDevice}
-        onSelectScatter={handleSelectScatter}
-      />
 
-      <main className="flex flex-1 flex-col overflow-hidden p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {!scatterFile ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-center">
-            <Package className="w-20 h-20 text-subtle-foreground mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">
-              No Scatter File Loaded
-            </h2>
-            <p className="text-sm text-subtle-foreground">
-              Load a scatter file (.txt or .xml) to begin batch flashing
-            </p>
-          </div>
+          <ScatterDropzone
+            onLoadPath={loadScatterPath}
+            onSelectFolder={handleSelectScatterFolder}
+            onSelectFile={handleSelectScatterFile}
+            isLoading={isLoadingScatter}
+          />
         ) : (
           <>
             <ScatterInfoBar
               scatterFile={scatterFile}
               onSelectAll={handleSelectAll}
               onClearAll={handleClearAll}
+              onClearScatter={handleClearScatter}
             />
+
+            {isFlashing && (
+              <div className="flex flex-shrink-0 items-center gap-3 rounded-md border border-accent bg-accent-soft p-3">
+                <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    Flashing {currentFlashIndex} of {totalFlashCount}
+                  </p>
+                  <p className="truncate font-mono text-xs text-accent">
+                    {currentFlashingPartition || 'Starting...'}
+                  </p>
+                </div>
+                <span className="font-mono text-sm tabular-nums text-accent">
+                  {Math.round((currentFlashIndex / Math.max(totalFlashCount, 1)) * 100)}%
+                </span>
+              </div>
+            )}
 
             <FlashPartitionTable
               partitions={downloadPartitions}
@@ -318,7 +377,18 @@ export function Flasher() {
             />
           </>
         )}
-      </main>
+
+        {scatterError && (
+          <div className="flex-shrink-0 rounded-md border border-danger bg-danger-soft p-3 text-sm text-danger">
+            <p className="flex items-center gap-2 font-semibold">
+              <Zap className="h-4 w-4" />
+              {scatterError}
+            </p>
+          </div>
+        )}
+
+        <OutputLogPanel />
+      </div>
     </div>
   );
 }

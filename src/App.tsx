@@ -5,10 +5,12 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Flasher } from './pages/Flasher';
 import { Tools } from './pages/Tools';
+import { Log } from './pages/Log';
 import { Settings } from './pages/Settings';
 import { LogPanel } from './components/LogPanel';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { UpdateAvailableModal } from './components/UpdateAvailableModal';
+import { RiskDisclaimerModal } from './components/RiskDisclaimerModal';
 import { useOperationStream } from './hooks/useOperationStream';
 import { useSettings } from './hooks/useSettings';
 import { ConfirmationProvider } from './hooks/confirmationProvider';
@@ -86,6 +88,7 @@ function AppContent() {
           <Route index element={<Dashboard />} />
           <Route path="flasher" element={<Flasher />} />
           <Route path="tools" element={<Tools />} />
+          <Route path="log" element={<Log />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
@@ -103,6 +106,8 @@ function AppContent() {
       <ErrorBoundary>
         <LogPanel />
       </ErrorBoundary>
+
+      <RiskDisclaimerModal />
     </BrowserRouter>
   );
 }

@@ -57,6 +57,7 @@ export function ConfirmationProvider({ children }: { children: React.ReactNode }
           variant={options.variant}
           confirmText={options.confirmText}
           cancelText={options.cancelText}
+          countdownSeconds={options.countdownSeconds}
         />
       )}
     </ConfirmationContext.Provider>

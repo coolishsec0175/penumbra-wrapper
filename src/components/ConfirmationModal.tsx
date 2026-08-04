@@ -11,6 +11,8 @@ export interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
+  /** Mandatory read-warning countdown in seconds. Defaults to 2 for danger. */
+  countdownSeconds?: number;
 }
 
 export function ConfirmationModal({
@@ -23,25 +25,28 @@ export function ConfirmationModal({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   isLoading = false,
+  countdownSeconds,
 }: ConfirmationModalProps) {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Destructive actions have 2-second countdown
+  // Destructive actions have a mandatory read-warning countdown
   const isDestructive = variant === 'danger';
+  const delaySeconds =
+    typeof countdownSeconds === 'number' ? countdownSeconds : isDestructive ? 2 : 0;
 
   // Initialize countdown for destructive actions
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (isOpen && isDestructive) {
-        setCountdown(2);
+      if (isOpen && delaySeconds > 0) {
+        setCountdown(delaySeconds);
       } else {
         setCountdown(null);
       }
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [isOpen, isDestructive]);
+  }, [isOpen, delaySeconds]);
 
   // Countdown timer
   useEffect(() => {
@@ -72,14 +77,14 @@ export function ConfirmationModal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isLoading) {
         onClose();
-      } else if (e.key === 'Enter' && !isLoading && (countdown === 0 || !isDestructive)) {
+      } else if (e.key === 'Enter' && !isLoading && (countdown === 0 || delaySeconds === 0)) {
         onConfirm();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, onConfirm, isLoading, countdown, isDestructive]);
+  }, [isOpen, onClose, onConfirm, isLoading, countdown, delaySeconds]);
 
   if (!isVisible && !isOpen) return null;
 
@@ -115,8 +120,8 @@ export function ConfirmationModal({
   const styles = getVariantStyles();
   const Icon = styles.icon;
 
-  const isConfirmDisabled = isLoading || (isDestructive && countdown !== 0);
-  const confirmButtonText = isDestructive && countdown !== null && countdown > 0
+  const isConfirmDisabled = isLoading || (delaySeconds > 0 && countdown !== 0);
+  const confirmButtonText = delaySeconds > 0 && countdown !== null && countdown > 0
     ? `${confirmText} (${countdown})...`
     : confirmText;
 

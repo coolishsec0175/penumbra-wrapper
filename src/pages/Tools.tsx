@@ -191,6 +191,7 @@ export function Tools() {
       ),
       variant: 'danger',
       confirmText: 'Restore',
+      countdownSeconds: 15,
     });
 
     if (!confirmed) {
@@ -256,6 +257,7 @@ export function Tools() {
       ),
       variant: 'danger',
       confirmText: isUnlock ? 'Unlock' : 'Lock',
+      countdownSeconds: 15,
     });
 
     if (!confirmed) {

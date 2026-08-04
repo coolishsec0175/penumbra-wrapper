@@ -1,7 +1,9 @@
 import { CheckSquare, Square, FolderOpen } from 'lucide-react';
+import { useUIStore } from '../../store/uiStore';
 import type { ScatterPartition } from '../../types';
 import { getBasename } from '../../services/utils/pathUtils';
 import { formatHexSize } from '../../services/utils/formatUtils';
+import { cn } from '../../lib/utils';
 
 interface FlashPartitionTableProps {
   partitions: ScatterPartition[];
@@ -18,6 +20,9 @@ export function FlashPartitionTable({
   onTogglePartition,
   onSelectImage,
 }: FlashPartitionTableProps) {
+  const compactView = useUIStore((state) => state.compactView);
+  const rowPadding = compactView ? 'px-2 py-1' : 'px-3 py-2.5';
+
   return (
     <div className="mb-4 flex flex-1 flex-col overflow-hidden rounded-md border border-border bg-surface-alt">
       <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] gap-3 border-b border-border bg-surface px-3 py-2.5">
@@ -37,9 +42,11 @@ export function FlashPartitionTable({
           return (
             <div
               key={partition.partition_name}
-              className={`grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] gap-3 border-b border-border px-3 py-2.5 transition-colors hover:bg-surface-hover ${
-                isSelected ? 'bg-accent-soft' : ''
-              }`}
+              className={cn(
+                'grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] gap-3 border-b border-border transition-colors hover:bg-surface-hover',
+                rowPadding,
+                isSelected && 'bg-accent-soft'
+              )}
             >
               <div className="flex items-center">
                 <button

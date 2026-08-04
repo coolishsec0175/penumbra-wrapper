@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { getBasename } from '../../services/utils/pathUtils';
 import type { ScatterFile } from '../../types';
 
@@ -5,12 +6,13 @@ interface ScatterInfoBarProps {
   scatterFile: ScatterFile;
   onSelectAll: () => void;
   onClearAll: () => void;
+  onClearScatter: () => void;
 }
 
-export function ScatterInfoBar({ scatterFile, onSelectAll, onClearAll }: ScatterInfoBarProps) {
+export function ScatterInfoBar({ scatterFile, onSelectAll, onClearAll, onClearScatter }: ScatterInfoBarProps) {
   return (
-    <div className="mb-4 flex flex-shrink-0 items-center justify-between rounded-md border border-border bg-surface-alt p-3">
-      <div className="flex items-center gap-4 text-sm">
+    <div className="mb-4 flex flex-shrink-0 flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface-alt p-3">
+      <div className="flex flex-wrap items-center gap-4 text-sm">
         <div>
           <span className="text-subtle-foreground">Platform:</span>{' '}
           <span className="font-mono text-foreground">{scatterFile.platform}</span>
@@ -42,6 +44,13 @@ export function ScatterInfoBar({ scatterFile, onSelectAll, onClearAll }: Scatter
           className="rounded px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-primary-soft hover:text-primary"
         >
           Deselect All
+        </button>
+        <button
+          onClick={onClearScatter}
+          className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-danger transition-colors hover:bg-danger-soft"
+        >
+          <X className="h-4 w-4" />
+          Clear
         </button>
       </div>
     </div>

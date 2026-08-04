@@ -2,9 +2,11 @@ import { useState, useCallback, useMemo, memo } from 'react';
 import type { Partition } from '../types';
 import { Download, Upload, Search, Trash2, HardDriveDownload } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useUIStore } from '../store/uiStore';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { cn } from '../lib/utils';
 
 interface PartitionTableProps {
   partitions: Partition[];
@@ -14,8 +16,46 @@ interface PartitionTableProps {
   onErase: (partition: Partition) => void;
 }
 
+interface Flag {
+  label: string;
+  className: string;
+}
+
+function getPartitionFlags(name: string): Flag[] {
+  const flags: Flag[] = [];
+
+  if (name.endsWith('_a')) {
+    flags.push({ label: 'A', className: 'bg-accent text-accent-foreground' });
+  } else if (name.endsWith('_b')) {
+    flags.push({ label: 'B', className: 'bg-surface-hover text-muted-foreground' });
+  }
+
+  const baseName = name.replace(/_(a|b)$/, '');
+
+  if (['system', 'vendor', 'product', 'system_ext', 'odm'].includes(baseName)) {
+    flags.push({ label: 'ext4', className: 'bg-success text-success-foreground' });
+    flags.push({ label: 'img', className: 'bg-surface-hover text-muted-foreground' });
+  } else if (baseName === 'userdata') {
+    flags.push({ label: 'f2fs', className: 'bg-success text-success-foreground' });
+  } else if (
+    ['boot', 'init_boot', 'vendor_boot', 'recovery', 'vbmeta', 'logo', 'dtbo'].includes(baseName)
+  ) {
+    flags.push({ label: 'img', className: 'bg-surface-hover text-muted-foreground' });
+  } else if (
+    ['seccfg', 'otp', 'proinfo', 'nvcfg', 'nvram', 'protect1', 'protect2'].includes(baseName)
+  ) {
+    flags.push({ label: 'Unreadable', className: 'bg-danger text-danger-foreground' });
+  } else {
+    flags.push({ label: 'bin', className: 'bg-surface-hover text-muted-foreground' });
+  }
+
+  return flags;
+}
+
 export const PartitionTable = memo<PartitionTableProps>(({ partitions, onRead, onWrite, onFormat, onErase }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const compactView = useUIStore((state) => state.compactView);
+  const rowPadding = compactView ? 'px-2 py-1' : 'px-3 py-2.5';
 
   const filteredPartitions = useMemo(
     () => partitions.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())),
@@ -46,10 +86,11 @@ export const PartitionTable = memo<PartitionTableProps>(({ partitions, onRead, o
       </div>
 
       <Card className="flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
-        <div className="sticky top-0 z-10 grid grid-cols-[2fr_1.5fr_1.5fr_3fr] gap-3 border-b border-border bg-surface px-3 py-2.5">
+        <div className="sticky top-0 z-10 grid grid-cols-[2fr_1.5fr_1.5fr_1fr_3fr] gap-3 border-b border-border bg-surface px-3 py-2.5">
           <div className="text-sm font-semibold text-foreground">Name</div>
           <div className="text-sm font-semibold text-foreground">Start</div>
           <div className="text-sm font-semibold text-foreground">Size</div>
+          <div className="text-sm font-semibold text-foreground">Type</div>
           <div className="text-center text-sm font-semibold text-foreground">Actions</div>
         </div>
 
@@ -62,7 +103,10 @@ export const PartitionTable = memo<PartitionTableProps>(({ partitions, onRead, o
             filteredPartitions.map((partition) => (
               <div
                 key={partition.name}
-                className="grid grid-cols-[2fr_1.5fr_1.5fr_3fr] gap-3 border-b border-border px-3 py-2.5 transition-colors hover:bg-surface-hover"
+                className={cn(
+                  'grid grid-cols-[2fr_1.5fr_1.5fr_1fr_3fr] gap-3 border-b border-border transition-colors hover:bg-surface-hover',
+                  rowPadding
+                )}
               >
                 <div className="flex items-center">
                   <button
@@ -80,6 +124,20 @@ export const PartitionTable = memo<PartitionTableProps>(({ partitions, onRead, o
 
                 <div className="flex items-center truncate font-mono text-sm text-muted-foreground" title={partition.size}>
                   {partition.display_size || partition.size}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  {getPartitionFlags(partition.name).map((flag) => (
+                    <span
+                      key={flag.label}
+                      className={cn(
+                        'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase',
+                        flag.className
+                      )}
+                    >
+                      {flag.label}
+                    </span>
+                  ))}
                 </div>
 
                 <div className="flex items-center justify-center gap-2">

@@ -12,7 +12,6 @@ import { PartitionSection } from '../components/dashboard/PartitionSection';
 import { OperationModal } from '../components/OperationModal';
 import { useConfirmation } from '../hooks/useConfirmation';
 import { DialogType } from '../services/dialogs/fileDialogService';
-import { DeviceApi } from '../services/api/deviceApi';
 import { PartitionApi } from '../services/api/partitionApi';
 import { executeOperation } from '../services/operations/executeOperation';
 import { generateTimestampedFilename, joinPath, getBasename } from '../services/utils/pathUtils';
@@ -41,7 +40,7 @@ export function Dashboard() {
   const { addLog, clearLogs } = useOperationStore();
   const { openLogPanel } = useUIStore();
   
-  const { connect, disconnect, isConnected, isConnecting } = useDeviceConnection();
+  const { connect, isConnected, isConnecting } = useDeviceConnection();
   const { formatPartition, erasePartition } = usePartitionOperations();
   const { selectFile } = useFileSelection();
   const { confirm } = useConfirmation();
@@ -56,31 +55,9 @@ export function Dashboard() {
     operation: 'read',
   });
 
-  const [rebootDropdownOpen, setRebootDropdownOpen] = useState(false);
-  const rebootDropdownRef = useRef<HTMLDivElement>(null);
   const [isFastBackupRunning, setIsFastBackupRunning] = useState(false);
   const [backupAbortController, setBackupAbortController] = useState<AbortController | null>(null);
   const backupCancelReasonRef = useRef<'disconnect' | null>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        rebootDropdownRef.current &&
-        !rebootDropdownRef.current.contains(event.target as Node)
-      ) {
-        setRebootDropdownOpen(false);
-      }
-    };
-
-    if (rebootDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [rebootDropdownOpen]);
 
   // Cleanup: abort backup on unmount or disconnect
   useEffect(() => {
@@ -151,50 +128,6 @@ export function Dashboard() {
 
   const handleConnect = async () => {
     await connect();
-  };
-
-  const handleReboot = async (mode: 'normal' | 'home-screen' | 'fastboot' | 'meta' | 'test') => {
-    if (!daPath || !isConnected) return;
-
-    setRebootDropdownOpen(false);
-
-    try {
-      await DeviceApi.reboot(daPath, mode, preloaderPath || undefined);
-      toast.success(`Device rebooting to ${mode} mode`);
-      
-      // Disconnect after successful reboot
-      disconnect();
-    } catch (error: unknown) {
-      ErrorHandler.handle(error, 'Reboot');
-    }
-  };
-
-  const handleShutdown = async () => {
-    if (!daPath || !isConnected) return;
-
-    setRebootDropdownOpen(false);
-
-    const confirmed = await confirm({
-      title: 'Shutdown Device',
-      message: 'Are you sure you want to shut down the device?',
-      variant: 'warning',
-      confirmText: 'Shutdown',
-    });
-
-    if (!confirmed) {
-      toast('Shutdown cancelled', { icon: 'ℹ️' });
-      return;
-    }
-
-    try {
-      await DeviceApi.shutdown(daPath, preloaderPath || undefined);
-      toast.success('Device shutting down');
-      
-      // Disconnect after successful shutdown
-      disconnect();
-    } catch (error: unknown) {
-      ErrorHandler.handle(error, 'Shutdown');
-    }
   };
 
   const handleFastBackup = async () => {
@@ -337,10 +270,11 @@ export function Dashboard() {
 
   const handleFormat = async (partition: Partition) => {
     const confirmed = await confirm({
-      title: '⚠️ Format Partition',
+      title: 'Format Partition',
       message: `This will FORMAT the "${partition.name}" partition.\n\nAll data will be permanently erased!\n\nContinue?`,
       variant: 'danger',
       confirmText: 'Format',
+      countdownSeconds: 15,
     });
 
     if (!confirmed) {
@@ -354,10 +288,11 @@ export function Dashboard() {
 
   const handleErase = async (partition: Partition) => {
     const confirmed = await confirm({
-      title: '⚠️ Erase Partition',
+      title: 'Erase Partition',
       message: `This will ERASE the "${partition.name}" partition.\n\nAll data will be permanently deleted!\n\nContinue?`,
       variant: 'danger',
       confirmText: 'Erase',
+      countdownSeconds: 15,
     });
 
     if (!confirmed) {
@@ -378,7 +313,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col">
+    <div className="h-full bg-background text-foreground flex flex-col">
       <DashboardHeader
         daPath={daPath}
         preloaderPath={preloaderPath}
@@ -395,7 +330,7 @@ export function Dashboard() {
       />
 
       <main className="flex-1 overflow-hidden p-4">
-        {!isConnected && (
+        {!isConnected && !isConnecting && (
           <ConnectionPanel
             isConnecting={isConnecting}
             isSettingsLoading={isSettingsLoading}
@@ -404,26 +339,19 @@ export function Dashboard() {
           />
         )}
 
-        <PartitionSection
-          isConnected={isConnected}
-          isConnecting={isConnecting}
-          isFastBackupRunning={isFastBackupRunning}
-          rebootDropdownOpen={rebootDropdownOpen}
-          rebootDropdownRef={rebootDropdownRef}
-          partitions={partitions}
-          onFastBackup={handleFastBackup}
-          onToggleRebootDropdown={() => setRebootDropdownOpen(!rebootDropdownOpen)}
-          onRebootNormal={() => handleReboot('normal')}
-          onRebootFastboot={() => handleReboot('fastboot')}
-          onRebootHomeScreen={() => handleReboot('home-screen')}
-          onRebootMeta={() => handleReboot('meta')}
-          onRebootTest={() => handleReboot('test')}
-          onShutdown={handleShutdown}
-          onRead={handleRead}
-          onWrite={handleWrite}
-          onFormat={handleFormat}
-          onErase={handleErase}
-        />
+        {(isConnected || isConnecting) && (
+          <PartitionSection
+            isConnected={isConnected}
+            isConnecting={isConnecting}
+            isFastBackupRunning={isFastBackupRunning}
+            partitions={partitions}
+            onFastBackup={handleFastBackup}
+            onRead={handleRead}
+            onWrite={handleWrite}
+            onFormat={handleFormat}
+            onErase={handleErase}
+          />
+        )}
       </main>
 
       <OperationModal
