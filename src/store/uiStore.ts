@@ -13,13 +13,10 @@ import {
 } from '../lib/theme';
 
 export type LogFilter = 'all' | 'info' | 'success' | 'warning' | 'error';
-export type LogPanelPosition = 'right' | 'bottom';
 
 interface UIState {
   isLogPanelOpen: boolean;
-  logPanelWidth: number;
   logPanelHeight: number;
-  logPanelPosition: LogPanelPosition;
   logFilter: LogFilter;
   logAutoscroll: boolean;
   logFontSize: number;
@@ -27,7 +24,6 @@ interface UIState {
   theme: ThemeMode;
   accent: ThemeAccent;
   preset: ThemePreset;
-  sidebarCollapsed: boolean;
   compactView: boolean;
   acceptedRisk: boolean;
 
@@ -35,9 +31,7 @@ interface UIState {
   openLogPanel: () => void;
   closeLogPanel: () => void;
   toggleLogPanel: () => void;
-  setLogPanelWidth: (width: number) => void;
   setLogPanelHeight: (height: number) => void;
-  setLogPanelPosition: (position: LogPanelPosition) => void;
   setLogFilter: (filter: LogFilter) => void;
   setLogAutoscroll: (autoscroll: boolean) => void;
   setLogFontSize: (size: number) => void;
@@ -47,7 +41,6 @@ interface UIState {
   toggleTheme: () => void;
   setAccent: (accent: ThemeAccent) => void;
   setPreset: (preset: ThemePreset) => void;
-  setSidebarCollapsed: (collapsed: boolean) => void;
   setCompactView: (compact: boolean) => void;
   setAcceptedRisk: (accepted: boolean) => void;
 }
@@ -73,17 +66,7 @@ function loadStoredBoolean(key: string, fallback: boolean): boolean {
 
 export const useUIStore = create<UIState>((set, get) => ({
   isLogPanelOpen: false,
-  logPanelWidth: (() => {
-    if (typeof window === 'undefined') return 800;
-    const storedWidth = localStorage.getItem('logPanelWidth');
-    const parsedWidth = storedWidth ? Number(storedWidth) : NaN;
-    if (!Number.isNaN(parsedWidth) && parsedWidth > 0) {
-      return parsedWidth;
-    }
-    return window.innerWidth * 0.4;
-  })(),
   logPanelHeight: loadStoredNumber('logPanelHeight', 200),
-  logPanelPosition: loadStoredValue<LogPanelPosition>('logPanelPosition', 'right'),
   logFilter: loadStoredValue<LogFilter>('logFilter', 'all'),
   logAutoscroll: loadStoredBoolean('logAutoscroll', true),
   logFontSize: loadStoredNumber('logFontSize', 12),
@@ -95,7 +78,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   })(),
   accent: getInitialAccent(),
   preset: getInitialPreset(),
-  sidebarCollapsed: loadStoredBoolean('sidebarCollapsed', false),
   compactView: loadStoredBoolean('compactView', false),
   acceptedRisk: loadStoredBoolean('acceptedRisk', false),
 
@@ -105,24 +87,10 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   toggleLogPanel: () => set((state) => ({ isLogPanelOpen: !state.isLogPanelOpen })),
 
-  setLogPanelWidth: (width) => {
-    set({ logPanelWidth: width });
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('logPanelWidth', width.toString());
-    }
-  },
-
   setLogPanelHeight: (height) => {
     set({ logPanelHeight: height });
     if (typeof window !== 'undefined') {
       localStorage.setItem('logPanelHeight', height.toString());
-    }
-  },
-
-  setLogPanelPosition: (position) => {
-    set({ logPanelPosition: position });
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('logPanelPosition', position);
     }
   },
 
@@ -193,13 +161,6 @@ export const useUIStore = create<UIState>((set, get) => ({
       localStorage.setItem(PRESET_STORAGE_KEY, preset);
     }
     applyTheme(get().theme, get().accent, preset);
-  },
-
-  setSidebarCollapsed: (collapsed) => {
-    set({ sidebarCollapsed: collapsed });
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebarCollapsed', collapsed.toString());
-    }
   },
 
   setCompactView: (compact) => {

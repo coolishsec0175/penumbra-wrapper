@@ -4,19 +4,15 @@
 */
 
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from './layout/Sidebar';
 import { PageHeader } from './layout/PageHeader';
 import { ErrorBanner } from './layout/ErrorBanner';
 
 export function Layout() {
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <PageHeader />
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <Outlet />
-        </div>
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <PageHeader />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <Outlet />
       </div>
       <ErrorBanner />
     </div>

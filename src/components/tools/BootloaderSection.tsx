@@ -1,4 +1,6 @@
-import { Lock, Unlock, Zap, HardDrive } from 'lucide-react';
+import { HardDrive, Lock, Unlock, Zap } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 interface BootloaderSectionProps {
   isConnected: boolean;
@@ -24,76 +26,82 @@ export function BootloaderSection({
   onCrash,
 }: BootloaderSectionProps) {
   return (
-    <section className="rounded-lg border border-border bg-surface-alt p-4">
-      <div className="mb-4 flex items-start gap-3">
+    <Card>
+      <CardHeader className="flex-row items-center gap-3">
         <div className="rounded-lg bg-warning-soft p-3">
-          <Lock className="w-6 h-6 text-warning" />
+          <Lock className="h-6 w-6 text-warning" />
         </div>
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold text-foreground">Bootloader Management</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Unlock or lock the device bootloader. <span className="text-warning font-semibold">WARNING:</span> These operations may wipe all data!
-          </p>
+        <div>
+          <CardTitle className="text-lg">Bootloader Management</CardTitle>
+          <CardDescription>
+            Unlock or lock the device bootloader.{' '}
+            <span className="font-semibold text-warning">WARNING:</span> These operations may wipe
+            all data!
+          </CardDescription>
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="grid grid-cols-2 gap-4">
-        <button
-          onClick={onUnlock}
-          disabled={!isConnected || isSeccfgRunning || isSettingsLoading}
-        className="flex items-center justify-center gap-2 rounded-lg bg-warning px-5 py-2.5 font-medium text-warning-foreground transition-colors hover:bg-warning-hover disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Unlock className="w-5 h-5" />
-          {isSeccfgRunning ? 'Processing...' : 'Unlock Bootloader'}
-        </button>
-
-        <button
-          onClick={onLock}
-          disabled={!isConnected || isSeccfgRunning || isSettingsLoading}
-        className="flex items-center justify-center gap-2 rounded-lg bg-danger px-5 py-2.5 font-medium text-danger-foreground transition-colors hover:bg-danger-hover disabled:cursor-not-allowed disabled:opacity-50"
-      >
-          <Lock className="w-5 h-5" />
-          {isSeccfgRunning ? 'Processing...' : 'Lock Bootloader'}
-        </button>
-      </div>
-
-      <div className="mt-4 border-t border-border pt-4">
-        <p className="text-sm text-muted-foreground mb-2">
-          Set the active A/B boot slot.
-        </p>
+      <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => onSetSlot('a')}
-            disabled={!isConnected || isSlotRunning || isSettingsLoading}
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          <Button
+            onClick={onUnlock}
+            disabled={!isConnected || isSeccfgRunning || isSettingsLoading}
+            variant="warning"
+            size="lg"
           >
-            <HardDrive className="w-5 h-5" />
-            {isSlotRunning ? 'Setting slot A...' : 'Set Slot A'}
-          </button>
-          <button
-            onClick={() => onSetSlot('b')}
-            disabled={!isConnected || isSlotRunning || isSettingsLoading}
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <HardDrive className="w-5 h-5" />
-            {isSlotRunning ? 'Setting slot B...' : 'Set Slot B'}
-          </button>
-        </div>
-      </div>
+            <Unlock className="h-5 w-5" />
+            {isSeccfgRunning ? 'Processing...' : 'Unlock Bootloader'}
+          </Button>
 
-      <div className="mt-4 border-t border-border pt-4">
-        <p className="text-sm text-muted-foreground mb-2">
-          Send the debug crash command to the antumbra CLI.
-        </p>
-        <button
-          onClick={onCrash}
-          disabled={!isConnected || isCrashRunning || isSettingsLoading}
-          className="flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-2.5 font-medium text-secondary-foreground transition-colors hover:bg-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Zap className="w-5 h-5" />
-          {isCrashRunning ? 'Crashing...' : 'Send Crash Command'}
-        </button>
-      </div>
-    </section>
+          <Button
+            onClick={onLock}
+            disabled={!isConnected || isSeccfgRunning || isSettingsLoading}
+            variant="destructive"
+            size="lg"
+          >
+            <Lock className="h-5 w-5" />
+            {isSeccfgRunning ? 'Processing...' : 'Lock Bootloader'}
+          </Button>
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <p className="mb-2 text-sm text-muted-foreground">Set the active A/B boot slot.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={() => onSetSlot('a')}
+              disabled={!isConnected || isSlotRunning || isSettingsLoading}
+              size="lg"
+            >
+              <HardDrive className="h-5 w-5" />
+              {isSlotRunning ? 'Setting slot A...' : 'Set Slot A'}
+            </Button>
+            <Button
+              onClick={() => onSetSlot('b')}
+              disabled={!isConnected || isSlotRunning || isSettingsLoading}
+              size="lg"
+            >
+              <HardDrive className="h-5 w-5" />
+              {isSlotRunning ? 'Setting slot B...' : 'Set Slot B'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <p className="mb-2 text-sm text-muted-foreground">
+            Send the debug crash command to the antumbra CLI.
+          </p>
+          <Button
+            onClick={onCrash}
+            disabled={!isConnected || isCrashRunning || isSettingsLoading}
+            variant="secondary"
+            size="lg"
+            className="w-full"
+          >
+            <Zap className="h-5 w-5" />
+            {isCrashRunning ? 'Crashing...' : 'Send Crash Command'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

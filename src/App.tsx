@@ -7,8 +7,6 @@ import { Flasher } from './pages/Flasher';
 import { Tools } from './pages/Tools';
 import { Log } from './pages/Log';
 import { Settings } from './pages/Settings';
-import { LogPanel } from './components/LogPanel';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { UpdateAvailableModal } from './components/UpdateAvailableModal';
 import { RiskDisclaimerModal } from './components/RiskDisclaimerModal';
 import { useOperationStream } from './hooks/useOperationStream';
@@ -102,10 +100,6 @@ function AppContent() {
         isDownloading={isDownloadingUpdate}
         downloadProgress={downloadProgress}
       />
-
-      <ErrorBoundary>
-        <LogPanel />
-      </ErrorBoundary>
 
       <RiskDisclaimerModal />
     </BrowserRouter>
