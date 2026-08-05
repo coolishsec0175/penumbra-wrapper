@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Download,
   FileClock,
+  FolderOpen,
   Minus,
   Moon,
   Monitor,
@@ -13,15 +14,53 @@ import {
   Check,
   LayoutGrid,
   Type,
+  X,
 } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { useDeviceStore } from '../store/deviceStore';
 import { useUpdateStore } from '../store/updateStore';
+import { useFileSelection } from '../hooks/useFileSelection';
+import { DialogType } from '../services/dialogs/fileDialogService';
+import { getBasename } from '../services/utils/pathUtils';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { cn } from '../lib/utils';
 import { THEME_ACCENTS, THEME_PRESETS, type ThemeAccent } from '../lib/theme';
 import { ChangelogModal } from '../components/ChangelogModal';
+
+interface PathRowProps {
+  label: string;
+  path: string | null;
+  placeholder: string;
+  title?: string;
+  loading?: boolean;
+  onBrowse: () => void;
+  onClear?: () => void;
+}
+
+function PathRow({ label, path, placeholder, title, loading, onBrowse, onClear }: PathRowProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <label className="w-32 shrink-0 text-sm font-medium text-muted-foreground">{label}</label>
+      <Button
+        onClick={onBrowse}
+        disabled={loading}
+        variant="outline"
+        size="sm"
+        className="min-w-0 flex-1 justify-start"
+        title={title}
+      >
+        <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate">{path ? getBasename(path) : placeholder}</span>
+      </Button>
+      {path && onClear && (
+        <Button onClick={onClear} disabled={loading} variant="destructive" size="icon" className="h-8 w-8" title={`Clear ${label}`}>
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+}
 
 const ACCENT_SWATCHES: Array<{ accent: ThemeAccent; label: string; className: string }> =
   THEME_ACCENTS.map((accent) => {
@@ -57,10 +96,22 @@ export function Settings() {
   const logFontSize = useUIStore((state) => state.logFontSize);
   const setLogFontSize = useUIStore((state) => state.setLogFontSize);
 
+  const {
+    daPath,
+    preloaderPath,
+    authPath,
+    defaultOutputPath,
+    isSettingsLoading,
+    setDaPath,
+    setPreloaderPath,
+    setAuthPath,
+    setDefaultOutputPath,
+  } = useDeviceStore();
   const usbLog = useDeviceStore((state) => state.usbLog);
   const verbose = useDeviceStore((state) => state.verbose);
   const setUsbLog = useDeviceStore((state) => state.setUsbLog);
   const setVerbose = useDeviceStore((state) => state.setVerbose);
+  const { selectFile } = useFileSelection();
 
   const isCheckingUpdate = useUpdateStore((state) => state.isCheckingUpdate);
   const checkUpdate = useUpdateStore((state) => state.checkUpdate);
@@ -72,15 +123,89 @@ export function Settings() {
 
   const accentDisabled = theme !== 'dark' || preset !== 'zinc';
 
+  const handleSelectDa = async () => {
+    const path = await selectFile(DialogType.DA_FILE);
+    if (path) {
+      await setDaPath(path);
+    }
+  };
+
+  const handleSelectPreloader = async () => {
+    const path = await selectFile(DialogType.PRELOADER_FILE);
+    if (path) {
+      await setPreloaderPath(path);
+    }
+  };
+
+  const handleSelectAuth = async () => {
+    const path = await selectFile(DialogType.IMAGE_FILE, undefined, {
+      title: 'Select DAA Auth File',
+      filters: [{ name: 'Auth Files', extensions: ['auth', 'bin', 'daa'] }, { name: 'All Files', extensions: ['*'] }],
+    });
+    if (path) {
+      await setAuthPath(path);
+    }
+  };
+
+  const handleSelectOutput = async () => {
+    const path = await selectFile(DialogType.OUTPUT_FOLDER);
+    if (path) {
+      await setDefaultOutputPath(path);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto bg-background text-foreground">
-      <main className="mx-auto max-w-4xl space-y-4 p-4">
+      <main className="w-full space-y-4 p-5">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <h1 className="text-[22px] font-bold text-foreground">Settings</h1>
           <p className="mt-1 text-sm text-subtle-foreground">
             Customize appearance, diagnostics flags, and manage antumbra updates.
           </p>
         </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 text-primary" />
+              <CardTitle>Path Configuration</CardTitle>
+            </div>
+            <CardDescription>Files antumbra needs before connecting to a device.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <PathRow
+              label="DA Loader"
+              path={daPath}
+              placeholder="Select DA file"
+              loading={isSettingsLoading}
+              onBrowse={handleSelectDa}
+            />
+            <PathRow
+              label="Preloader"
+              path={preloaderPath}
+              placeholder="Optional"
+              loading={isSettingsLoading}
+              onBrowse={handleSelectPreloader}
+              onClear={() => void setPreloaderPath(null)}
+            />
+            <PathRow
+              label="Auth"
+              path={authPath}
+              placeholder="Optional"
+              loading={isSettingsLoading}
+              onBrowse={handleSelectAuth}
+              onClear={() => void setAuthPath(null)}
+            />
+            <PathRow
+              label="Output Folder"
+              path={defaultOutputPath}
+              placeholder="Select output folder"
+              loading={isSettingsLoading}
+              onBrowse={handleSelectOutput}
+              onClear={() => void setDefaultOutputPath(null)}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

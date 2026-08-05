@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useOperationStore } from '../store/operationStore';
@@ -6,7 +6,6 @@ import { useUIStore } from '../store/uiStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
 import { usePartitionOperations } from '../hooks/usePartitionOperations';
 import { useFileSelection } from '../hooks/useFileSelection';
-import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { ConnectionPanel } from '../components/dashboard/ConnectionPanel';
 import { PartitionSection } from '../components/dashboard/PartitionSection';
 import { OperationModal } from '../components/OperationModal';
@@ -24,22 +23,13 @@ import { mkdir } from '@tauri-apps/plugin-fs';
 const CRITICAL_PARTITIONS = ['nvram', 'nvdata', 'nvcfg', 'proinfo', 'protect1', 'protect2'];
 
 export function Dashboard() {
-  const {
-    daPath,
-    preloaderPath,
-    authPath,
-    defaultOutputPath,
-    isSettingsLoading,
-    setDaPath,
-    setPreloaderPath,
-    setAuthPath,
-    setDefaultOutputPath,
-  } = useDeviceStore();
-  
+  const { daPath, preloaderPath, defaultOutputPath, isSettingsLoading, setDefaultOutputPath } =
+    useDeviceStore();
+
   const { partitions } = usePartitionStore();
   const { addLog, clearLogs } = useOperationStore();
   const { openLogPanel } = useUIStore();
-  
+
   const { connect, isConnected, isConnecting } = useDeviceConnection();
   const { formatPartition, erasePartition } = usePartitionOperations();
   const { selectFile } = useFileSelection();
@@ -55,7 +45,8 @@ export function Dashboard() {
     operation: 'read',
   });
 
-  const [isFastBackupRunning, setIsFastBackupRunning] = useState(false);
+  const [selectedPartitions, setSelectedPartitions] = useState<Set<string>>(new Set());
+  const [isBackupRunning, setIsBackupRunning] = useState(false);
   const [backupAbortController, setBackupAbortController] = useState<AbortController | null>(null);
   const backupCancelReasonRef = useRef<'disconnect' | null>(null);
 
@@ -76,49 +67,12 @@ export function Dashboard() {
     }
   }, [isConnected, backupAbortController]);
 
-  const handleSelectDa = async () => {
-    const path = await selectFile(DialogType.DA_FILE);
-    if (path) {
-      await setDaPath(path);
-      toast.success('DA file selected');
-    }
-  };
-
-  const handleSelectPreloader = async () => {
-    const path = await selectFile(DialogType.PRELOADER_FILE);
-    if (path) {
-      await setPreloaderPath(path);
-      toast.success('Preloader file selected');
-    }
-  };
-
-  const handleClearPreloader = async () => {
-    await setPreloaderPath(null);
-    toast.success('Preloader cleared');
-  };
-
   const handleSelectOutput = async () => {
     const path = await selectFile(DialogType.OUTPUT_FOLDER);
     if (path) {
       await setDefaultOutputPath(path);
       toast.success('Default output folder selected');
     }
-  };
-
-  const handleSelectAuth = async () => {
-    const path = await selectFile(DialogType.IMAGE_FILE, undefined, {
-      title: 'Select DAA Auth File',
-      filters: [{ name: 'Auth Files', extensions: ['auth', 'bin', 'daa'] }, { name: 'All Files', extensions: ['*'] }],
-    });
-    if (path) {
-      await setAuthPath(path);
-      toast.success('Auth file selected');
-    }
-  };
-
-  const handleClearAuth = async () => {
-    await setAuthPath(null);
-    toast.success('Auth file cleared');
   };
 
   const handleClearOutput = async () => {
@@ -130,29 +84,25 @@ export function Dashboard() {
     await connect();
   };
 
-  const handleFastBackup = async () => {
+  const backupPartitions = async (targets: Partition[], backupLabel: string) => {
     if (!daPath || !isConnected) return;
-    
+
     if (!defaultOutputPath) {
       toast.error('Please set a default output path first');
       return;
     }
 
-    const availablePartitions = partitions.filter(p => 
-      CRITICAL_PARTITIONS.includes(p.name.toLowerCase())
-    );
-    
-    if (availablePartitions.length === 0) {
-      toast.error('None of the critical partitions found on device');
+    if (targets.length === 0) {
+      toast.error('No partitions selected');
       return;
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const nvramOutputDir = joinPath(defaultOutputPath, `NVRAM-${timestamp}`);
+    const outputDir = joinPath(defaultOutputPath, `${backupLabel}-${timestamp}`);
 
     const confirmed = await confirm({
-      title: 'Backup NVRAM',
-      message: `This will backup ${availablePartitions.length} critical partitions (${availablePartitions.map(p => p.name).join(', ')}) to your default output folder under ${getBasename(nvramOutputDir)}.\n\nContinue?`,
+      title: `Backup ${backupLabel}`,
+      message: `This will backup ${targets.length} partition(s) (${targets.map((p) => p.name).join(', ')}) to your default output folder under ${getBasename(outputDir)}.\n\nContinue?`,
       variant: 'info',
       confirmText: 'Backup',
     });
@@ -164,33 +114,31 @@ export function Dashboard() {
 
     openLogPanel();
     clearLogs();
-    setIsFastBackupRunning(true);
+    setIsBackupRunning(true);
     backupCancelReasonRef.current = null;
 
     try {
-      await mkdir(nvramOutputDir, { recursive: true });
+      await mkdir(outputDir, { recursive: true });
     } catch (error: unknown) {
-      setIsFastBackupRunning(false);
+      setIsBackupRunning(false);
       setBackupAbortController(null);
-      ErrorHandler.handle(error, 'Create NVRAM backup folder');
+      ErrorHandler.handle(error, `Create ${backupLabel} backup folder`);
       return;
     }
 
-    // Create abort controller for cancellation
     const abortController = new AbortController();
     setBackupAbortController(abortController);
 
-    addLog({ 
-      timestamp: new Date().toISOString(), 
-      level: 'info', 
-      message: `Starting Backup NVRAM for ${availablePartitions.length} partitions...` 
+    addLog({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message: `Starting backup for ${targets.length} partitions...`,
     });
 
     let successCount = 0;
     let failCount = 0;
-    
-    for (let i = 0; i < availablePartitions.length; i++) {
-      // Check if backup was cancelled
+
+    for (let i = 0; i < targets.length; i++) {
       if (abortController.signal.aborted) {
         const reasonMessage =
           backupCancelReasonRef.current === 'disconnect'
@@ -205,10 +153,10 @@ export function Dashboard() {
         break;
       }
 
-      const partition = availablePartitions[i];
+      const partition = targets[i];
       const filename = generateTimestampedFilename(partition.name, 'img');
-      const outputPath = joinPath(nvramOutputDir, filename);
-      
+      const outputPath = joinPath(outputDir, filename);
+
       const operationId = uuidv4();
       const result = await executeOperation({
         operation: `Backup ${partition.name}`,
@@ -237,7 +185,7 @@ export function Dashboard() {
         continue;
       }
       successCount++;
-      toast.success(`✓ ${partition.name} (${i + 1}/${availablePartitions.length})`);
+      toast.success(`✓ ${partition.name} (${i + 1}/${targets.length})`);
     }
 
     if (failCount === 0) {
@@ -247,10 +195,41 @@ export function Dashboard() {
         icon: '⚠️',
       });
     }
-    
-    setIsFastBackupRunning(false);
+
+    setIsBackupRunning(false);
     setBackupAbortController(null);
   };
+
+  const handleFastBackup = () => {
+    const availablePartitions = partitions.filter((p) =>
+      CRITICAL_PARTITIONS.includes(p.name.toLowerCase())
+    );
+    void backupPartitions(availablePartitions, 'NVRAM');
+  };
+
+  const handleBackupSelected = () => {
+    const targets = partitions.filter((p) => selectedPartitions.has(p.name));
+    void backupPartitions(targets, 'Backup');
+  };
+
+  const handleToggleSelected = useCallback((name: string) => {
+    setSelectedPartitions((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAllSelected = useCallback(
+    (checked: boolean) => {
+      setSelectedPartitions(checked ? new Set(partitions.map((p) => p.name)) : new Set());
+    },
+    [partitions]
+  );
 
   const handleRead = (partition: Partition) => {
     setModalState({
@@ -313,23 +292,8 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-full bg-background text-foreground flex flex-col">
-      <DashboardHeader
-        daPath={daPath}
-        preloaderPath={preloaderPath}
-        authPath={authPath}
-        defaultOutputPath={defaultOutputPath}
-        isSettingsLoading={isSettingsLoading}
-        onSelectDa={handleSelectDa}
-        onSelectPreloader={handleSelectPreloader}
-        onClearPreloader={handleClearPreloader}
-        onSelectAuth={handleSelectAuth}
-        onClearAuth={handleClearAuth}
-        onSelectOutput={handleSelectOutput}
-        onClearOutput={handleClearOutput}
-      />
-
-      <main className="flex-1 overflow-hidden p-4">
+    <div className="flex h-full flex-col bg-background text-foreground">
+      <main className="min-h-0 flex-1 overflow-hidden p-5">
         {!isConnected && !isConnecting && (
           <ConnectionPanel
             isConnecting={isConnecting}
@@ -343,9 +307,16 @@ export function Dashboard() {
           <PartitionSection
             isConnected={isConnected}
             isConnecting={isConnecting}
-            isFastBackupRunning={isFastBackupRunning}
+            isBackupRunning={isBackupRunning}
             partitions={partitions}
+            selectedPartitions={selectedPartitions}
+            outputPath={defaultOutputPath}
+            onToggleSelected={handleToggleSelected}
+            onSelectAllSelected={handleSelectAllSelected}
+            onSelectOutput={handleSelectOutput}
+            onClearOutput={handleClearOutput}
             onFastBackup={handleFastBackup}
+            onBackupSelected={handleBackupSelected}
             onRead={handleRead}
             onWrite={handleWrite}
             onFormat={handleFormat}

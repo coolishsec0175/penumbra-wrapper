@@ -82,7 +82,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     }
     return window.innerWidth * 0.4;
   })(),
-  logPanelHeight: loadStoredNumber('logPanelHeight', 240),
+  logPanelHeight: loadStoredNumber('logPanelHeight', 200),
   logPanelPosition: loadStoredValue<LogPanelPosition>('logPanelPosition', 'right'),
   logFilter: loadStoredValue<LogFilter>('logFilter', 'all'),
   logAutoscroll: loadStoredBoolean('logAutoscroll', true),

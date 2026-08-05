@@ -321,7 +321,7 @@ export function Flasher() {
         totalCount={totalFlashCount}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-5">
         {!scatterFile ? (
           <ScatterDropzone
             onLoadPath={loadScatterPath}
@@ -386,7 +386,9 @@ export function Flasher() {
             </p>
           </div>
         )}
+      </div>
 
+      <div className="flex-shrink-0 border-t border-border p-3">
         <OutputLogPanel />
       </div>
     </div>

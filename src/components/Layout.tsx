@@ -6,7 +6,6 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './layout/Sidebar';
 import { PageHeader } from './layout/PageHeader';
-import { LogPanel } from './LogPanel';
 import { ErrorBanner } from './layout/ErrorBanner';
 
 export function Layout() {
@@ -19,7 +18,6 @@ export function Layout() {
           <Outlet />
         </div>
       </div>
-      <LogPanel />
       <ErrorBanner />
     </div>
   );

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ChevronDown, Power, RotateCw } from 'lucide-react';
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Power, RotateCw, Terminal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useOperationStore } from '../../store/operationStore';
+import { useUIStore } from '../../store/uiStore';
 import { useDeviceConnection } from '../../hooks/useDeviceConnection';
 import { useConfirmation } from '../../hooks/useConfirmation';
 import { DeviceApi } from '../../services/api/deviceApi';
@@ -37,6 +38,9 @@ export function PageHeader() {
   const preloaderPath = useDeviceStore((state) => state.preloaderPath);
   const isRunning = useOperationStore((state) => state.isRunning);
   const operationType = useOperationStore((state) => state.type);
+  const toggleLogPanel = useUIStore((state) => state.toggleLogPanel);
+  const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((state) => state.setSidebarCollapsed);
   const { isConnected, isConnecting } = useDeviceConnection();
   const { confirm } = useConfirmation();
 
@@ -107,61 +111,83 @@ export function PageHeader() {
 
   return (
     <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-border bg-surface px-5 py-3">
-      <h1 className="truncate text-2xl font-bold text-foreground">{title}</h1>
+      <h1 className="truncate text-[22px] font-bold text-foreground">{title}</h1>
 
-      <div className="flex flex-shrink-0 items-center gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5">
-            <span className={cn('size-2 rounded-full', dotColor)} />
-            <span className="text-xs font-semibold text-foreground">
-              {statusLabel}
-            </span>
-          </div>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        <div className="flex items-center gap-2 rounded-[3px] border border-border bg-surface px-2.5 py-1.5">
+          <span className={cn('size-2 rounded-full', dotColor)} />
+          <span className="text-xs font-semibold text-foreground">
+            {statusLabel}
+          </span>
+        </div>
 
-          <div className="relative" ref={dropdownRef}>
-            <Button
-              onClick={() => setRebootOpen(!rebootOpen)}
-              disabled={!isConnected || isConnecting}
-              variant="outline"
-              size="sm"
-            >
-              <RotateCw className="h-4 w-4" />
-              Reboot
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-            {rebootOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-md border border-border bg-surface p-1 shadow-lg">
-                {REBOOT_MODES.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => handleReboot(key)}
-                    className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
-                  >
-                    {label}
-                  </button>
-                ))}
-                <div className="my-1 border-t border-border" />
-                <button
-                  onClick={handleShutdown}
-                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
-                >
-                  Shutdown
-                </button>
-              </div>
-            )}
-          </div>
+        <Button
+          onClick={toggleLogPanel}
+          variant="ghost"
+          size="icon"
+          title="Toggle operation logs"
+        >
+          <Terminal className="h-4 w-4" />
+        </Button>
 
+        <Button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          variant="ghost"
+          size="icon"
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
+        </Button>
+
+        <div className="relative" ref={dropdownRef}>
           <Button
-            onClick={handleShutdown}
+            onClick={() => setRebootOpen(!rebootOpen)}
             disabled={!isConnected || isConnecting}
             variant="outline"
             size="sm"
-            title="Shut down device"
+            className="text-[11px] font-semibold uppercase"
           >
-            <Power className="h-4 w-4 text-danger" />
-            Shutdown
+            <RotateCw className="h-3.5 w-3.5" />
+            Reboot
+            <ChevronDown className="h-3.5 w-3.5" />
           </Button>
+          {rebootOpen && (
+            <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-md border border-border bg-surface p-1 shadow-lg">
+              {REBOOT_MODES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => handleReboot(key)}
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                >
+                  {label}
+                </button>
+              ))}
+              <div className="my-1 border-t border-border" />
+              <button
+                onClick={handleShutdown}
+                className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
+              >
+                Shutdown
+              </button>
+            </div>
+          )}
         </div>
+
+        <Button
+          onClick={handleShutdown}
+          disabled={!isConnected || isConnecting}
+          variant="outline"
+          size="sm"
+          className="text-[11px] font-semibold uppercase"
+          title="Shut down device"
+        >
+          <Power className="h-3.5 w-3.5 text-danger" />
+          Shutdown
+        </Button>
       </div>
     </header>
   );

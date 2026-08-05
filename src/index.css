@@ -338,10 +338,10 @@
   --color-destructive-foreground: var(--danger-foreground);
   --color-ring: var(--primary);
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
 
   --animate-modal-enter: modal-enter 200ms ease-out;
   --animate-modal-exit: modal-exit 180ms ease-in;
@@ -417,8 +417,8 @@
 }
 
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 *::-webkit-scrollbar-track {

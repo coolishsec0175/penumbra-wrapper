@@ -76,16 +76,16 @@ export function ScatterDropzone({
         setIsDragOver(false);
       }}
       className={cn(
-        'flex h-40 flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed transition-colors',
+        'flex h-28 flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed transition-colors',
         isDragOver
           ? 'border-primary bg-primary-soft'
           : 'border-border bg-surface hover:border-accent hover:bg-surface-alt'
       )}
     >
       {isLoading ? (
-        <Loader2 className="h-10 w-10 animate-spin text-accent" />
+        <Loader2 className="h-6 w-6 animate-spin text-accent" />
       ) : (
-        <Package className="h-10 w-10 text-subtle-foreground" />
+        <Package className="h-6 w-6 text-subtle-foreground" />
       )}
       <p className="px-6 text-center text-sm font-medium text-foreground">
         {isLoading
@@ -95,11 +95,11 @@ export function ScatterDropzone({
       {!isLoading && (
         <div className="flex items-center gap-3">
           <Button onClick={onSelectFolder} variant="outline" size="sm">
-            <FolderOpen className="h-4 w-4" />
+            <FolderOpen className="h-3.5 w-3.5" />
             Select Folder
           </Button>
           <Button onClick={onSelectFile} variant="outline" size="sm">
-            <FilePlus2 className="h-4 w-4" />
+            <FilePlus2 className="h-3.5 w-3.5" />
             Select File
           </Button>
         </div>

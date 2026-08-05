@@ -426,9 +426,9 @@ export function Tools() {
   const backupCount = partitions.length - skipPartitions.size;
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col">
-      <main className="flex-1 overflow-y-auto p-4">
-        <div className="mx-auto max-w-6xl space-y-4">
+    <div className="flex h-full flex-col bg-background text-foreground">
+      <main className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="w-full space-y-4">
           {!isConnected && <ConnectionWarning />}
 
           <ReadAllSection

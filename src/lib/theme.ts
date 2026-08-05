@@ -34,9 +34,9 @@ export function getInitialAccent(): ThemeAccent {
 }
 
 export function getInitialPreset(): ThemePreset {
-  if (typeof window === 'undefined') return 'zinc'
+  if (typeof window === 'undefined') return 'charcoal'
   const stored = localStorage.getItem(PRESET_STORAGE_KEY)
-  return THEME_PRESETS.some((p) => p.preset === stored) ? (stored as ThemePreset) : 'zinc'
+  return THEME_PRESETS.some((p) => p.preset === stored) ? (stored as ThemePreset) : 'charcoal'
 }
 
 export function applyTheme(theme: ThemeMode, accent: ThemeAccent, preset: ThemePreset = 'zinc') {

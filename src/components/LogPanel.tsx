@@ -1,32 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  X,
-  Terminal,
-  Copy,
-  Save,
-  Eraser,
-  Minus,
-  Plus,
-  ArrowDownToLine,
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useUIStore, type LogFilter } from '../store/uiStore';
+import { X, Terminal } from 'lucide-react';
+import { useUIStore } from '../store/uiStore';
 import { useOperationStore } from '../store/operationStore';
 import { ProgressWidget } from './ProgressWidget';
 import { LogLineView } from './LogLineView';
-import { FileDialogService } from '../services/dialogs/fileDialogService';
-import { LogApi } from '../services/api/logApi';
-import { ErrorHandler } from '../services/utils/errorHandler';
+import { LogToolbar } from './LogToolbar';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
-
-const FILTERS: Array<{ key: LogFilter; label: string; activeClass: string }> = [
-  { key: 'all', label: 'ALL', activeClass: 'bg-primary text-primary-foreground' },
-  { key: 'info', label: 'INFO', activeClass: 'bg-primary text-primary-foreground' },
-  { key: 'success', label: 'SUCCESS', activeClass: 'bg-success text-success-foreground' },
-  { key: 'warning', label: 'WARN', activeClass: 'bg-warning text-warning-foreground' },
-  { key: 'error', label: 'ERROR', activeClass: 'bg-danger text-danger-foreground' },
-];
 
 export function LogPanel() {
   const {
@@ -35,11 +15,8 @@ export function LogPanel() {
     logPanelWidth,
     setLogPanelWidth,
     logFilter,
-    setLogFilter,
     logAutoscroll,
-    setLogAutoscroll,
     logFontSize,
-    setLogFontSize,
   } = useUIStore();
 
   const logs = useOperationStore((state) => state.logs);
@@ -58,16 +35,16 @@ export function LogPanel() {
 
   const visibleLogs = logs.filter((log) => logFilter === 'all' || log.level === logFilter);
 
-  const renderedLogText = useCallback(
-    (lines = visibleLogs) =>
-      lines
-        .map((log) => {
-          const time = new Date(log.timestamp).toLocaleTimeString();
-          return `[${time}] [${log.level.toUpperCase()}] ${log.message}`;
-        })
-        .join('\n'),
-    [visibleLogs]
-  );
+  const handleCopyLogs = useCallback(async () => {
+    if (logs.length === 0) return;
+    const text = visibleLogs
+      .map((log) => {
+        const time = new Date(log.timestamp).toLocaleTimeString();
+        return `[${time}] [${log.level.toUpperCase()}] ${log.message}`;
+      })
+      .join('\n');
+    await navigator.clipboard.writeText(text);
+  }, [logs.length, visibleLogs]);
 
   // Auto-scroll to bottom when new logs arrive (only when autoscroll enabled)
   useEffect(() => {
@@ -82,62 +59,13 @@ export function LogPanel() {
     return () => clearTimeout(scrollTimeout);
   }, [logs, isLogPanelOpen, logAutoscroll]);
 
-  const handleCopyLogs = useCallback(async () => {
-    if (logs.length === 0) {
-      toast.error('No logs to copy');
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(renderedLogText());
-      toast.success('Logs copied to clipboard');
-    } catch (error) {
-      ErrorHandler.handle(error, 'Copy logs', {
-        customMessage: 'Failed to copy logs',
-        addToOperationLog: false,
-      });
-    }
-  }, [logs, renderedLogText]);
-
   const handleClearLogs = useCallback(() => {
     clearLogs();
-    toast('Logs cleared', { icon: 'ℹ️' });
   }, [clearLogs]);
 
-  const handleSaveLogs = useCallback(async () => {
-    if (logs.length === 0) {
-      toast.error('No logs to save');
-      return;
-    }
-
-    try {
-      const path = await FileDialogService.saveFile({
-        defaultPath: 'penumbra-session.log',
-        title: 'Save Session Log',
-        defaultExtension: 'log',
-        filters: [
-          { name: 'Log Files', extensions: ['log', 'txt'] },
-          { name: 'All Files', extensions: ['*'] },
-        ],
-      });
-      if (!path) return;
-
-      await LogApi.exportLogFile(path, renderedLogText());
-      toast.success('Log saved');
-    } catch (error) {
-      ErrorHandler.handle(error, 'Save logs', {
-        customMessage: 'Failed to save logs',
-        addToOperationLog: false,
-      });
-    }
-  }, [logs, renderedLogText]);
-
-  const adjustFontSize = useCallback(
-    (delta: number) => {
-      setLogFontSize(Math.min(20, Math.max(10, logFontSize + delta)));
-    },
-    [logFontSize, setLogFontSize]
-  );
+  const handleCopyAll = useCallback(() => {
+    void handleCopyLogs();
+  }, [handleCopyLogs]);
 
   // Keyboard shortcuts handler
   const handleKeyDown = useCallback(
@@ -151,7 +79,7 @@ export function LogPanel() {
 
       if (e.ctrlKey && e.key === 'c' && !window.getSelection()?.toString()) {
         e.preventDefault();
-        handleCopyLogs();
+        handleCopyAll();
         return;
       }
 
@@ -160,13 +88,8 @@ export function LogPanel() {
         handleClearLogs();
         return;
       }
-
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        handleSaveLogs();
-      }
     },
-    [isLogPanelOpen, closeLogPanel, handleCopyLogs, handleClearLogs, handleSaveLogs]
+    [isLogPanelOpen, closeLogPanel, handleCopyAll, handleClearLogs]
   );
 
   useEffect(() => {
@@ -232,95 +155,14 @@ export function LogPanel() {
             {visibleLogs.length}/{logs.length}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Button
-            onClick={() => setLogAutoscroll(!logAutoscroll)}
-            variant="ghost"
-            size="icon"
-            title={logAutoscroll ? 'Autoscroll on' : 'Autoscroll off'}
-          >
-            <ArrowDownToLine
-              className={cn(
-                'h-5 w-5',
-                logAutoscroll ? 'text-primary' : 'text-muted-foreground'
-              )}
-            />
-          </Button>
-          <Button
-            onClick={handleClearLogs}
-            disabled={logs.length === 0}
-            variant="ghost"
-            size="icon"
-            title="Clear logs (Ctrl+L)"
-          >
-            <Eraser className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button
-            onClick={handleSaveLogs}
-            disabled={logs.length === 0}
-            variant="ghost"
-            size="icon"
-            title="Save logs to file (Ctrl+S)"
-          >
-            <Save className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button
-            onClick={handleCopyLogs}
-            disabled={logs.length === 0}
-            variant="ghost"
-            size="icon"
-            title="Copy logs (Ctrl+C)"
-          >
-            <Copy className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button onClick={closeLogPanel} variant="ghost" size="icon" title="Close logs (Esc)">
-            <X className="h-5 w-5 text-muted-foreground" />
-          </Button>
-        </div>
+        <Button onClick={closeLogPanel} variant="ghost" size="icon" title="Close logs (Esc)">
+          <X className="h-5 w-5 text-muted-foreground" />
+        </Button>
       </div>
 
       {/* Filter + font size toolbar */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-border p-2">
-        <div className="flex items-center gap-1">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setLogFilter(filter.key)}
-              className={cn(
-                'rounded px-2 py-1 text-[11px] font-semibold uppercase transition-colors',
-                logFilter === filter.key
-                  ? filter.activeClass
-                  : 'bg-surface-alt text-muted-foreground hover:bg-surface-hover'
-              )}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <span className="text-[11px] text-muted-foreground">Size</span>
-          <Button
-            onClick={() => adjustFontSize(-1)}
-            variant="outline"
-            size="icon"
-            className="h-6 w-6"
-            title="Decrease font size"
-          >
-            <Minus className="h-3 w-3" />
-          </Button>
-          <span className="w-8 text-center text-xs tabular-nums text-muted-foreground">
-            {logFontSize}px
-          </span>
-          <Button
-            onClick={() => adjustFontSize(1)}
-            variant="outline"
-            size="icon"
-            className="h-6 w-6"
-            title="Increase font size"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
+      <div className="flex-shrink-0 border-b border-border p-2">
+        <LogToolbar />
       </div>
 
       {/* Progress Widget - Shows operation status when running */}

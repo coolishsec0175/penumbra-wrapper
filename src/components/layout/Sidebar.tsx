@@ -2,11 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FileStack,
   Grid,
-  Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
   Settings,
-  Sun,
   Terminal,
   Usb,
   Wrench,
@@ -47,11 +43,7 @@ function PenumbraLogo({ className }: { className?: string }) {
 }
 
 export function Sidebar() {
-  const theme = useUIStore((state) => state.theme);
-  const toggleTheme = useUIStore((state) => state.toggleTheme);
-  const toggleLogPanel = useUIStore((state) => state.toggleLogPanel);
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
-  const setSidebarCollapsed = useUIStore((state) => state.setSidebarCollapsed);
 
   const daPath = useDeviceStore((state) => state.daPath);
   const isRunning = useOperationStore((state) => state.isRunning);
@@ -147,10 +139,11 @@ export function Sidebar() {
           <Button
             onClick={openFlashModal}
             variant="warning"
+            size="sm"
             className={cn('w-full', sidebarCollapsed ? 'justify-center px-0' : 'justify-start')}
             title="Show flash progress"
           >
-            <Zap className="h-5 w-5 shrink-0 animate-pulse" />
+            <Zap className="h-4 w-4 shrink-0 animate-pulse" />
             {!sidebarCollapsed && (
               <span className="font-medium">
                 Flashing {currentFlashIndex}/{totalFlashCount}
@@ -162,42 +155,17 @@ export function Sidebar() {
         <Button
           onClick={handlePrimaryAction}
           variant={isConnected ? 'destructive' : 'default'}
+          size="sm"
           className={cn('w-full', sidebarCollapsed ? 'justify-center px-0' : 'justify-start')}
           title={actionLabel}
         >
           {showCancel ? (
-            <XCircle className="h-5 w-5 shrink-0" />
+            <XCircle className="h-4 w-4 shrink-0" />
           ) : (
-            <Usb className="h-5 w-5 shrink-0" />
+            <Usb className="h-4 w-4 shrink-0" />
           )}
           {!sidebarCollapsed && <span className="font-medium">{actionLabel}</span>}
         </Button>
-
-        <div
-          className={cn(
-            'grid gap-1.5',
-            sidebarCollapsed ? 'grid-cols-1' : 'grid-cols-3'
-          )}
-        >
-          <Button onClick={toggleTheme} variant="ghost" size="sm" title="Toggle theme">
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          <Button onClick={toggleLogPanel} variant="ghost" size="sm" title="Toggle logs">
-            <Terminal className="h-5 w-5" />
-          </Button>
-          <Button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            variant="ghost"
-            size="sm"
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen className="h-5 w-5" />
-            ) : (
-              <PanelLeftClose className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
 
         <NavLink
           to="/settings"
@@ -217,7 +185,7 @@ export function Sidebar() {
               {isActive && (
                 <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary" />
               )}
-              <Settings className="h-5 w-5 shrink-0" />
+              <Settings className="h-4 w-4 shrink-0" />
               {!sidebarCollapsed && <span className="font-medium">Settings</span>}
             </>
           )}

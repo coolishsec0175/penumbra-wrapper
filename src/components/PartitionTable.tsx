@@ -10,6 +10,9 @@ import { cn } from '../lib/utils';
 
 interface PartitionTableProps {
   partitions: Partition[];
+  selectedPartitions: Set<string>;
+  onToggleSelected: (partitionName: string) => void;
+  onSelectAllSelected: (checked: boolean) => void;
   onRead: (partition: Partition) => void;
   onWrite: (partition: Partition) => void;
   onFormat: (partition: Partition) => void;
@@ -52,121 +55,175 @@ function getPartitionFlags(name: string): Flag[] {
   return flags;
 }
 
-export const PartitionTable = memo<PartitionTableProps>(({ partitions, onRead, onWrite, onFormat, onErase }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const compactView = useUIStore((state) => state.compactView);
-  const rowPadding = compactView ? 'px-2 py-1' : 'px-3 py-2.5';
+export const PartitionTable = memo<PartitionTableProps>(
+  ({
+    partitions,
+    selectedPartitions,
+    onToggleSelected,
+    onSelectAllSelected,
+    onRead,
+    onWrite,
+    onFormat,
+    onErase,
+  }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const compactView = useUIStore((state) => state.compactView);
+    const rowPadding = compactView ? 'px-2 py-0.5' : 'px-3 py-1.5';
 
-  const filteredPartitions = useMemo(
-    () => partitions.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())),
-    [partitions, searchTerm]
-  );
+    const filteredPartitions = useMemo(
+      () => partitions.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())),
+      [partitions, searchTerm]
+    );
 
-  const handleCopyName = useCallback((name: string) => {
-    navigator.clipboard.writeText(name);
-    toast.success(`Copied "${name}" to clipboard`);
-  }, []);
+    const allSelected = filteredPartitions.length > 0 &&
+      filteredPartitions.every((p) => selectedPartitions.has(p.name));
 
-  const createReadHandler = useCallback((partition: Partition) => () => onRead(partition), [onRead]);
-  const createWriteHandler = useCallback((partition: Partition) => () => onWrite(partition), [onWrite]);
-  const createFormatHandler = useCallback((partition: Partition) => () => onFormat(partition), [onFormat]);
-  const createEraseHandler = useCallback((partition: Partition) => () => onErase(partition), [onErase]);
+    const handleCopyName = useCallback((name: string) => {
+      navigator.clipboard.writeText(name);
+      toast.success(`Copied "${name}" to clipboard`);
+    }, []);
 
-  return (
-    <div className="flex h-full flex-col space-y-3">
-      <div className="relative flex-shrink-0">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search partitions..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+    const createReadHandler = useCallback((partition: Partition) => () => onRead(partition), [onRead]);
+    const createWriteHandler = useCallback((partition: Partition) => () => onWrite(partition), [onWrite]);
+    const createFormatHandler = useCallback((partition: Partition) => () => onFormat(partition), [onFormat]);
+    const createEraseHandler = useCallback((partition: Partition) => () => onErase(partition), [onErase]);
+    const createToggleHandler = useCallback(
+      (name: string) => () => onToggleSelected(name),
+      [onToggleSelected]
+    );
 
-      <Card className="flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
-        <div className="sticky top-0 z-10 grid grid-cols-[2fr_1.5fr_1.5fr_1fr_3fr] gap-3 border-b border-border bg-surface px-3 py-2.5">
-          <div className="text-sm font-semibold text-foreground">Name</div>
-          <div className="text-sm font-semibold text-foreground">Start</div>
-          <div className="text-sm font-semibold text-foreground">Size</div>
-          <div className="text-sm font-semibold text-foreground">Type</div>
-          <div className="text-center text-sm font-semibold text-foreground">Actions</div>
+    return (
+      <div className="flex h-full flex-col space-y-3">
+        <div className="relative flex-shrink-0">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search partitions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {filteredPartitions.length === 0 ? (
-            <div className="flex h-32 items-center justify-center text-subtle-foreground">
-              {searchTerm ? 'No partitions found matching your search' : 'No partitions available'}
+        <Card className="flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
+          <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border bg-surface px-3 py-2">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={(e) => onSelectAllSelected(e.target.checked)}
+              className="h-4 w-4 cursor-pointer accent-primary"
+              title="Select all"
+            />
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Name</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Start</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Size</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</div>
+            <div className="w-36 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Actions
             </div>
-          ) : (
-            filteredPartitions.map((partition) => (
-              <div
-                key={partition.name}
-                className={cn(
-                  'grid grid-cols-[2fr_1.5fr_1.5fr_1fr_3fr] gap-3 border-b border-border transition-colors hover:bg-surface-hover',
-                  rowPadding
-                )}
-              >
-                <div className="flex items-center">
-                  <button
-                    onClick={() => handleCopyName(partition.name)}
-                    className="truncate text-left font-mono text-sm text-primary hover:underline"
-                    title={partition.name}
-                  >
-                    {partition.name}
-                  </button>
-                </div>
+          </div>
 
-                <div className="flex items-center truncate font-mono text-sm text-muted-foreground" title={partition.start}>
-                  {partition.start}
-                </div>
-
-                <div className="flex items-center truncate font-mono text-sm text-muted-foreground" title={partition.size}>
-                  {partition.display_size || partition.size}
-                </div>
-
-                <div className="flex items-center gap-1">
-                  {getPartitionFlags(partition.name).map((flag) => (
-                    <span
-                      key={flag.label}
-                      className={cn(
-                        'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase',
-                        flag.className
-                      )}
-                    >
-                      {flag.label}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-center gap-2">
-                  <Button onClick={createReadHandler(partition)} size="sm">
-                    <Upload className="h-4 w-4" />
-                    Read
-                  </Button>
-                  <Button onClick={createWriteHandler(partition)} size="sm" variant="success">
-                    <Download className="h-4 w-4" />
-                    Write
-                  </Button>
-                  <Button onClick={createFormatHandler(partition)} size="sm" variant="destructive">
-                    <HardDriveDownload className="h-4 w-4" />
-                    Format
-                  </Button>
-                  <Button onClick={createEraseHandler(partition)} size="sm" variant="warning">
-                    <Trash2 className="h-4 w-4" />
-                    Erase
-                  </Button>
-                </div>
+          <div className="flex-1 overflow-y-auto">
+            {filteredPartitions.length === 0 ? (
+              <div className="flex h-32 items-center justify-center text-subtle-foreground">
+                {searchTerm ? 'No partitions found matching your search' : 'No partitions available'}
               </div>
-            ))
-          )}
-        </div>
-      </Card>
+            ) : (
+              filteredPartitions.map((partition) => (
+                <div
+                  key={partition.name}
+                  className={cn(
+                    'grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border transition-colors hover:bg-surface-hover',
+                    rowPadding
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedPartitions.has(partition.name)}
+                    onChange={createToggleHandler(partition.name)}
+                    className="h-4 w-4 cursor-pointer accent-primary"
+                  />
 
-      <div className="flex-shrink-0 text-sm text-subtle-foreground">
-        Showing {filteredPartitions.length} of {partitions.length} partitions
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => handleCopyName(partition.name)}
+                      className="truncate text-left font-mono text-sm text-primary hover:underline"
+                      title={partition.name}
+                    >
+                      {partition.name}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center truncate font-mono text-sm text-muted-foreground" title={partition.start}>
+                    {partition.start}
+                  </div>
+
+                  <div className="flex items-center truncate font-mono text-sm text-muted-foreground" title={partition.size}>
+                    {partition.display_size || partition.size}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {getPartitionFlags(partition.name).map((flag) => (
+                      <span
+                        key={flag.label}
+                        className={cn(
+                          'rounded px-1.5 py-px text-[10px] font-semibold uppercase',
+                          flag.className
+                        )}
+                      >
+                        {flag.label}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-0.5">
+                    <Button
+                      onClick={createReadHandler(partition)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      title="Read"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={createWriteHandler(partition)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-success"
+                      title="Write"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={createFormatHandler(partition)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-danger"
+                      title="Format"
+                    >
+                      <HardDriveDownload className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={createEraseHandler(partition)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-warning"
+                      title="Erase"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <div className="flex-shrink-0 text-sm text-subtle-foreground">
+          Showing {filteredPartitions.length} of {partitions.length} partitions
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);

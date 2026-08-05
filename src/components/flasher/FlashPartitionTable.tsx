@@ -21,21 +21,21 @@ export function FlashPartitionTable({
   onSelectImage,
 }: FlashPartitionTableProps) {
   const compactView = useUIStore((state) => state.compactView);
-  const rowPadding = compactView ? 'px-2 py-1' : 'px-3 py-2.5';
+  const rowPadding = compactView ? 'px-2 py-0.5' : 'px-3 py-1.5';
 
   return (
     <div className="mb-4 flex flex-1 flex-col overflow-hidden rounded-md border border-border bg-surface-alt">
-      <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] gap-3 border-b border-border bg-surface px-3 py-2.5">
-        <div className="text-sm font-semibold text-foreground">Select</div>
-        <div className="text-sm font-semibold text-foreground">Partition</div>
-        <div className="text-sm font-semibold text-foreground">Size</div>
-        <div className="text-sm font-semibold text-foreground">Region</div>
-        <div className="text-sm font-semibold text-foreground">Type</div>
-        <div className="text-sm font-semibold text-foreground">Image File</div>
+      <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] items-center gap-3 border-b border-border bg-surface px-3 py-2">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Partition</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Size</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Region</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</div>
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Image File</div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {partitions.map((partition) => {
+        {partitions.map((partition, index) => {
           const isSelected = selectedPartitions.has(partition.partition_name);
           const imageFile = partitionImages.get(partition.partition_name);
 
@@ -43,9 +43,10 @@ export function FlashPartitionTable({
             <div
               key={partition.partition_name}
               className={cn(
-                'grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] gap-3 border-b border-border transition-colors hover:bg-surface-hover',
+                'grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] items-center gap-3 border-b border-border transition-colors hover:bg-surface-hover',
                 rowPadding,
-                isSelected && 'bg-accent-soft'
+                isSelected && 'bg-accent-soft',
+                !isSelected && index % 2 === 1 && 'bg-surface/30'
               )}
             >
               <div className="flex items-center">
