@@ -31,7 +31,7 @@ export function FastbootSection({
   return (
     <Card>
       <CardHeader className="flex-row items-center gap-3">
-        <div className="rounded-lg bg-primary-soft p-3">
+        <div className="rounded-[3px] bg-primary-soft p-3">
           <Rocket className="h-6 w-6 text-primary" />
         </div>
         <div className="min-w-0 flex-1">

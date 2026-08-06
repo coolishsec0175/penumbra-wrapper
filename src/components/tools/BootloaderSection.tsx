@@ -28,7 +28,7 @@ export function BootloaderSection({
   return (
     <Card>
       <CardHeader className="flex-row items-center gap-3">
-        <div className="rounded-lg bg-warning-soft p-3">
+        <div className="rounded-[3px] bg-warning-soft p-3">
           <Lock className="h-6 w-6 text-warning" />
         </div>
         <div>

@@ -18,7 +18,7 @@ export function LogConsole({ logs, className = '' }: LogConsoleProps) {
   }, [logs]);
 
   return (
-    <div className={`rounded-md border border-border bg-surface ${className}`}>
+    <div className={`rounded-[3px] border border-border bg-surface ${className}`}>
       <div className="border-b border-border px-3 py-2">
         <h3 className="text-sm font-medium text-muted-foreground">Console Output</h3>
       </div>

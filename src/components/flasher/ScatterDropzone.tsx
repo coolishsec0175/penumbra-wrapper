@@ -76,7 +76,7 @@ export function ScatterDropzone({
         setIsDragOver(false);
       }}
       className={cn(
-        'flex h-28 flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed transition-colors',
+        'flex h-28 flex-col items-center justify-center gap-2 rounded-[3px] border-2 border-dashed transition-colors',
         isDragOver
           ? 'border-primary bg-primary-soft'
           : 'border-border bg-surface hover:border-accent hover:bg-surface-alt'

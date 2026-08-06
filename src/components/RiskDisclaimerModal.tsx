@@ -28,7 +28,7 @@ export function RiskDisclaimerModal() {
       <Card className="mx-3 w-full max-w-lg overflow-hidden border-danger bg-surface shadow-2xl">
         <CardHeader className="border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-danger-soft p-3">
+            <div className="rounded-[3px] bg-danger-soft p-3">
               <ShieldAlert className="h-6 w-6 text-danger" />
             </div>
             <div>

@@ -1,0 +1,124 @@
+import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { cn } from '../../lib/utils';
+
+export interface MenuItem {
+  /** Optional leading glyph, e.g. '☾', '⏻', or a React node. */
+  icon?: string | ReactNode;
+  label: string;
+  description: string;
+  disabled?: boolean;
+}
+
+export interface MenuListProps {
+  items: MenuItem[];
+  selectedIndex?: number;
+  onSelect?: (index: number) => void;
+  /** Invoked when the user presses Enter (or double-activates a row). */
+  onActivate?: (index: number) => void;
+  className?: string;
+}
+
+/**
+ * The Antumbra "description menu": a keyboard-navigable list on the left with a
+ * live description box on the right showing the currently selected item.
+ */
+export function MenuList({
+  items,
+  selectedIndex = 0,
+  onSelect,
+  onActivate,
+  className,
+}: MenuListProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const move = useCallback(
+    (delta: number) => {
+      if (items.length === 0) return;
+      const next = Math.max(0, Math.min(items.length - 1, selectedIndex + delta));
+      onSelect?.(next);
+    },
+    [items.length, selectedIndex, onSelect]
+  );
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        move(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        move(-1);
+      } else if (e.key === 'Enter' && onActivate) {
+        e.preventDefault();
+        const item = items[selectedIndex];
+        if (item && !item.disabled) onActivate(selectedIndex);
+      }
+    };
+    el.addEventListener('keydown', handleKeyDown);
+    return () => el.removeEventListener('keydown', handleKeyDown);
+  }, [move, onActivate, items, selectedIndex]);
+
+  const selected = items[selectedIndex];
+
+  return (
+    <div
+      ref={ref}
+      tabIndex={0}
+      onFocus={(e) => e.currentTarget.setAttribute('data-focused', 'true')}
+      onBlur={(e) => e.currentTarget.removeAttribute('data-focused')}
+      className={cn(
+        'flex w-full max-w-xl gap-6 rounded-[3px] border border-border bg-surface p-4 outline-none',
+        className
+      )}
+    >
+      <ul className="min-w-0 flex-1 space-y-1" role="menu" aria-label="Antumbra menu">
+        {items.map((item, i) => {
+          const active = i === selectedIndex;
+          const Icon = item.icon;
+          return (
+            <li key={item.label}>
+              <button
+                role="menuitem"
+                disabled={item.disabled}
+                onClick={() => {
+                  onSelect?.(i);
+                  if (onActivate && !item.disabled) onActivate(i);
+                }}
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-[3px] px-2 py-1 text-left text-sm transition-colors disabled:opacity-40',
+                  active
+                    ? 'bg-primary-soft font-bold text-accent'
+                    : 'text-foreground hover:bg-surface-hover'
+                )}
+              >
+                {Icon !== undefined &&
+                  (typeof Icon === 'string' ? (
+                    <span className="w-5 shrink-0 text-center">{Icon}</span>
+                  ) : (
+                    <span className="w-5 shrink-0 text-center">{Icon}</span>
+                  ))}
+                <span className="truncate">{item.label}</span>
+                {active && <span className="ml-auto text-[10px] font-bold text-accent">▸</span>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {selected && (
+        <div className="hidden w-44 shrink-0 flex-col justify-center sm:flex">
+          <div className="rounded-[3px] border border-border px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {selected.label}
+            </p>
+            <p className="mt-1 text-xs font-medium italic leading-relaxed text-accent">
+              {selected.description}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

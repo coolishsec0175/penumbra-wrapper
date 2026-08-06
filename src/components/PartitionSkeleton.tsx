@@ -3,9 +3,9 @@ import { memo } from 'react';
 export const PartitionSkeleton = memo(() => {
   return (
     <div className="flex h-full flex-col space-y-3 animate-pulse">
-      <div className="h-9 flex-shrink-0 rounded-md bg-surface-alt" />
+      <div className="h-9 flex-shrink-0 rounded-[3px] bg-surface-alt" />
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-md border border-border bg-surface-alt">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-[3px] border border-border bg-surface-alt">
         <div className="grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border bg-surface px-3 py-2">
           <div className="h-4 w-4 rounded bg-surface-hover" />
           <div className="h-4 w-16 rounded bg-surface-hover" />

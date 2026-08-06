@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FolderOpen, X } from 'lucide-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useOperationStore } from '../store/operationStore';
@@ -6,9 +8,13 @@ import { useUIStore } from '../store/uiStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
 import { usePartitionOperations } from '../hooks/usePartitionOperations';
 import { useFileSelection } from '../hooks/useFileSelection';
-import { ConnectionPanel } from '../components/dashboard/ConnectionPanel';
-import { PartitionSection } from '../components/dashboard/PartitionSection';
+import { WelcomeScreen } from '../components/dashboard/WelcomeScreen';
 import { OperationModal } from '../components/OperationModal';
+import { PartitionSkeleton } from '../components/PartitionSkeleton';
+import { PartitionTable } from '../components/PartitionTable';
+import { ProgressWidget } from '../components/ProgressWidget';
+import { Panel } from '../components/penumbra/Panel';
+import { StatusCard } from '../components/penumbra/StatusCard';
 import { useConfirmation } from '../hooks/useConfirmation';
 import { DialogType } from '../services/dialogs/fileDialogService';
 import { PartitionApi } from '../services/api/partitionApi';
@@ -23,17 +29,30 @@ import { mkdir } from '@tauri-apps/plugin-fs';
 const CRITICAL_PARTITIONS = ['nvram', 'nvdata', 'nvcfg', 'proinfo', 'protect1', 'protect2'];
 
 export function Dashboard() {
-  const { daPath, preloaderPath, defaultOutputPath, isSettingsLoading, setDefaultOutputPath } =
-    useDeviceStore();
+  const {
+    daPath,
+    preloaderPath,
+    defaultOutputPath,
+    isSettingsLoading,
+    setDaPath,
+    setPreloaderPath,
+    setDefaultOutputPath,
+  } = useDeviceStore();
 
   const { partitions } = usePartitionStore();
   const { addLog, clearLogs } = useOperationStore();
-  const { openLogPanel } = useUIStore();
+  const isOperationRunning = useOperationStore((state) => state.isRunning);
+  const operationType = useOperationStore((state) => state.type);
+  const operationPartition = useOperationStore((state) => state.partitionName);
+  const operationSize = useOperationStore((state) => state.partitionSize);
+  const operationStart = useOperationStore((state) => state.startTime);
 
   const { connect, isConnected, isConnecting } = useDeviceConnection();
   const { formatPartition, erasePartition } = usePartitionOperations();
   const { selectFile } = useFileSelection();
   const { confirm } = useConfirmation();
+  const navigate = useNavigate();
+  const openLogPanel = useUIStore((state) => state.openLogPanel);
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -66,6 +85,22 @@ export function Dashboard() {
       backupAbortController.abort();
     }
   }, [isConnected, backupAbortController]);
+
+  const handleSelectDa = async () => {
+    const path = await selectFile(DialogType.DA_FILE);
+    if (path) {
+      await setDaPath(path);
+      toast.success('DA file selected');
+    }
+  };
+
+  const handleSelectPreloader = async () => {
+    const path = await selectFile(DialogType.PRELOADER_FILE);
+    if (path) {
+      await setPreloaderPath(path);
+      toast.success('Preloader selected');
+    }
+  };
 
   const handleSelectOutput = async () => {
     const path = await selectFile(DialogType.OUTPUT_FOLDER);
@@ -293,36 +328,138 @@ export function Dashboard() {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <main className="min-h-0 flex-1 overflow-hidden p-5">
-        {!isConnected && !isConnecting && (
-          <ConnectionPanel
-            isConnecting={isConnecting}
-            isSettingsLoading={isSettingsLoading}
-            daPath={daPath}
-            onConnect={handleConnect}
-          />
-        )}
+      <main className="flex min-h-0 flex-1 flex-col p-5">
+        <div className="min-h-0 flex-1 overflow-hidden">
+          {!isConnected && !isConnecting && (
+            <WelcomeScreen
+              isConnecting={isConnecting}
+              isSettingsLoading={isSettingsLoading}
+              onSelectDa={handleSelectDa}
+              onSelectPreloader={handleSelectPreloader}
+              onConnect={handleConnect}
+              onNavigate={navigate}
+            />
+          )}
 
-        {(isConnected || isConnecting) && (
-          <PartitionSection
-            isConnected={isConnected}
-            isConnecting={isConnecting}
-            isBackupRunning={isBackupRunning}
-            partitions={partitions}
-            selectedPartitions={selectedPartitions}
-            outputPath={defaultOutputPath}
-            onToggleSelected={handleToggleSelected}
-            onSelectAllSelected={handleSelectAllSelected}
-            onSelectOutput={handleSelectOutput}
-            onClearOutput={handleClearOutput}
-            onFastBackup={handleFastBackup}
-            onBackupSelected={handleBackupSelected}
-            onRead={handleRead}
-            onWrite={handleWrite}
-            onFormat={handleFormat}
-            onErase={handleErase}
-          />
+          {(isConnected || isConnecting) && (
+            <div className="flex h-full gap-4">
+            {/* ACTIONS panel */}
+            <div className="flex w-72 shrink-0 flex-col gap-4">
+              <Panel title="ACTIONS" accent>
+                <div className="flex flex-col gap-1.5">
+                  <button
+                    onClick={handleFastBackup}
+                    disabled={!isConnected || isConnecting || isBackupRunning}
+                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                  >
+                    <span className="text-accent">⚡</span>
+                    <span className="flex-1">
+                      {isBackupRunning ? 'Backing up...' : 'Backup NVRAM'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleBackupSelected}
+                    disabled={
+                      !isConnected ||
+                      isConnecting ||
+                      isBackupRunning ||
+                      selectedPartitions.size === 0
+                    }
+                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                  >
+                    <span className="text-accent">📦</span>
+                    <span className="flex-1">
+                      {isBackupRunning
+                        ? 'Backing up...'
+                        : `Backup Selected (${selectedPartitions.size})`}
+                    </span>
+                  </button>
+                  <div className="my-1 border-t border-border" />
+                  <button
+                    onClick={handleSelectOutput}
+                    disabled={isBackupRunning}
+                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                  >
+                    <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1 truncate">
+                      {defaultOutputPath
+                        ? getBasename(defaultOutputPath)
+                        : 'Select Output Folder'}
+                    </span>
+                    {defaultOutputPath && !isBackupRunning && (
+                      <X
+                        className="h-3.5 w-3.5 shrink-0 text-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleClearOutput();
+                        }}
+                      />
+                    )}
+                  </button>
+                  <div className="my-1 border-t border-border" />
+                  <button
+                    onClick={() => navigate('/tools')}
+                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                  >
+                    <span className="text-accent">🔧</span>
+                    <span className="flex-1">Tools & Bootloader</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/flasher')}
+                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                  >
+                    <span className="text-accent">▤</span>
+                    <span className="flex-1">Scatter Flasher</span>
+                  </button>
+                </div>
+              </Panel>
+
+              <Panel title="STATUS">
+                <div className="flex flex-col gap-2">
+                  <StatusCard
+                    label="DA"
+                    value={daPath ? getBasename(daPath) : 'Not selected'}
+                    icon={<span className="text-accent">☽</span>}
+                  />
+                  <StatusCard
+                    label="PL"
+                    value={preloaderPath ? getBasename(preloaderPath) : 'Not selected'}
+                    icon={<span className="text-accent">⚡</span>}
+                  />
+                </div>
+              </Panel>
+            </div>
+
+            {/* DEVICE INFO panel */}
+            <div className="min-w-0 flex-1">
+              <Panel title="DEVICE INFO" accent padded={false} className="h-full">
+                {isConnecting ? (
+                  <PartitionSkeleton />
+                ) : (
+                  <PartitionTable
+                    partitions={partitions}
+                    selectedPartitions={selectedPartitions}
+                    onToggleSelected={handleToggleSelected}
+                    onSelectAllSelected={handleSelectAllSelected}
+                    onRead={handleRead}
+                    onWrite={handleWrite}
+                    onFormat={handleFormat}
+                    onErase={handleErase}
+                  />
+                )}
+              </Panel>
+            </div>
+          </div>
         )}
+        </div>
+
+        <ProgressWidget
+          isActive={isOperationRunning}
+          operationType={operationType}
+          partitionName={operationPartition}
+          partitionSize={operationSize || undefined}
+          startTime={operationStart}
+        />
       </main>
 
       <OperationModal

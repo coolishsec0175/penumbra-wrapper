@@ -24,7 +24,7 @@ export function FlashPartitionTable({
   const rowPadding = compactView ? 'px-2 py-0.5' : 'px-3 py-1.5';
 
   return (
-    <div className="mb-4 flex flex-1 flex-col overflow-hidden rounded-md border border-border bg-surface-alt">
+    <div className="mb-4 flex flex-1 flex-col overflow-hidden rounded-[3px] border border-border bg-surface-alt">
       <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] items-center gap-3 border-b border-border bg-surface px-3 py-2">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select</div>
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Partition</div>

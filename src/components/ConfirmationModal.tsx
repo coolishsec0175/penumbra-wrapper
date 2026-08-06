@@ -141,7 +141,7 @@ export function ConfirmationModal({
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
-        <div className={`bg-surface rounded-md border-2 ${styles.borderColor} shadow-2xl overflow-hidden`}>
+        <div className={`bg-surface rounded-[3px] border-2 ${styles.borderColor} shadow-2xl overflow-hidden`}>
           {/* Header */}
           <div className="flex items-start gap-3 p-4 border-b border-border">
             <Icon className={`w-6 h-6 ${styles.iconColor} flex-shrink-0 mt-0.5`} />

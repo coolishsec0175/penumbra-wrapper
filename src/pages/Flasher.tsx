@@ -339,7 +339,7 @@ export function Flasher() {
             />
 
             {isFlashing && (
-              <div className="flex flex-shrink-0 items-center gap-3 rounded-md border border-accent bg-accent-soft p-3">
+              <div className="flex flex-shrink-0 items-center gap-3 rounded-[3px] border border-accent bg-accent-soft p-3">
                 <Loader2 className="h-5 w-5 animate-spin text-accent" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">
@@ -379,7 +379,7 @@ export function Flasher() {
         )}
 
         {scatterError && (
-          <div className="flex-shrink-0 rounded-md border border-danger bg-danger-soft p-3 text-sm text-danger">
+          <div className="flex-shrink-0 rounded-[3px] border border-danger bg-danger-soft p-3 text-sm text-danger">
             <p className="flex items-center gap-2 font-semibold">
               <Zap className="h-4 w-4" />
               {scatterError}

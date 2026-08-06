@@ -40,7 +40,7 @@ export function ErrorBanner() {
         'fixed bottom-4 right-4 z-[150] w-96 max-w-[calc(100vw-2rem)] animate-[modalEnter_200ms_ease-out]'
       )}
     >
-      <div className="overflow-hidden rounded-md border border-danger bg-surface shadow-2xl">
+      <div className="overflow-hidden rounded-[3px] border border-danger bg-surface shadow-2xl">
         <div className="flex items-start gap-3 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
           <div className="min-w-0 flex-1">

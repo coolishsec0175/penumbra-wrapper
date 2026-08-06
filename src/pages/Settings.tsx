@@ -1,21 +1,6 @@
 import { useState } from 'react';
-import {
-  Download,
-  FileClock,
-  FolderOpen,
-  Minus,
-  Moon,
-  Monitor,
-  Palette,
-  Plus,
-  Sun,
-  Usb,
-  Bug,
-  Check,
-  LayoutGrid,
-  Type,
-  X,
-} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Download, FileClock, FolderOpen, Minus, Plus, X } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { useDeviceStore } from '../store/deviceStore';
 import { useUpdateStore } from '../store/updateStore';
@@ -23,9 +8,9 @@ import { useFileSelection } from '../hooks/useFileSelection';
 import { DialogType } from '../services/dialogs/fileDialogService';
 import { getBasename } from '../services/utils/pathUtils';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { cn } from '../lib/utils';
-import { THEME_ACCENTS, THEME_PRESETS, type ThemeAccent } from '../lib/theme';
+import { PenumbraDropdown, type DropdownOption } from '../components/penumbra/Dropdown';
+import { Panel } from '../components/penumbra/Panel';
+import { THEME_ACCENTS, THEME_PRESETS } from '../lib/theme';
 import { ChangelogModal } from '../components/ChangelogModal';
 
 interface PathRowProps {
@@ -40,21 +25,19 @@ interface PathRowProps {
 
 function PathRow({ label, path, placeholder, title, loading, onBrowse, onClear }: PathRowProps) {
   return (
-    <div className="flex items-center gap-2">
-      <label className="w-32 shrink-0 text-sm font-medium text-muted-foreground">{label}</label>
-      <Button
+    <div className="flex items-center gap-3">
+      <span className="w-32 shrink-0 text-sm font-bold text-foreground">{label}:</span>
+      <button
         onClick={onBrowse}
         disabled={loading}
-        variant="outline"
-        size="sm"
-        className="min-w-0 flex-1 justify-start"
         title={title}
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-[3px] border border-border bg-surface px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:border-accent disabled:opacity-40"
       >
-        <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+        <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate">{path ? getBasename(path) : placeholder}</span>
-      </Button>
+      </button>
       {path && onClear && (
-        <Button onClick={onClear} disabled={loading} variant="destructive" size="icon" className="h-8 w-8" title={`Clear ${label}`}>
+        <Button onClick={onClear} disabled={loading} variant="outline" size="icon" className="h-7 w-7" title={`Clear ${label}`}>
           <X className="h-3.5 w-3.5" />
         </Button>
       )}
@@ -62,27 +45,46 @@ function PathRow({ label, path, placeholder, title, loading, onBrowse, onClear }
   );
 }
 
-const ACCENT_SWATCHES: Array<{ accent: ThemeAccent; label: string; className: string }> =
-  THEME_ACCENTS.map((accent) => {
-    const label = accent.charAt(0).toUpperCase() + accent.slice(1);
-    const className = {
-      blue: 'bg-blue-500',
-      purple: 'bg-violet-500',
-      teal: 'bg-teal-500',
-      green: 'bg-green-500',
-      red: 'bg-red-500',
-    }[accent];
-    return { accent, label, className };
-  });
+interface OptionRowProps {
+  label: string;
+  description: ReactNode;
+  children: ReactNode;
+}
 
-const PRESET_SWATCH_CLASSES: Record<string, string> = {
-  zinc: 'from-zinc-700 to-zinc-900',
-  charcoal: 'from-violet-500 to-zinc-900',
-  sunset: 'from-rose-400 to-slate-800',
-  warm: 'from-orange-500 to-red-900',
-  cool: 'from-cyan-400 to-blue-950',
-  hacker: 'from-lime-400 to-green-950',
-};
+function OptionRow({ label, description, children }: OptionRowProps) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm">
+        <span className="font-bold text-foreground">{label}: </span>
+        <span className="text-subtle-foreground">{description}</span>
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function ToggleDropdown({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  const options: DropdownOption[] = [
+    { label: 'On', value: 'on' },
+    { label: 'Off', value: 'off' },
+  ];
+  return (
+    <PenumbraDropdown
+      label={label}
+      options={options}
+      value={value ? 'on' : 'off'}
+      onChange={(v) => onChange(v === 'on')}
+    />
+  );
+}
 
 export function Settings() {
   const theme = useUIStore((state) => state.theme);
@@ -121,7 +123,20 @@ export function Settings() {
     await checkUpdate({ showToast: true });
   };
 
-  const accentDisabled = theme !== 'dark' || preset !== 'zinc';
+  const themeOptions: DropdownOption[] = [
+    { label: 'Dark', value: 'dark' },
+    { label: 'Light', value: 'light' },
+  ];
+
+  const presetOptions: DropdownOption[] = THEME_PRESETS.map(({ preset: value, label }) => ({
+    label,
+    value,
+  }));
+
+  const accentOptions: DropdownOption[] = THEME_ACCENTS.map((accentValue) => ({
+    label: accentValue.charAt(0).toUpperCase() + accentValue.slice(1),
+    value: accentValue,
+  }));
 
   const handleSelectDa = async () => {
     const path = await selectFile(DialogType.DA_FILE);
@@ -156,23 +171,74 @@ export function Settings() {
 
   return (
     <div className="h-full overflow-y-auto bg-background text-foreground">
-      <main className="w-full space-y-4 p-5">
-        <div>
-          <h1 className="text-[22px] font-bold text-foreground">Settings</h1>
-          <p className="mt-1 text-sm text-subtle-foreground">
-            Customize appearance, diagnostics flags, and manage antumbra updates.
-          </p>
-        </div>
+      <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-5">
+        <p className="text-center font-mono text-lg font-bold tracking-widest text-accent">
+          SETTINGS
+        </p>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 text-primary" />
-              <CardTitle>Path Configuration</CardTitle>
-            </div>
-            <CardDescription>Files antumbra needs before connecting to a device.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <Panel title="INTERFACE">
+          <div className="flex flex-col gap-5">
+            <OptionRow label="Theme" description="Light or dark color mode">
+              <PenumbraDropdown
+                label="Mode"
+                options={themeOptions}
+                value={theme}
+                onChange={(v) => setTheme(v as 'dark' | 'light')}
+              />
+            </OptionRow>
+
+            <OptionRow label="Antumbra Theme" description="Visual style for Penumbra">
+              <PenumbraDropdown
+                label="Theme"
+                options={presetOptions}
+                value={preset}
+                onChange={(v) => setPreset(v as typeof preset)}
+              />
+            </OptionRow>
+
+            <OptionRow label="Accent Color" description="Highlight color used across the UI">
+              <PenumbraDropdown
+                label="Accent"
+                options={accentOptions}
+                value={accent}
+                onChange={(v) => setAccent(v as typeof accent)}
+              />
+            </OptionRow>
+
+            <OptionRow label="Compact View" description="Tighter list and table margins">
+              <ToggleDropdown label="Compact" value={compactView} onChange={setCompactView} />
+            </OptionRow>
+
+            <OptionRow label="Console Font Size" description="Size of text in the log consoles">
+              <div className="flex items-center gap-1.5">
+                <Button
+                  onClick={() => setLogFontSize(Math.max(10, logFontSize - 1))}
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="Decrease font size"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-14 rounded-[3px] border border-border bg-surface px-2 py-1 text-center text-sm tabular-nums text-foreground">
+                  {logFontSize}px
+                </span>
+                <Button
+                  onClick={() => setLogFontSize(Math.min(20, logFontSize + 1))}
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="Increase font size"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </OptionRow>
+          </div>
+        </Panel>
+
+        <Panel title="PATHS">
+          <div className="flex flex-col gap-3">
             <PathRow
               label="DA Loader"
               path={daPath}
@@ -204,219 +270,37 @@ export function Settings() {
               onBrowse={handleSelectOutput}
               onClear={() => void setDefaultOutputPath(null)}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              <CardTitle>Appearance</CardTitle>
-            </div>
-            <CardDescription>Choose how Penumbra looks.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">Theme mode</p>
-              <div className="grid grid-cols-2 gap-2 sm:max-w-xs">
-                <Button
-                  onClick={() => setTheme('dark')}
-                  variant={theme === 'dark' ? 'default' : 'outline'}
-                  className="justify-start"
-                >
-                  <Moon className="h-4 w-4" />
-                  Dark
-                </Button>
-                <Button
-                  onClick={() => setTheme('light')}
-                  variant={theme === 'light' ? 'default' : 'outline'}
-                  className="justify-start"
-                >
-                  <Sun className="h-4 w-4" />
-                  Light
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">
-                Interface theme
-                {theme !== 'dark' && <span className="ml-2 text-xs">(available in dark mode)</span>}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                {THEME_PRESETS.map(({ preset: value, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => theme === 'dark' && setPreset(value)}
-                    title={label}
-                    disabled={theme !== 'dark'}
-                    className={cn(
-                      'flex items-center gap-2 rounded-lg border p-1.5 pr-3 transition-colors',
-                      theme !== 'dark' && 'opacity-40',
-                      preset === value && theme === 'dark'
-                        ? 'border-primary bg-primary-soft'
-                        : 'border-border hover:border-primary'
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        'size-6 rounded bg-gradient-to-br',
-                        PRESET_SWATCH_CLASSES[value]
-                      )}
-                    />
-                    <span className="text-xs font-medium text-foreground">{label}</span>
-                    {preset === value && theme === 'dark' && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={cn(accentDisabled && 'opacity-40')}>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">
-                Accent color
-                {accentDisabled && (
-                  <span className="ml-2 text-xs">(select the Zinc theme to use accents)</span>
-                )}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                {ACCENT_SWATCHES.map(({ accent: value, label, className }) => (
-                  <button
-                    key={value}
-                    onClick={() => !accentDisabled && setAccent(value)}
-                    disabled={accentDisabled}
-                    title={label}
-                    className={cn(
-                      'flex size-9 items-center justify-center rounded-full transition-transform hover:scale-110',
-                      className,
-                      accent === value && !accentDisabled && 'ring-2 ring-ring ring-offset-2 ring-offset-background'
-                    )}
-                  >
-                    {accent === value && !accentDisabled && <Check className="h-4 w-4 text-white" />}
-                  </button>
-                ))}
-                <span className="text-sm text-subtle-foreground">
-                  {ACCENT_SWATCHES.find((s) => s.accent === accent)?.label ?? 'Blue'}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-4 border-t border-border pt-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-medium text-foreground">
-                    <LayoutGrid className="h-4 w-4 text-primary" />
-                    Compact View
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Tighter list and table margins.
-                  </p>
-                </div>
-                <Button
-                  onClick={() => setCompactView(!compactView)}
-                  variant={compactView ? 'default' : 'outline'}
-                  size="sm"
-                  className="flex-shrink-0"
-                >
-                  {compactView ? 'Enabled' : 'Disabled'}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-medium text-foreground">
-                    <Type className="h-4 w-4 text-primary" />
-                    Console Font Size
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Adjust the size of text in the log consoles.
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    onClick={() => setLogFontSize(Math.max(10, logFontSize - 1))}
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    title="Decrease font size"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-14 text-center text-sm tabular-nums text-foreground">
-                    {logFontSize}px
-                  </span>
-                  <Button
-                    onClick={() => setLogFontSize(Math.min(20, logFontSize + 1))}
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    title="Increase font size"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bug className="h-5 w-5 text-primary" />
-              <CardTitle>Diagnostics</CardTitle>
-            </div>
-            <CardDescription>Flags passed to the antumbra CLI.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="font-medium text-foreground">USB Log</p>
-                <p className="text-sm text-muted-foreground">
+        <Panel title="DIAGNOSTICS">
+          <div className="flex flex-col gap-5">
+            <OptionRow
+              label="USB Log"
+              description={
+                <span>
                   Pass <span className="font-mono text-xs">--usb-log</span> to capture DA logging over USB.
-                </p>
-              </div>
-              <Button
-                onClick={() => setUsbLog(!usbLog)}
-                variant={usbLog ? 'default' : 'outline'}
-                size="sm"
-                className="flex-shrink-0"
-              >
-                <Usb className="h-4 w-4" />
-                {usbLog ? 'Enabled' : 'Disabled'}
-              </Button>
-            </div>
+                </span>
+              }
+            >
+              <ToggleDropdown label="USB Log" value={usbLog} onChange={setUsbLog} />
+            </OptionRow>
 
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="font-medium text-foreground">Verbose</p>
-                <p className="text-sm text-muted-foreground">
+            <OptionRow
+              label="Verbose"
+              description={
+                <span>
                   Pass <span className="font-mono text-xs">--verbose</span> for detailed antumbra output.
-                </p>
-              </div>
-              <Button
-                onClick={() => setVerbose(!verbose)}
-                variant={verbose ? 'default' : 'outline'}
-                size="sm"
-                className="flex-shrink-0"
-              >
-                <Bug className="h-4 w-4" />
-                {verbose ? 'Enabled' : 'Disabled'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                </span>
+              }
+            >
+              <ToggleDropdown label="Verbose" value={verbose} onChange={setVerbose} />
+            </OptionRow>
+          </div>
+        </Panel>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Monitor className="h-5 w-5 text-primary" />
-              <CardTitle>Antumbra</CardTitle>
-            </div>
-            <CardDescription>Check for updates and browse release notes.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap items-center gap-2">
+        <Panel title="ANTUMBRA">
+          <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleCheckUpdates} disabled={isCheckingUpdate}>
               <Download className="h-4 w-4" />
               {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
@@ -425,8 +309,8 @@ export function Settings() {
               <FileClock className="h-4 w-4" />
               Changelog
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
       </main>
 
       <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />

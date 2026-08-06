@@ -11,7 +11,7 @@ interface ScatterInfoBarProps {
 
 export function ScatterInfoBar({ scatterFile, onSelectAll, onClearAll, onClearScatter }: ScatterInfoBarProps) {
   return (
-    <div className="mb-4 flex flex-shrink-0 flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface-alt p-3">
+    <div className="mb-4 flex flex-shrink-0 flex-wrap items-center justify-between gap-3 rounded-[3px] border border-border bg-surface-alt p-3">
       <div className="flex flex-wrap items-center gap-4 text-sm">
         <div>
           <span className="text-subtle-foreground">Platform:</span>{' '}

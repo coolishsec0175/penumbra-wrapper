@@ -4,6 +4,7 @@ import { useOperationStore } from '../store/operationStore';
 import { ProgressWidget } from '../components/ProgressWidget';
 import { LogLineView } from '../components/LogLineView';
 import { LogToolbar } from '../components/LogToolbar';
+import { Panel } from '../components/penumbra/Panel';
 
 export function Log() {
   const { logFilter, logAutoscroll, logFontSize } = useUIStore();
@@ -43,17 +44,21 @@ export function Log() {
         startTime={startTime}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 font-mono">
-        {visibleLogs.length === 0 ? (
-          <div className="mt-16 text-center text-sm text-subtle-foreground">
-            {logs.length === 0 ? 'Console is empty.' : 'No logs match the current filter'}
+      <div className="min-h-0 flex-1 p-3">
+        <Panel title="CONSOLE" padded={false} className="h-full">
+          <div className="h-full overflow-y-auto p-3 font-mono">
+            {visibleLogs.length === 0 ? (
+              <div className="mt-16 text-center text-sm text-subtle-foreground">
+                {logs.length === 0 ? 'Console is empty.' : 'No logs match the current filter'}
+              </div>
+            ) : (
+              visibleLogs.map((log) => (
+                <LogLineView key={log.id || log.timestamp} log={log} fontSize={logFontSize} />
+              ))
+            )}
+            <div ref={logsEndRef} />
           </div>
-        ) : (
-          visibleLogs.map((log) => (
-            <LogLineView key={log.id || log.timestamp} log={log} fontSize={logFontSize} />
-          ))
-        )}
-        <div ref={logsEndRef} />
+        </Panel>
       </div>
     </div>
   );

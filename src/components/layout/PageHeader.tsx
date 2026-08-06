@@ -49,20 +49,6 @@ const REBOOT_MODES = [
 
 type RebootMode = (typeof REBOOT_MODES)[number]['key'];
 
-function PenumbraLogo({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        'relative size-9 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary to-accent shadow-sm',
-        className
-      )}
-    >
-      <div className="absolute left-1 top-1 size-6 rounded-full bg-accent" />
-      <div className="absolute left-[14px] top-[10px] size-5 rounded-full bg-surface" />
-    </div>
-  );
-}
-
 export function PageHeader() {
   const daPath = useDeviceStore((state) => state.daPath);
   const preloaderPath = useDeviceStore((state) => state.preloaderPath);
@@ -152,7 +138,7 @@ export function PageHeader() {
   };
 
   const statusLabel = isConnecting
-    ? 'Connecting...'
+    ? 'Connecting…'
     : isRunning
       ? operationType === 'read'
         ? 'Reading'
@@ -161,30 +147,37 @@ export function PageHeader() {
         ? 'Connected'
         : 'Disconnected';
 
-  const dotColor = isConnecting
-    ? 'bg-warning'
+  const statusColor = isConnecting
+    ? 'text-warning'
     : isRunning
-      ? 'bg-accent'
+      ? 'text-accent'
       : isConnected
-        ? 'bg-success'
-        : 'bg-muted-foreground';
+        ? 'text-success'
+        : 'text-muted-foreground';
 
   return (
     <header className="flex flex-shrink-0 flex-col border-b border-border bg-surface">
       {/* Top row: brand + device actions */}
-      <div className="flex h-16 items-center justify-between gap-3 px-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <PenumbraLogo />
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-bold text-foreground">Penumbra</h1>
-            <p className="truncate text-[11px] text-subtle-foreground">v{APP_VERSION}</p>
+      <div className="flex h-14 items-center justify-between gap-3 px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="text-xl leading-none text-accent">☾</span>
+          <div className="min-w-0 font-mono">
+            <h1 className="truncate text-base font-bold uppercase tracking-wider text-foreground">
+              Antumbra
+            </h1>
+            <p className="truncate text-[10px] text-subtle-foreground">v{APP_VERSION}</p>
           </div>
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 rounded-[3px] border border-border bg-surface px-2.5 py-1.5">
-            <span className={cn('size-2 rounded-full', dotColor)} />
-            <span className="text-xs font-semibold text-foreground">{statusLabel}</span>
+          <div
+            className={cn(
+              'flex items-center gap-2 rounded-[3px] border border-border bg-surface px-2.5 py-1.5 font-mono text-xs font-semibold',
+              statusColor
+            )}
+          >
+            <span className="size-1.5 rounded-full bg-current" />
+            {statusLabel}
           </div>
 
           <div className="relative" ref={dropdownRef}>
@@ -200,12 +193,12 @@ export function PageHeader() {
               <ChevronDown className="h-3.5 w-3.5" />
             </Button>
             {rebootOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-md border border-border bg-surface p-1 shadow-lg">
+              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-[3px] border border-border bg-surface p-1 shadow-lg">
                 {REBOOT_MODES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleReboot(key)}
-                    className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                    className="w-full rounded-[3px] px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
                   >
                     {label}
                   </button>
@@ -213,7 +206,7 @@ export function PageHeader() {
                 <div className="my-1 border-t border-border" />
                 <button
                   onClick={handleShutdown}
-                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
+                  className="w-full rounded-[3px] px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
                 >
                   Shutdown
                 </button>
@@ -264,8 +257,8 @@ export function PageHeader() {
         </div>
       </div>
 
-      {/* Nav tabs */}
-      <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-3 py-2">
+      {/* Nav menu */}
+      <nav className="flex items-center gap-0.5 overflow-x-auto border-t border-border px-3 py-1.5">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -273,20 +266,18 @@ export function PageHeader() {
             end={end}
             className={({ isActive }) =>
               cn(
-                'relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2 rounded-[3px] px-3 py-1.5 font-mono text-sm transition-colors',
                 isActive
-                  ? 'bg-primary-soft text-primary'
+                  ? 'bg-primary-soft font-bold text-accent'
                   : 'text-muted-foreground hover:bg-surface-alt hover:text-foreground'
               )
             }
           >
             {({ isActive }) => (
               <>
-                {isActive && (
-                  <span className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-primary" />
-                )}
                 <Icon className="h-4 w-4 shrink-0" />
                 {label}
+                {isActive && <span className="text-[10px] font-bold text-accent">▸</span>}
               </>
             )}
           </NavLink>

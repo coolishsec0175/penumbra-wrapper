@@ -2,7 +2,7 @@ import type { HTMLAttributes, Ref } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
-const cardVariants = cva('rounded-lg border border-border bg-surface text-foreground', {
+const cardVariants = cva('rounded-[3px] border border-border bg-surface text-foreground', {
   variants: {
     variant: {
       default: 'shadow-sm',

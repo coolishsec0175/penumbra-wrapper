@@ -1,5 +1,8 @@
 import { memo, useEffect, useState } from 'react';
-import { Card } from './ui/card';
+import { useOperationStore } from '../store/operationStore';
+import { formatBytes } from '../services/utils/formatUtils';
+import { ProgressBar } from './ProgressBar';
+import { Panel } from './penumbra/Panel';
 
 interface ProgressWidgetProps {
   isActive: boolean;
@@ -11,71 +14,71 @@ interface ProgressWidgetProps {
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
-export const ProgressWidget = memo<ProgressWidgetProps>(({ 
-  isActive, 
-  operationType, 
+function formatElapsed(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export const ProgressWidget = memo<ProgressWidgetProps>(({
+  isActive,
+  operationType,
   partitionName,
   partitionSize,
-  startTime 
+  startTime,
 }) => {
+  const progress = useOperationStore((state) => state.progress);
   const [spinnerIndex, setSpinnerIndex] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState('00:00');
+  const [now, setNow] = useState(0);
 
-  // Update spinner animation
   useEffect(() => {
     if (!isActive) return;
-
     const interval = setInterval(() => {
       setSpinnerIndex((prev) => (prev + 1) % SPINNER_FRAMES.length);
-    }, 80);
-
+      setNow(Date.now());
+    }, 100);
     return () => clearInterval(interval);
   }, [isActive]);
-
-  // Update elapsed time
-  useEffect(() => {
-    if (!isActive || !startTime) return;
-
-    const updateElapsed = () => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const minutes = Math.floor(elapsed / 60);
-      const seconds = elapsed % 60;
-      setElapsedTime(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 1000);
-
-    return () => clearInterval(interval);
-  }, [isActive, startTime]);
 
   if (!isActive || !operationType || !partitionName) return null;
 
   const operationText = operationType === 'read' ? 'Reading' : 'Writing';
+  const directionText =
+    operationType === 'read' ? 'Uploading from device' : 'Downloading to device';
+  const elapsed = startTime ? formatElapsed(Math.max(0, now - startTime)) : '00:00';
 
   return (
-    <Card className="rounded-none border-x-0 border-b border-t border-border bg-surface-alt p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-foreground">
-          {operationText} '{partitionName}'
+    <Panel title="PROGRESS" accent padded className="mx-4 mt-3 flex-shrink-0">
+      <div className="flex items-center justify-between">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {operationText} <span className="text-accent">{partitionName}</span>
           {partitionSize && (
             <span className="ml-1.5 text-xs font-normal text-muted-foreground">
               ({partitionSize})
             </span>
           )}
-        </div>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {elapsedTime}
+        </p>
+        <span className="ml-3 shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+          {elapsed}
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className="text-2xl text-primary animate-pulse">{SPINNER_FRAMES[spinnerIndex]}</span>
-        <span className="text-sm text-muted-foreground">
-          {operationType === 'read' ? 'Uploading from device...' : 'Downloading to device...'}
-        </span>
+      <div className="mt-2">
+        {progress && progress.partition_name === partitionName ? (
+          <ProgressBar
+            progress={progress.percentage}
+            written={formatBytes(progress.current)}
+            total={formatBytes(progress.total)}
+          />
+        ) : (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="text-base text-accent">{SPINNER_FRAMES[spinnerIndex]}</span>
+            <span>{directionText}...</span>
+          </div>
+        )}
       </div>
-    </Card>
+    </Panel>
   );
 });
 

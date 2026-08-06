@@ -31,7 +31,7 @@ export function ReadAllSection({
   return (
     <Card>
       <CardHeader className="flex-row items-center gap-3">
-        <div className="rounded-lg bg-primary-soft p-3">
+        <div className="rounded-[3px] bg-primary-soft p-3">
           <HardDrive className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -45,7 +45,7 @@ export function ReadAllSection({
 
       <CardContent className="space-y-4">
         {isConnected && partitions.length > 0 && (
-          <div className="rounded-lg border border-border bg-surface-alt p-3">
+          <div className="rounded-[3px] border border-border bg-surface-alt p-3">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">
                 Select Partitions to Skip ({skipPartitions.size} skipped, {backupCount} will be

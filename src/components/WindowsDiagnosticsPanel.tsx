@@ -117,7 +117,7 @@ export function WindowsDiagnosticsPanel() {
         )}
 
         {error && (
-          <div className="mb-4 rounded-md border border-danger bg-danger-soft p-4">
+          <div className="mb-4 rounded-[3px] border border-danger bg-danger-soft p-4">
             <div className="flex items-center gap-2 text-danger">
               <AlertCircle className="h-4 w-4" />
               <span className="font-medium">Diagnostics Error</span>
@@ -130,7 +130,7 @@ export function WindowsDiagnosticsPanel() {
           <div className="space-y-6">
             <div>
               <h4 className="mb-3 font-medium text-foreground">System Information</h4>
-              <div className="rounded-md bg-surface-alt p-4">
+              <div className="rounded-[3px] bg-surface-alt p-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Operating System:</span>
@@ -151,7 +151,7 @@ export function WindowsDiagnosticsPanel() {
 
             <div>
               <h4 className="mb-3 font-medium text-foreground">Antumbra Binary</h4>
-              <div className="rounded-md bg-surface-alt p-4">
+              <div className="rounded-[3px] bg-surface-alt p-4">
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-muted-foreground">Location:</span>
@@ -187,7 +187,7 @@ export function WindowsDiagnosticsPanel() {
 
             <div>
               <h4 className="mb-3 font-medium text-foreground">Configuration</h4>
-              <div className="rounded-md bg-surface-alt p-4">
+              <div className="rounded-[3px] bg-surface-alt p-4">
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-muted-foreground">Config File:</span>
@@ -216,7 +216,7 @@ export function WindowsDiagnosticsPanel() {
             {diagnostics.recommendations.length > 0 && (
               <div>
                 <h4 className="mb-3 font-medium text-foreground">Recommendations</h4>
-                <div className="rounded-md border border-warning bg-warning-soft p-4">
+                <div className="rounded-[3px] border border-warning bg-warning-soft p-4">
                   <div className="space-y-2">
                     {diagnostics.recommendations.map((recommendation, index) => (
                       <div key={index} className="flex items-start gap-2">
@@ -231,7 +231,7 @@ export function WindowsDiagnosticsPanel() {
           </div>
         )}
 
-        <div className="mt-4 rounded-md border border-border bg-surface-alt p-4">
+        <div className="mt-4 rounded-[3px] border border-border bg-surface-alt p-4">
           <h4 className="mb-2 font-medium text-foreground">Driver Setup Help</h4>
           <p className="text-sm text-muted-foreground">
             MTK devices on Windows need the <span className="font-medium text-foreground">WinUSB</span> or{' '}
