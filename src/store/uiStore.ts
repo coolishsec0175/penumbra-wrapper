@@ -15,7 +15,6 @@ import {
 export type LogFilter = 'all' | 'info' | 'success' | 'warning' | 'error';
 
 interface UIState {
-  isLogPanelOpen: boolean;
   logPanelHeight: number;
   logFilter: LogFilter;
   logAutoscroll: boolean;
@@ -28,9 +27,6 @@ interface UIState {
   acceptedRisk: boolean;
 
   // Actions
-  openLogPanel: () => void;
-  closeLogPanel: () => void;
-  toggleLogPanel: () => void;
   setLogPanelHeight: (height: number) => void;
   setLogFilter: (filter: LogFilter) => void;
   setLogAutoscroll: (autoscroll: boolean) => void;
@@ -65,7 +61,6 @@ function loadStoredBoolean(key: string, fallback: boolean): boolean {
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  isLogPanelOpen: false,
   logPanelHeight: loadStoredNumber('logPanelHeight', 200),
   logFilter: loadStoredValue<LogFilter>('logFilter', 'all'),
   logAutoscroll: loadStoredBoolean('logAutoscroll', true),
@@ -80,12 +75,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   preset: getInitialPreset(),
   compactView: loadStoredBoolean('compactView', false),
   acceptedRisk: loadStoredBoolean('acceptedRisk', false),
-
-  openLogPanel: () => set({ isLogPanelOpen: true }),
-
-  closeLogPanel: () => set({ isLogPanelOpen: false }),
-
-  toggleLogPanel: () => set((state) => ({ isLogPanelOpen: !state.isLogPanelOpen })),
 
   setLogPanelHeight: (height) => {
     set({ logPanelHeight: height });

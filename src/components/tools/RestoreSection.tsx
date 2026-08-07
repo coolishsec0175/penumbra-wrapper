@@ -1,4 +1,4 @@
-import { FolderOpen, RotateCcw } from 'lucide-react';
+import { FolderOpen, RotateCcw, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
@@ -47,8 +47,9 @@ export function RestoreSection({
             variant="destructive"
             size="sm"
             className="px-2"
+            title="Clear backup folder"
           >
-            ✕
+            <X className="h-4 w-4" />
           </Button>
         )}
         <Button

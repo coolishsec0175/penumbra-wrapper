@@ -64,7 +64,7 @@ export function LogToolbar() {
 
   const handleClearLogs = useCallback(() => {
     clearLogs();
-    toast('Logs cleared', { icon: 'ℹ️' });
+    toast('Logs cleared');
   }, [clearLogs]);
 
   const handleSaveLogs = useCallback(async () => {

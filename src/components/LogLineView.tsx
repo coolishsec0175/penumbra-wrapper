@@ -17,7 +17,7 @@ interface LogLineViewProps {
 
 /**
  * Shared renderer for a single operation log line.
- * Used by both the slide-out LogPanel and the inline LogConsole so every
+ * Used by the Log page and the Flasher output panel so every
  * log surface renders identically (level badge + timestamp + message).
  */
 export function LogLineView({ log, showTimestamp = true, fontSize = 12, className }: LogLineViewProps) {

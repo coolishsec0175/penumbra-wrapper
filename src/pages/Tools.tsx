@@ -123,7 +123,7 @@ export function Tools() {
     });
 
     if (!confirmed) {
-      toast('Backup cancelled', { icon: 'ℹ️' });
+      toast('Backup cancelled');
       return;
     }
 
@@ -195,7 +195,7 @@ export function Tools() {
     });
 
     if (!confirmed) {
-      toast('Restore cancelled', { icon: 'ℹ️' });
+      toast('Restore cancelled');
       return;
     }
 
@@ -233,7 +233,7 @@ export function Tools() {
     const isUnlock = action === 'unlock';
 
     const confirmed = await confirm({
-      title: isUnlock ? '⚠️ Unlock Bootloader' : '⚠️ Lock Bootloader',
+      title: isUnlock ? 'Unlock Bootloader' : 'Lock Bootloader',
       message: isUnlock ? (
         <div>
           <p className="font-semibold text-danger mb-2">WARNING: UNLOCKING THE BOOTLOADER</p>
@@ -261,7 +261,7 @@ export function Tools() {
     });
 
     if (!confirmed) {
-      toast('Operation cancelled', { icon: 'ℹ️' });
+      toast('Operation cancelled');
       return;
     }
 
@@ -310,7 +310,7 @@ export function Tools() {
           toast.success(result.message || 'Device switched to Fastboot mode');
           break;
         case 'cancelled':
-          toast('Fastboot attempt cancelled', { icon: 'ℹ️' });
+          toast('Fastboot attempt cancelled');
           break;
         case 'no_device':
         case 'no_ack':
@@ -350,7 +350,7 @@ export function Tools() {
     });
 
     if (!confirmed) {
-      toast('Operation cancelled', { icon: 'ℹ️' });
+      toast('Operation cancelled');
       return;
     }
 
@@ -394,7 +394,7 @@ export function Tools() {
     });
 
     if (!confirmed) {
-      toast('Operation cancelled', { icon: 'ℹ️' });
+      toast('Operation cancelled');
       return;
     }
 

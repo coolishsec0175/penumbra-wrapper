@@ -10,7 +10,7 @@ export interface StatusCardProps {
 
 /**
  * A small TUI-style status card: a bordered box showing a short label and
- * a (truncated) value, like the "☽ DA" / "⚡ PL" cards on the welcome page.
+ * a (truncated) value, like the DA / PL cards on the welcome page.
  */
 export function StatusCard({ label, value, className, icon }: StatusCardProps) {
   return (

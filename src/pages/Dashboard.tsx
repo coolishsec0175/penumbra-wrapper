@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, X } from 'lucide-react';
+import { FolderOpen, Layers, Moon, Package, Wrench, X, Zap } from 'lucide-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useOperationStore } from '../store/operationStore';
-import { useUIStore } from '../store/uiStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
 import { usePartitionOperations } from '../hooks/usePartitionOperations';
 import { useFileSelection } from '../hooks/useFileSelection';
@@ -52,7 +51,6 @@ export function Dashboard() {
   const { selectFile } = useFileSelection();
   const { confirm } = useConfirmation();
   const navigate = useNavigate();
-  const openLogPanel = useUIStore((state) => state.openLogPanel);
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -143,11 +141,10 @@ export function Dashboard() {
     });
 
     if (!confirmed) {
-      toast('Backup cancelled', { icon: 'ℹ️' });
+      toast('Backup cancelled');
       return;
     }
 
-    openLogPanel();
     clearLogs();
     setIsBackupRunning(true);
     backupCancelReasonRef.current = null;
@@ -184,7 +181,7 @@ export function Dashboard() {
           level: 'warning',
           message: reasonMessage,
         });
-        toast(reasonMessage, { icon: 'ℹ️' });
+        toast(reasonMessage);
         break;
       }
 
@@ -200,7 +197,6 @@ export function Dashboard() {
         partitionSize: partition.display_size,
         operationId,
         clearLogs: false,
-        openLogPanel: false,
         handleSuccess: false,
         errorOptions: {
           showToast: false,
@@ -216,19 +212,17 @@ export function Dashboard() {
       });
       if (!result.success) {
         failCount++;
-        toast.error(`✗ ${partition.name} failed`);
+        toast.error(`${partition.name} failed`);
         continue;
       }
       successCount++;
-      toast.success(`✓ ${partition.name} (${i + 1}/${targets.length})`);
+      toast.success(`${partition.name} (${i + 1}/${targets.length})`);
     }
 
     if (failCount === 0) {
       toast.success(`Backup complete! ${successCount} partitions backed up`);
     } else {
-      toast(`Backup complete: ${successCount} succeeded, ${failCount} failed`, {
-        icon: '⚠️',
-      });
+      toast(`Backup complete: ${successCount} succeeded, ${failCount} failed`);
     }
 
     setIsBackupRunning(false);
@@ -292,11 +286,10 @@ export function Dashboard() {
     });
 
     if (!confirmed) {
-      toast('Format cancelled', { icon: 'ℹ️' });
+      toast('Format cancelled');
       return;
     }
 
-    openLogPanel();
     await formatPartition(partition);
   };
 
@@ -310,11 +303,10 @@ export function Dashboard() {
     });
 
     if (!confirmed) {
-      toast('Erase cancelled', { icon: 'ℹ️' });
+      toast('Erase cancelled');
       return;
     }
 
-    openLogPanel();
     await erasePartition(partition);
   };
 
@@ -352,7 +344,9 @@ export function Dashboard() {
                     disabled={!isConnected || isConnecting || isBackupRunning}
                     className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
                   >
-                    <span className="text-accent">⚡</span>
+                    <span className="text-accent">
+                      <Zap className="h-4 w-4" />
+                    </span>
                     <span className="flex-1">
                       {isBackupRunning ? 'Backing up...' : 'Backup NVRAM'}
                     </span>
@@ -367,7 +361,9 @@ export function Dashboard() {
                     }
                     className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
                   >
-                    <span className="text-accent">📦</span>
+                    <span className="text-accent">
+                      <Package className="h-4 w-4" />
+                    </span>
                     <span className="flex-1">
                       {isBackupRunning
                         ? 'Backing up...'
@@ -401,14 +397,18 @@ export function Dashboard() {
                     onClick={() => navigate('/tools')}
                     className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
                   >
-                    <span className="text-accent">🔧</span>
+                    <span className="text-accent">
+                      <Wrench className="h-4 w-4" />
+                    </span>
                     <span className="flex-1">Tools & Bootloader</span>
                   </button>
                   <button
                     onClick={() => navigate('/flasher')}
                     className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
                   >
-                    <span className="text-accent">▤</span>
+                    <span className="text-accent">
+                      <Layers className="h-4 w-4" />
+                    </span>
                     <span className="flex-1">Scatter Flasher</span>
                   </button>
                 </div>
@@ -419,12 +419,12 @@ export function Dashboard() {
                   <StatusCard
                     label="DA"
                     value={daPath ? getBasename(daPath) : 'Not selected'}
-                    icon={<span className="text-accent">☽</span>}
+                    icon={<Moon className="h-4 w-4 text-accent" />}
                   />
                   <StatusCard
                     label="PL"
                     value={preloaderPath ? getBasename(preloaderPath) : 'Not selected'}
-                    icon={<span className="text-accent">⚡</span>}
+                    icon={<Zap className="h-4 w-4 text-accent" />}
                   />
                 </div>
               </Panel>

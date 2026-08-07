@@ -222,7 +222,7 @@ export function Flasher() {
     });
 
     if (!confirmed) {
-      toast('Flash cancelled', { icon: 'ℹ️' });
+      toast('Flash cancelled');
       return;
     }
 
@@ -263,7 +263,7 @@ export function Flasher() {
         display_size: formatHexSize(partition.partition_size),
       };
 
-      const success = await writePartition(partitionData, imagePath, false, false);
+      const success = await writePartition(partitionData, imagePath, false);
       if (!success) {
         failed = true;
         failedPartitionName = partitionName;

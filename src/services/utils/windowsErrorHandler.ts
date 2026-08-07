@@ -122,7 +122,7 @@ export class WindowsErrorHandler {
     const suggestion = this.getErrorSuggestion(err);
     
     if (suggestion && suggestion !== err.message) {
-      return `${err.message}\n\n💡 ${suggestion}`;
+      return `${err.message}\n\nSuggestion: ${suggestion}`;
     }
     
     return err.message || String(error);

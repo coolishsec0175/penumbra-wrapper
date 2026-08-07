@@ -34,7 +34,7 @@ export function ScatterDropzone({
 
         const dropPath = paths[0];
         void (async () => {
-          toast('Processing dropped path...', { icon: '📥' });
+          toast('Processing dropped path...');
           if (dropPath.toLowerCase().endsWith('.txt') || dropPath.toLowerCase().endsWith('.xml')) {
             await onLoadPath(dropPath);
             return;

@@ -55,7 +55,7 @@ export class ErrorHandler {
     // Add suggestion if enabled and available
     const suggestion = showSuggestion ? (parsedError.suggestion || getErrorSuggestion(error)) : undefined;
     const displayMessage = suggestion 
-      ? `${errorMessage}\n\n💡 ${suggestion}`
+      ? `${errorMessage}\n\nSuggestion: ${suggestion}`
       : errorMessage;
 
     if (logToConsole) {
@@ -81,7 +81,7 @@ export class ErrorHandler {
         useOperationStore.getState().addLog({
           timestamp: new Date().toISOString(),
           level: 'info',
-          message: `💡 Suggestion: ${suggestion}`,
+          message: `Suggestion: ${suggestion}`,
         });
       }
     }
@@ -129,7 +129,7 @@ export class ErrorHandler {
     showToast: boolean = false
   ): void {
     if (showToast) {
-      toast(message, { icon: 'ℹ️' });
+      toast(message);
     }
 
     useOperationStore.getState().addLog({
@@ -153,7 +153,7 @@ export class ErrorHandler {
     showToast: boolean = true
   ): void {
     if (showToast) {
-      toast(message, { icon: '⚠️' });
+      toast(message);
     }
 
     useOperationStore.getState().addLog({

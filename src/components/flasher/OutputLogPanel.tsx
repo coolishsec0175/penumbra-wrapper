@@ -100,7 +100,7 @@ export function OutputLogPanel({ className }: OutputLogPanelProps) {
           <Button
             onClick={() => {
               clearLogs();
-              toast('Logs cleared', { icon: 'ℹ️' });
+              toast('Logs cleared');
             }}
             disabled={logs.length === 0}
             variant="ghost"

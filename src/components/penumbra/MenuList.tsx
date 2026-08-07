@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { cn } from '../../lib/utils';
 
 export interface MenuItem {
-  /** Optional leading glyph, e.g. '☾', '⏻', or a React node. */
-  icon?: string | ReactNode;
+  /** Optional leading icon or React node. */
+  icon?: ReactNode;
   label: string;
   description: string;
   disabled?: boolean;
@@ -15,6 +15,8 @@ export interface MenuListProps {
   onSelect?: (index: number) => void;
   /** Invoked when the user presses Enter (or double-activates a row). */
   onActivate?: (index: number) => void;
+  /** Invoked when the user presses Escape (defaults to resetting selection). */
+  onBack?: () => void;
   className?: string;
 }
 
@@ -27,6 +29,7 @@ export function MenuList({
   selectedIndex = 0,
   onSelect,
   onActivate,
+  onBack,
   className,
 }: MenuListProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -39,6 +42,11 @@ export function MenuList({
     },
     [items.length, selectedIndex, onSelect]
   );
+
+  const back = useCallback(() => {
+    onSelect?.(0);
+    onBack?.();
+  }, [onSelect, onBack]);
 
   useEffect(() => {
     const el = ref.current;
@@ -54,11 +62,14 @@ export function MenuList({
         e.preventDefault();
         const item = items[selectedIndex];
         if (item && !item.disabled) onActivate(selectedIndex);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        back();
       }
     };
     el.addEventListener('keydown', handleKeyDown);
     return () => el.removeEventListener('keydown', handleKeyDown);
-  }, [move, onActivate, items, selectedIndex]);
+  }, [move, onActivate, items, selectedIndex, back]);
 
   const selected = items[selectedIndex];
 

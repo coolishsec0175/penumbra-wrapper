@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { useOperationStore } from '../../store/operationStore';
-import { useUIStore } from '../../store/uiStore';
 import { ErrorHandler, type ErrorOptions } from '../utils/errorHandler';
 
 export interface ExecuteOperationOptions {
@@ -10,7 +9,6 @@ export interface ExecuteOperationOptions {
   partitionSize?: string;
   operationId?: string;
   clearLogs?: boolean;
-  openLogPanel?: boolean;
   successMessage?: string;
   handleSuccess?: boolean;
   successToast?: boolean;
@@ -30,7 +28,6 @@ export async function executeOperation(
     partitionSize,
     operationId: providedOperationId,
     clearLogs = true,
-    openLogPanel = true,
     successMessage,
     handleSuccess = true,
     successToast = true,
@@ -47,7 +44,6 @@ export async function executeOperation(
     finishOperation,
     setIsStreaming,
   } = useOperationStore.getState();
-  const { openLogPanel: openLogPanelAction } = useUIStore.getState();
 
   if (clearLogs) {
     clearOperationLogs();
@@ -58,10 +54,6 @@ export async function executeOperation(
   }
 
   startOperation(type, partitionName, partitionSize, operationId);
-
-  if (openLogPanel) {
-    openLogPanelAction();
-  }
 
   try {
     await run(operationId);

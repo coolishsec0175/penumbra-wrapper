@@ -7,9 +7,10 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { PageHeader } from './layout/PageHeader';
 import { ErrorBanner } from './layout/ErrorBanner';
 import { Stars } from './penumbra/Stars';
+import { useDeviceStore } from '../store/deviceStore';
 
 const FOOTER_HINTS: Record<string, string> = {
-  '/': '[↑↓] Navigate   [Enter] Select   [Esc] Back',
+  '/': '[↑↓] Navigate   [Enter] Select   [Esc] Reset',
   '/flasher': '[Click] Toggle partitions   [Flash] Start operation',
   '/tools': '[Click] Run a tool   [Enter] Confirm actions',
   '/log': '[Filter] Level   [Auto] Autoscroll   [Size] Font size',
@@ -18,7 +19,12 @@ const FOOTER_HINTS: Record<string, string> = {
 
 export function Layout() {
   const location = useLocation();
-  const hint = FOOTER_HINTS[location.pathname] ?? FOOTER_HINTS['/'];
+  const isConnected = useDeviceStore((state) => state.isConnected);
+  const isConnecting = useDeviceStore((state) => state.isConnecting);
+  const hint =
+    location.pathname === '/' && (isConnected || isConnecting)
+      ? '[Click] Toggle partitions   [Backup] Run operations'
+      : FOOTER_HINTS[location.pathname] ?? FOOTER_HINTS['/'];
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground">

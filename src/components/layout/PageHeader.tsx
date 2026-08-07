@@ -73,10 +73,19 @@ export function PageHeader() {
         setRebootOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setRebootOpen(false);
+      }
+    };
     if (rebootOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [rebootOpen]);
 
   const showCancel = isConnecting || isRunning || isFlashing;
@@ -84,7 +93,7 @@ export function PageHeader() {
   const handlePrimaryAction = () => {
     if (showCancel) {
       DeviceApi.cancelOperation().catch(() => undefined);
-      toast('Operation cancelled', { icon: 'ℹ️' });
+      toast('Operation cancelled');
       return;
     }
     if (isConnected) {
@@ -126,7 +135,7 @@ export function PageHeader() {
       confirmText: 'Shutdown',
     });
     if (!confirmed) {
-      toast('Shutdown cancelled', { icon: 'ℹ️' });
+      toast('Shutdown cancelled');
       return;
     }
     try {
