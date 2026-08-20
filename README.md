@@ -24,12 +24,9 @@ on every push to `main`.
 ## Credits
 
 - [shomykohai/penumbra](https://github.com/shomykohai/penumbra) — the original
-  Penumbra core and antumbra binary (AGPL-3.0).
-- [ardiandideyashidiq/penumbra-wrapper](https://github.com/ardiandideyashidiq/penumbra-wrapper)
-  — the wrapper base this project was forked from.
-
-This project is forked from ardiandideyashidiq's penumbra-wrapper and uses a
-fork of shomykohai's penumbra for the antumbra binary.
+  Penumbra core and antumbra binary (AGPL-3.0)..
+ 
+ uses a fork of shomykohai's penumbra for the antumbra binary.
 
 ## License
 
