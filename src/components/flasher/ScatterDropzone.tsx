@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { Button } from '../ui/button';
+import { SpotlightCard } from '../reactbits/SpotlightCard';
 import { cn } from '../../lib/utils';
 import { findScatterInFolder } from '../../services/utils/scatterFolder';
 
@@ -59,33 +60,36 @@ export function ScatterDropzone({
 
   return (
     <div
-      onDragEnter={(e) => {
+      onDragEnter={(e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(true);
       }}
-      onDragOver={(e) => {
+      onDragOver={(e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(true);
       }}
-      onDragLeave={(e) => {
+      onDragLeave={(e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
       }}
-      onDrop={(e) => {
+      onDrop={(e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
       }}
-      className={cn(
-        'flex h-28 flex-col items-center justify-center gap-2 rounded-[3px] border-2 border-dashed transition-colors',
-        isDragOver
-          ? 'border-primary bg-primary-soft'
-          : 'border-border bg-surface hover:border-accent hover:bg-surface-alt'
-      )}
     >
+      <SpotlightCard
+        spotlightColor="rgba(34, 211, 238, 0.12)"
+        className={cn(
+          'flex h-40 flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-all duration-300',
+          isDragOver
+            ? 'border-primary bg-primary-soft/50'
+            : 'border-border hover:border-accent hover:bg-surface-alt/50'
+        )}
+      >
       {isLoading ? (
-        <Loader2 className="h-6 w-6 animate-spin text-accent" />
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
       ) : (
-        <Package className="h-6 w-6 text-subtle-foreground" />
+        <Package className="h-8 w-8 text-subtle-foreground" />
       )}
       <p className="px-6 text-center text-sm font-medium text-foreground">
         {isLoading
@@ -104,6 +108,7 @@ export function ScatterDropzone({
           </Button>
         </div>
       )}
+      </SpotlightCard>
     </div>
   );
 }

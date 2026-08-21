@@ -3,6 +3,7 @@ import { useUIStore } from '../../store/uiStore';
 import type { ScatterPartition } from '../../types';
 import { getBasename } from '../../services/utils/pathUtils';
 import { formatHexSize } from '../../services/utils/formatUtils';
+import { Panel } from '../penumbra/Panel';
 import { cn } from '../../lib/utils';
 
 interface FlashPartitionTableProps {
@@ -24,7 +25,7 @@ export function FlashPartitionTable({
   const rowPadding = compactView ? 'px-2 py-0.5' : 'px-3 py-1.5';
 
   return (
-    <div className="mb-4 flex flex-1 flex-col overflow-hidden rounded-[3px] border border-border bg-surface-alt">
+    <Panel title="PARTITIONS" accent padded={false} className="flex flex-1 flex-col overflow-hidden">
       <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1fr_1fr_1.5fr_2fr] items-center gap-3 border-b border-border bg-surface px-3 py-2">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select</div>
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Partition</div>
@@ -52,27 +53,27 @@ export function FlashPartitionTable({
               <div className="flex items-center">
                 <button
                   onClick={() => onTogglePartition(partition.partition_name)}
-                  className="text-muted-foreground hover:text-accent transition-colors"
+                  className="text-muted-foreground transition-colors hover:text-accent"
                 >
                   {isSelected ? (
-                    <CheckSquare className="w-5 h-5" />
+                    <CheckSquare className="h-5 w-5" />
                   ) : (
-                    <Square className="w-5 h-5" />
+                    <Square className="h-5 w-5" />
                   )}
                 </button>
               </div>
 
-              <div className="flex items-center min-w-0">
-                <div className="flex flex-col min-w-0">
+              <div className="flex min-w-0 items-center">
+                <div className="flex min-w-0 flex-col">
                   <span
-                    className="font-mono text-sm text-foreground truncate"
+                    className="truncate font-mono text-sm text-foreground"
                     title={partition.partition_name}
                   >
                     {partition.partition_name}
                   </span>
                   {partition.file_name && (
                     <span
-                      className="text-xs text-subtle-foreground font-mono truncate"
+                      className="truncate font-mono text-xs text-subtle-foreground"
                       title={partition.file_name}
                     >
                       {partition.file_name}
@@ -82,46 +83,46 @@ export function FlashPartitionTable({
               </div>
 
               <div
-                className="flex items-center font-mono text-sm text-foreground truncate"
+                className="flex truncate font-mono text-sm text-foreground"
                 title={partition.partition_size}
               >
                 {formatHexSize(partition.partition_size)}
               </div>
 
               <div
-                className="flex items-center font-mono text-sm text-muted-foreground truncate"
+                className="flex truncate font-mono text-sm text-muted-foreground"
                 title={partition.region}
               >
                 {partition.region}
               </div>
 
               <div
-                className="flex items-center font-mono text-xs text-subtle-foreground truncate"
+                className="flex truncate font-mono text-xs text-subtle-foreground"
                 title={partition.operation_type}
               >
                 {partition.operation_type}
               </div>
 
-              <div className="flex items-center min-w-0">
+              <div className="flex min-w-0 items-center">
                 {imageFile ? (
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xs text-success truncate font-mono" title={imageFile}>
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="truncate font-mono text-xs text-success" title={imageFile}>
                       {getBasename(imageFile)}
                     </span>
                     <button
                       onClick={() => onSelectImage(partition.partition_name)}
-                      className="flex-shrink-0 p-1 text-muted-foreground hover:text-accent transition-colors"
+                      className="flex-shrink-0 p-1 text-muted-foreground transition-colors hover:text-accent"
                       title="Change image file"
                     >
-                      <FolderOpen className="w-4 h-4" />
+                      <FolderOpen className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => onSelectImage(partition.partition_name)}
-                  className="flex items-center gap-1.5 rounded border border-border bg-surface-alt px-2 py-1 text-xs transition-colors hover:bg-surface-hover"
-                >
-                    <FolderOpen className="w-3.5 h-3.5" />
+                    className="flex items-center gap-1.5 rounded border border-border bg-surface-alt px-2 py-1 text-xs transition-colors hover:bg-surface-hover"
+                  >
+                    <FolderOpen className="h-3.5 w-3.5" />
                     Select File
                   </button>
                 )}
@@ -130,6 +131,6 @@ export function FlashPartitionTable({
           );
         })}
       </div>
-    </div>
+    </Panel>
   );
 }

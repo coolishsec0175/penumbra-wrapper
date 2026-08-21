@@ -1,5 +1,5 @@
 import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { Panel } from '../penumbra/Panel';
 
 interface FlashActionBarProps {
   selectedCount: number;
@@ -38,29 +38,31 @@ export function FlashActionBar({
   };
 
   return (
-    <Card className="flex flex-col gap-3 border-border bg-surface-alt p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0 text-sm text-muted-foreground">
-        {isFlashing ? (
-          <span className="block truncate font-semibold text-accent">
-            Flashing partition {currentFlashIndex} of {totalFlashCount}...
-          </span>
-        ) : (
-          <>
-            <span className="font-semibold text-foreground">{selectedCount}</span> partitions selected
-            {selectedCount > 0 && (
-              <span className="ml-2">({selectedWithImagesCount} with images)</span>
-            )}
-          </>
-        )}
+    <Panel padded={false} className="flex-shrink-0">
+      <div className="flex flex-col gap-3 border-t border-border p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 text-sm text-muted-foreground">
+          {isFlashing ? (
+            <span className="block truncate font-semibold text-accent">
+              Flashing partition {currentFlashIndex} of {totalFlashCount}...
+            </span>
+          ) : (
+            <>
+              <span className="font-semibold text-foreground">{selectedCount}</span> partitions selected
+              {selectedCount > 0 && (
+                <span className="ml-2">({selectedWithImagesCount} with images)</span>
+              )}
+            </>
+          )}
+        </div>
+        <Button
+          onClick={onFlash}
+          disabled={isDisabled}
+          title={getTitle()}
+          className="w-full sm:w-auto"
+        >
+          {isFlashing ? 'Flashing...' : 'Flash Selected'}
+        </Button>
       </div>
-      <Button
-        onClick={onFlash}
-        disabled={isDisabled}
-        title={getTitle()}
-        className="w-full sm:w-auto"
-      >
-        {isFlashing ? 'Flashing...' : 'Flash Selected'}
-      </Button>
-    </Card>
+    </Panel>
   );
 }

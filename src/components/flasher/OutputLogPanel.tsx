@@ -66,7 +66,7 @@ export function OutputLogPanel({ className }: OutputLogPanelProps) {
       ref={panelRef}
       style={{ height: `${logPanelHeight}px` }}
       className={cn(
-        'flex flex-col overflow-hidden rounded-[3px] border border-border bg-surface',
+        'flex flex-col overflow-hidden rounded-md border border-border bg-surface',
         className
       )}
     >
