@@ -5,6 +5,7 @@ import { ProgressWidget } from '../components/ProgressWidget';
 import { LogLineView } from '../components/LogLineView';
 import { LogToolbar } from '../components/LogToolbar';
 import { Panel } from '../components/penumbra/Panel';
+import { PageTransition } from '../components/ui/PageTransition';
 
 export function Log() {
   const { logFilter, logAutoscroll, logFontSize } = useUIStore();
@@ -32,9 +33,11 @@ export function Log() {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <div className="flex-shrink-0 border-b border-border p-2">
-        <LogToolbar />
-      </div>
+      <PageTransition>
+        <div className="flex-shrink-0 border-b border-border p-2">
+          <LogToolbar />
+        </div>
+      </PageTransition>
 
       <ProgressWidget
         isActive={isRunning}
@@ -44,7 +47,7 @@ export function Log() {
         startTime={startTime}
       />
 
-      <div className="min-h-0 flex-1 p-3">
+      <PageTransition className="min-h-0 flex-1 p-3" delay={0.1}>
         <Panel title="CONSOLE" padded={false} className="h-full">
           <div className="h-full overflow-y-auto p-3 font-mono">
             {visibleLogs.length === 0 ? (
@@ -59,7 +62,7 @@ export function Log() {
             <div ref={logsEndRef} />
           </div>
         </Panel>
-      </div>
+      </PageTransition>
     </div>
   );
 }

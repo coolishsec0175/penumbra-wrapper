@@ -18,6 +18,7 @@ import { OutputLogPanel } from '../components/flasher/OutputLogPanel';
 import { ErrorHandler } from '../services/utils/errorHandler';
 import { formatHexSize } from '../services/utils/formatUtils';
 import { findScatterInFolder } from '../services/utils/scatterFolder';
+import { PageTransition } from '../components/ui/PageTransition';
 import type { Partition } from '../types';
 
 export function Flasher() {
@@ -321,7 +322,7 @@ export function Flasher() {
         totalCount={totalFlashCount}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-5">
+      <PageTransition className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-5">
         {!scatterFile ? (
           <ScatterDropzone
             onLoadPath={loadScatterPath}
@@ -339,7 +340,7 @@ export function Flasher() {
             />
 
             {isFlashing && (
-              <div className="flex flex-shrink-0 items-center gap-3 rounded-[3px] border border-accent bg-accent-soft p-3">
+              <div className="flex flex-shrink-0 items-center gap-3 rounded-md border border-accent bg-accent-soft p-3">
                 <Loader2 className="h-5 w-5 animate-spin text-accent" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">
@@ -379,14 +380,14 @@ export function Flasher() {
         )}
 
         {scatterError && (
-          <div className="flex-shrink-0 rounded-[3px] border border-danger bg-danger-soft p-3 text-sm text-danger">
+          <div className="flex-shrink-0 rounded-md border border-danger bg-danger-soft p-3 text-sm text-danger">
             <p className="flex items-center gap-2 font-semibold">
               <Zap className="h-4 w-4" />
               {scatterError}
             </p>
           </div>
         )}
-      </div>
+      </PageTransition>
 
       <div className="flex-shrink-0 border-t border-border p-3">
         <OutputLogPanel />

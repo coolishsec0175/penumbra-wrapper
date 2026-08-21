@@ -20,6 +20,7 @@ import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
 import { WindowsDiagnosticsPanel } from '../components/WindowsDiagnosticsPanel';
+import { PageTransition } from '../components/ui/PageTransition';
 
 export function Tools() {
   const { daPath, preloaderPath, isConnected, isSettingsLoading, isSettingsLoaded } = useDeviceStore();
@@ -107,7 +108,7 @@ export function Tools() {
       message: (
         <div>
           <p>This will backup {backupCount} partitions to:</p>
-          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">
+          <p className="mt-2 rounded bg-surface-alt p-2 font-mono text-sm">
             {outputDir}
           </p>
           {skipList.length > 0 && (
@@ -183,9 +184,9 @@ export function Tools() {
       title: 'Restore All Partitions',
       message: (
         <div>
-          <p className="font-semibold text-danger mb-2">WARNING: THIS WILL OVERWRITE ALL PARTITIONS</p>
+          <p className="mb-2 font-semibold text-danger">WARNING: THIS WILL OVERWRITE ALL PARTITIONS</p>
           <p>This will write every image from:</p>
-          <p className="font-mono text-sm bg-surface-alt p-2 rounded mt-2">{restoreDir}</p>
+          <p className="mt-2 rounded bg-surface-alt p-2 font-mono text-sm">{restoreDir}</p>
           <p className="mt-3 text-muted-foreground">All current data on matching partitions will be replaced. Continue?</p>
         </div>
       ),
@@ -236,8 +237,8 @@ export function Tools() {
       title: isUnlock ? 'Unlock Bootloader' : 'Lock Bootloader',
       message: isUnlock ? (
         <div>
-          <p className="font-semibold text-danger mb-2">WARNING: UNLOCKING THE BOOTLOADER</p>
-          <ul className="list-disc list-inside space-y-1 text-sm">
+          <p className="mb-2 font-semibold text-danger">WARNING: UNLOCKING THE BOOTLOADER</p>
+          <ul className="list-inside list-disc space-y-1 text-sm">
             <li>This may WIPE ALL DATA on your device</li>
             <li>Your warranty may be voided</li>
             <li>Security features will be disabled</li>
@@ -246,8 +247,8 @@ export function Tools() {
         </div>
       ) : (
         <div>
-          <p className="font-semibold text-danger mb-2">WARNING: LOCKING THE BOOTLOADER</p>
-          <ul className="list-disc list-inside space-y-1 text-sm">
+          <p className="mb-2 font-semibold text-danger">WARNING: LOCKING THE BOOTLOADER</p>
+          <ul className="list-inside list-disc space-y-1 text-sm">
             <li>This may WIPE ALL DATA on your device</li>
             <li>You will not be able to flash custom ROMs</li>
             <li>Security features will be re-enabled</li>
@@ -428,7 +429,7 @@ export function Tools() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <main className="min-h-0 flex-1 overflow-y-auto p-5">
-        <div className="w-full space-y-4">
+        <PageTransition className="mx-auto w-full max-w-5xl space-y-4">
           {!isConnected && <ConnectionWarning />}
 
           <ReadAllSection
@@ -477,7 +478,7 @@ export function Tools() {
 
             <WindowsDiagnosticsPanel />
           </div>
-        </div>
+        </PageTransition>
       </main>
     </div>
   );

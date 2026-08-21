@@ -14,6 +14,7 @@ import { PartitionTable } from '../components/PartitionTable';
 import { ProgressWidget } from '../components/ProgressWidget';
 import { Panel } from '../components/penumbra/Panel';
 import { StatusCard } from '../components/penumbra/StatusCard';
+import { PageTransition } from '../components/ui/PageTransition';
 import { useConfirmation } from '../hooks/useConfirmation';
 import { DialogType } from '../services/dialogs/fileDialogService';
 import { PartitionApi } from '../services/api/partitionApi';
@@ -323,17 +324,20 @@ export function Dashboard() {
       <main className="flex min-h-0 flex-1 flex-col p-5">
         <div className="min-h-0 flex-1 overflow-hidden">
           {!isConnected && !isConnecting && (
-            <WelcomeScreen
-              isConnecting={isConnecting}
-              isSettingsLoading={isSettingsLoading}
-              onSelectDa={handleSelectDa}
-              onSelectPreloader={handleSelectPreloader}
-              onConnect={handleConnect}
-              onNavigate={navigate}
-            />
+            <PageTransition>
+              <WelcomeScreen
+                isConnecting={isConnecting}
+                isSettingsLoading={isSettingsLoading}
+                onSelectDa={handleSelectDa}
+                onSelectPreloader={handleSelectPreloader}
+                onConnect={handleConnect}
+                onNavigate={navigate}
+              />
+            </PageTransition>
           )}
 
           {(isConnected || isConnecting) && (
+            <PageTransition>
             <div className="flex h-full gap-4">
             {/* ACTIONS panel */}
             <div className="flex w-72 shrink-0 flex-col gap-4">
@@ -342,7 +346,7 @@ export function Dashboard() {
                   <button
                     onClick={handleFastBackup}
                     disabled={!isConnected || isConnecting || isBackupRunning}
-                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover hover:pl-2.5 disabled:opacity-40"
                   >
                     <span className="text-accent">
                       <Zap className="h-4 w-4" />
@@ -359,7 +363,7 @@ export function Dashboard() {
                       isBackupRunning ||
                       selectedPartitions.size === 0
                     }
-                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover hover:pl-2.5 disabled:opacity-40"
                   >
                     <span className="text-accent">
                       <Package className="h-4 w-4" />
@@ -374,7 +378,7 @@ export function Dashboard() {
                   <button
                     onClick={handleSelectOutput}
                     disabled={isBackupRunning}
-                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover hover:pl-2.5 disabled:opacity-40"
                   >
                     <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1 truncate">
@@ -395,7 +399,7 @@ export function Dashboard() {
                   <div className="my-1 border-t border-border" />
                   <button
                     onClick={() => navigate('/tools')}
-                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover hover:pl-2.5"
                   >
                     <span className="text-accent">
                       <Wrench className="h-4 w-4" />
@@ -404,7 +408,7 @@ export function Dashboard() {
                   </button>
                   <button
                     onClick={() => navigate('/flasher')}
-                    className="flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover hover:pl-2.5"
                   >
                     <span className="text-accent">
                       <Layers className="h-4 w-4" />
@@ -450,6 +454,7 @@ export function Dashboard() {
               </Panel>
             </div>
           </div>
+          </PageTransition>
         )}
         </div>
 
