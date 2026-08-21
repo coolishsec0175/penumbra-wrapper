@@ -6,6 +6,7 @@ import { useGlobalKeydown } from '../../hooks/useGlobalKeydown';
 import { AsciiLogo } from '../penumbra/AsciiLogo';
 import { MenuList, type MenuItem } from '../penumbra/MenuList';
 import { StatusCard } from '../penumbra/StatusCard';
+import { DecryptedText } from '../reactbits/DecryptedText';
 
 interface WelcomeScreenProps {
   isConnecting: boolean;
@@ -17,8 +18,8 @@ interface WelcomeScreenProps {
 }
 
 /**
- * The Antumbra welcome page: ASCII banner, description menu and the
- * DA / Preloader status cards, faithfully mirroring the TUI.
+ * The Penumbra welcome page: wordmark banner, description menu and the
+ * DA / Preloader status cards.
  */
 export function WelcomeScreen({
   isConnecting,
@@ -53,7 +54,7 @@ export function WelcomeScreen({
         description: 'Flash, unlock, and manage device',
         disabled: busy || !daPath,
       },
-      { icon: <Settings className="h-4 w-4" />, label: 'Options', description: 'Change Antumbra settings' },
+      { icon: <Settings className="h-4 w-4" />, label: 'Options', description: 'Change Penumbra settings' },
       { icon: <Wrench className="h-4 w-4" />, label: 'Tools', description: 'Backup, restore & bootloader tools' },
       { icon: <Terminal className="h-4 w-4" />, label: 'Log', description: 'View the operation console output' },
     ],
@@ -116,13 +117,25 @@ export function WelcomeScreen({
   useGlobalKeydown(handleKeyDown);
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6 overflow-y-auto px-4">
-      <AsciiLogo />
-      <p className="font-mono text-xs text-muted-foreground">
-        MediaTek flashing, readback and bootloader tool
-      </p>
+    <div className="flex h-full flex-col items-center justify-center gap-7 overflow-y-auto px-4">
+      <div className="animate-fade-in-up flex flex-col items-center gap-3">
+        <AsciiLogo />
+        <p className="font-mono text-xs text-muted-foreground">
+          <DecryptedText
+            text="MediaTek flashing, readback and bootloader tool"
+            speed={35}
+            maxIterations={6}
+            animateOn="view"
+            className="text-muted-foreground"
+            encryptedClassName="text-subtle-foreground"
+          />
+        </p>
+      </div>
 
-      <div ref={menuWrapRef} className="w-full max-w-2xl">
+      <div
+        ref={menuWrapRef}
+        className="animate-fade-in-up w-full max-w-2xl [animation-delay:120ms]"
+      >
         <MenuList
           items={items}
           selectedIndex={selected}

@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { useUIStore } from '../store/uiStore';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
 import { cn } from '../lib/utils';
 
 interface PartitionTableProps {
@@ -105,7 +104,7 @@ export const PartitionTable = memo<PartitionTableProps>(
           />
         </div>
 
-        <Card className="flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
+        <div className="panel flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
           <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border bg-surface px-3 py-2">
             <input
               type="checkbox"
@@ -218,7 +217,7 @@ export const PartitionTable = memo<PartitionTableProps>(
               ))
             )}
           </div>
-        </Card>
+        </div>
 
         <div className="flex-shrink-0 text-sm text-subtle-foreground">
           Showing {filteredPartitions.length} of {partitions.length} partitions
