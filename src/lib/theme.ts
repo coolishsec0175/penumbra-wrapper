@@ -21,14 +21,13 @@ export function getInitialTheme(): ThemeMode {
   if (typeof window === 'undefined') return 'dark'
   const storedTheme = localStorage.getItem(THEME_STORAGE_KEY)
   if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
-  return 'light'
+  return 'dark'
 }
 
 export function getInitialAccent(): ThemeAccent {
-  if (typeof window === 'undefined') return 'blue'
+  if (typeof window === 'undefined') return 'teal'
   const stored = localStorage.getItem(ACCENT_STORAGE_KEY)
-  return THEME_ACCENTS.includes(stored as ThemeAccent) ? (stored as ThemeAccent) : 'blue'
+  return THEME_ACCENTS.includes(stored as ThemeAccent) ? (stored as ThemeAccent) : 'teal'
 }
 
 export function getInitialPreset(): ThemePreset {

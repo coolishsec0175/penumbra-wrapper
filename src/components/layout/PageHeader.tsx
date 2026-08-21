@@ -165,13 +165,14 @@ export function PageHeader() {
         : 'text-muted-foreground';
 
   return (
-    <header className="flex flex-shrink-0 flex-col border-b border-border bg-surface">
-      {/* Top row: brand + device actions */}
+    <header className="flex flex-shrink-0 flex-col border-b border-border bg-surface/70 backdrop-blur-md">
       <div className="flex h-14 items-center justify-between gap-3 px-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="text-xl leading-none text-accent">☾</span>
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="relative flex size-7 items-center justify-center rounded-md border border-accent/40 bg-accent-soft font-mono text-xs font-bold text-accent">
+            <span className="caret !h-3.5 !w-[7px]" />
+          </span>
           <div className="min-w-0 font-mono">
-            <h1 className="truncate text-base font-bold uppercase tracking-wider text-foreground">
+            <h1 className="truncate text-sm font-bold uppercase tracking-widest text-foreground">
               Antumbra
             </h1>
             <p className="truncate text-[10px] text-subtle-foreground">v{APP_VERSION}</p>
@@ -181,11 +182,11 @@ export function PageHeader() {
         <div className="flex flex-shrink-0 items-center gap-2">
           <div
             className={cn(
-              'flex items-center gap-2 rounded-[3px] border border-border bg-surface px-2.5 py-1.5 font-mono text-xs font-semibold',
+              'flex items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 font-mono text-xs font-semibold',
               statusColor
             )}
           >
-            <span className="size-1.5 rounded-full bg-current" />
+            <span className="size-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]" />
             {statusLabel}
           </div>
 
@@ -202,12 +203,12 @@ export function PageHeader() {
               <ChevronDown className="h-3.5 w-3.5" />
             </Button>
             {rebootOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-[3px] border border-border bg-surface p-1 shadow-lg">
+              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-xl backdrop-blur-sm">
                 {REBOOT_MODES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleReboot(key)}
-                    className="w-full rounded-[3px] px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                    className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
                   >
                     {label}
                   </button>
@@ -215,7 +216,7 @@ export function PageHeader() {
                 <div className="my-1 border-t border-border" />
                 <button
                   onClick={handleShutdown}
-                  className="w-full rounded-[3px] px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
                 >
                   Shutdown
                 </button>
@@ -266,8 +267,7 @@ export function PageHeader() {
         </div>
       </div>
 
-      {/* Nav menu */}
-      <nav className="flex items-center gap-0.5 overflow-x-auto border-t border-border px-3 py-1.5">
+      <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-3 py-1.5">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -275,9 +275,9 @@ export function PageHeader() {
             end={end}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2 rounded-[3px] px-3 py-1.5 font-mono text-sm transition-colors',
+                'relative flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-sm transition-all',
                 isActive
-                  ? 'bg-primary-soft font-bold text-accent'
+                  ? 'bg-primary-soft font-bold text-accent nav-glow'
                   : 'text-muted-foreground hover:bg-surface-alt hover:text-foreground'
               )
             }
