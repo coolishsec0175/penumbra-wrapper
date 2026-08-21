@@ -1,6 +1,7 @@
 import { FolderOpen, RotateCcw, X } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Panel } from '../penumbra/Panel';
+import { SpotlightCard } from '../reactbits/SpotlightCard';
 
 interface RestoreSectionProps {
   isConnected: boolean;
@@ -22,46 +23,47 @@ export function RestoreSection({
   onRestore,
 }: RestoreSectionProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Restore All Partitions</CardTitle>
-        <CardDescription>
-          Write every partition image back from a backup folder (write-all).
-        </CardDescription>
-      </CardHeader>
+    <SpotlightCard className="overflow-hidden">
+      <Panel title="RESTORE ALL PARTITIONS" accent padded={false}>
+        <div className="flex flex-col gap-4 p-4">
+          <p className="text-sm text-muted-foreground">
+            Write every partition image back from a backup folder (write-all).
+          </p>
 
-      <CardContent className="flex flex-wrap items-center gap-2">
-        <Button
-          onClick={onSelectDir}
-          disabled={isSettingsLoading || isRestoreRunning}
-          variant="outline"
-          size="sm"
-        >
-          <FolderOpen className="h-4 w-4" />
-          {backupDir ? backupDir : 'Select Backup Folder'}
-        </Button>
-        {backupDir && (
-          <Button
-            onClick={onClearDir}
-            disabled={isRestoreRunning}
-            variant="destructive"
-            size="sm"
-            className="px-2"
-            title="Clear backup folder"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-        <Button
-          onClick={onRestore}
-          disabled={!isConnected || isRestoreRunning || !backupDir}
-          variant="warning"
-          size="sm"
-        >
-          <RotateCcw className={`h-4 w-4 ${isRestoreRunning ? 'animate-spin' : ''}`} />
-          {isRestoreRunning ? 'Restoring...' : 'Restore All'}
-        </Button>
-      </CardContent>
-    </Card>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={onSelectDir}
+              disabled={isSettingsLoading || isRestoreRunning}
+              variant="outline"
+              size="sm"
+            >
+              <FolderOpen className="h-4 w-4" />
+              {backupDir ? backupDir : 'Select Backup Folder'}
+            </Button>
+            {backupDir && (
+              <Button
+                onClick={onClearDir}
+                disabled={isRestoreRunning}
+                variant="destructive"
+                size="sm"
+                className="px-2"
+                title="Clear backup folder"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              onClick={onRestore}
+              disabled={!isConnected || isRestoreRunning || !backupDir}
+              variant="warning"
+              size="sm"
+            >
+              <RotateCcw className={`h-4 w-4 ${isRestoreRunning ? 'animate-spin' : ''}`} />
+              {isRestoreRunning ? 'Restoring...' : 'Restore All'}
+            </Button>
+          </div>
+        </div>
+      </Panel>
+    </SpotlightCard>
   );
 }

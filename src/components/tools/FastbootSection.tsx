@@ -1,6 +1,7 @@
-import { Loader2, Rocket, X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Panel } from '../penumbra/Panel';
+import { SpotlightCard } from '../reactbits/SpotlightCard';
 import type { FastbootStatus } from '../../types';
 
 interface FastbootSectionProps {
@@ -29,41 +30,36 @@ export function FastbootSection({
   onCancel,
 }: FastbootSectionProps) {
   return (
-    <Card>
-      <CardHeader className="flex-row items-center gap-3">
-        <div className="rounded-[3px] bg-primary-soft p-3">
-          <Rocket className="h-6 w-6 text-primary" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <CardTitle className="text-lg">Force Fastboot</CardTitle>
-          <CardDescription>
-            Attempts a preloader handshake to switch MTK devices into Fastboot mode.
-          </CardDescription>
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          {isRunning && (
-            <Button onClick={onCancel} variant="outline" size="sm">
-              <X className="h-4 w-4" />
-              Cancel
-            </Button>
-          )}
-          <Button onClick={onForceFastboot} disabled={isRunning} size="sm">
-            {isRunning && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isRunning ? 'Attempting...' : 'Force Fastboot'}
-          </Button>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-2">
-        {isRunning && (
+    <SpotlightCard className="overflow-hidden">
+      <Panel title="FORCE FASTBOOT" accent padded={false}>
+        <div className="flex flex-col gap-4 p-4">
           <p className="text-sm text-muted-foreground">
-            Scanning MTK ports for up to 120 seconds. Keep the device connected.
+            Attempts a preloader handshake to switch MTK devices into Fastboot mode.
           </p>
-        )}
-        {status && statusMessage && (
-          <p className={`text-sm ${statusStyles[status]}`}>{statusMessage}</p>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="flex items-center gap-2">
+            {isRunning && (
+              <Button onClick={onCancel} variant="outline" size="sm">
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+            )}
+            <Button onClick={onForceFastboot} disabled={isRunning} size="sm">
+              {isRunning && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isRunning ? 'Attempting...' : 'Force Fastboot'}
+            </Button>
+          </div>
+
+          {isRunning && (
+            <p className="text-sm text-muted-foreground">
+              Scanning MTK ports for up to 120 seconds. Keep the device connected.
+            </p>
+          )}
+          {status && statusMessage && (
+            <p className={`text-sm font-semibold ${statusStyles[status]}`}>{statusMessage}</p>
+          )}
+        </div>
+      </Panel>
+    </SpotlightCard>
   );
 }
