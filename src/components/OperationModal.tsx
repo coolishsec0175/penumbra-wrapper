@@ -181,7 +181,7 @@ export const OperationModal = memo<OperationModalProps>(
             onClick={(e) => e.stopPropagation()}
           >
             {showOverwriteConfirm && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-[3px] border-2 border-warning bg-surface p-4">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md border-2 border-warning bg-surface p-4">
                 <AlertTriangle className="mb-4 h-12 w-12 text-warning" />
                 <h3 className="mb-2 text-center text-lg font-semibold text-foreground">
                   File Already Exists
@@ -231,7 +231,7 @@ export const OperationModal = memo<OperationModalProps>(
                       onChange={(e) => setFilePath(e.target.value)}
                       placeholder={operation === 'write' ? 'Select image file...' : 'Select output location...'}
                       disabled={isExecuting}
-                      className="rounded-[3px]"
+                      className="rounded-md"
                     />
                   </div>
                   <Button onClick={handleBrowse} disabled={isExecuting} variant="outline" size="icon" title="Browse">

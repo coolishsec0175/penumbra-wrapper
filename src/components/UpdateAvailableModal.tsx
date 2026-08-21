@@ -143,7 +143,7 @@ export function UpdateAvailableModal({
             {updateInfo.installed_path && (
               <div className="space-y-1 text-sm">
                 <span className="text-muted-foreground">Install location:</span>
-                <div className="overflow-x-auto rounded-[3px] border border-border bg-surface-alt p-2 font-mono text-xs">
+                <div className="overflow-x-auto rounded-md border border-border bg-surface-alt p-2 font-mono text-xs">
                   {updateInfo.installed_path}
                 </div>
               </div>

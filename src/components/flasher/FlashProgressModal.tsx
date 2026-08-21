@@ -64,7 +64,7 @@ export function FlashProgressModal({
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
-        <div className="bg-surface rounded-[3px] border-2 border-accent shadow-2xl overflow-hidden">
+        <div className="bg-surface rounded-md border-2 border-accent shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-start gap-3 p-4 border-b border-border">
             <Zap className="w-6 h-6 text-accent flex-shrink-0 mt-0.5" />
@@ -104,7 +104,7 @@ export function FlashProgressModal({
             </div>
 
             {/* Progress Bar */}
-            <div className="space-y-3 rounded-[3px] border border-border bg-surface-alt p-3">
+            <div className="space-y-3 rounded-md border border-border bg-surface-alt p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-accent">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Flashing...</span>
