@@ -2,22 +2,25 @@ import type { HTMLAttributes, Ref } from 'react';
 import { cn } from '../../lib/utils';
 
 export interface PanelProps extends HTMLAttributes<HTMLDivElement> {
-  /** Title rendered on the top border, TUI-block style. */
+  /** Title rendered in the panel header bar. */
   title?: string;
   /** When true, the panel border + title use the accent color. */
   accent?: boolean;
+  /** Show a glowing terminal dot next to the title. */
+  dot?: boolean;
   /** Content padding; disabled when a title needs breathing room. */
   padded?: boolean;
   ref?: Ref<HTMLDivElement>;
 }
 
 /**
- * A bordered panel mirroring the Antumbra TUI block: a thin rounded border
- * with the section title sitting on the top edge.
+ * A clean modern terminal panel: rounded surface, hairline border and an
+ * optional header bar with an accent title.
  */
 export function Panel({
   title,
   accent,
+  dot = true,
   padded = true,
   className,
   children,
@@ -30,7 +33,12 @@ export function Panel({
       className={cn('panel', accent && 'panel-accent', className)}
       {...props}
     >
-      {title && <span className="panel-title">{title}</span>}
+      {title && (
+        <div className="panel-header">
+          {dot && <span className="panel-dot" />}
+          <span className="panel-title">{title}</span>
+        </div>
+      )}
       <div className={cn('h-full w-full', padded && 'p-3')}>{children}</div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export interface DropdownOption {
@@ -16,9 +17,8 @@ export interface PenumbraDropdownProps {
 }
 
 /**
- * A TUI-style dropdown (like the Antumbra Options page): a label with a
- * bordered control showing the current value + ▲/▼ glyph, and a bordered
- * overlay list when opened.
+ * A clean terminal dropdown: a bordered control showing the current value
+ * with a chevron, and a rounded overlay list when opened.
  */
 export function PenumbraDropdown({
   label,
@@ -63,23 +63,25 @@ export function PenumbraDropdown({
 
   return (
     <div ref={rootRef} className={cn('relative flex items-center gap-3', disabled && 'opacity-40', className)}>
-      <span className="shrink-0 text-sm font-bold text-foreground">{label}:</span>
+      <span className="shrink-0 text-sm font-semibold text-foreground">{label}:</span>
       <button
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex min-w-0 items-center gap-2 rounded-[3px] border bg-surface px-3 py-1.5 text-sm transition-colors',
+          'flex min-w-0 items-center gap-2 rounded-md border bg-surface px-3 py-1.5 text-sm transition-colors',
           open ? 'border-accent text-accent' : 'border-border text-foreground hover:border-accent',
           disabled && 'cursor-not-allowed'
         )}
       >
         <span className="min-w-0 truncate">{selected?.label ?? '—'}</span>
-        <span className="shrink-0 text-[10px]">{open ? '▲' : '▼'}</span>
+        <span className="shrink-0 text-muted-foreground">
+          {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        </span>
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 min-w-48 overflow-hidden rounded-[3px] border border-accent bg-surface shadow-lg">
+        <div className="absolute z-50 mt-1 min-w-48 overflow-hidden rounded-md border border-accent/40 bg-surface shadow-xl">
           {options.map((option) => (
             <button
               key={option.value}

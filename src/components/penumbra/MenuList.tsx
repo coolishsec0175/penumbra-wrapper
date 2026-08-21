@@ -21,8 +21,8 @@ export interface MenuListProps {
 }
 
 /**
- * The Antumbra "description menu": a keyboard-navigable list on the left with a
- * live description box on the right showing the currently selected item.
+ * A clean terminal "description menu": a keyboard-navigable list with a live
+ * description panel showing the currently selected item.
  */
 export function MenuList({
   items,
@@ -80,14 +80,13 @@ export function MenuList({
       onFocus={(e) => e.currentTarget.setAttribute('data-focused', 'true')}
       onBlur={(e) => e.currentTarget.removeAttribute('data-focused')}
       className={cn(
-        'flex w-full max-w-xl gap-6 rounded-[3px] border border-border bg-surface p-4 outline-none',
+        'flex w-full max-w-2xl gap-6 rounded-lg border border-border bg-surface/80 p-4 outline-none backdrop-blur-sm',
         className
       )}
     >
-      <ul className="min-w-0 flex-1 space-y-1" role="menu" aria-label="Antumbra menu">
+      <ul className="min-w-0 flex-1 space-y-1" role="menu" aria-label="Penumbra menu">
         {items.map((item, i) => {
           const active = i === selectedIndex;
-          const Icon = item.icon;
           return (
             <li key={item.label}>
               <button
@@ -98,18 +97,13 @@ export function MenuList({
                   if (onActivate && !item.disabled) onActivate(i);
                 }}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-[3px] px-2 py-1 text-left text-sm transition-colors disabled:opacity-40',
+                  'flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-all disabled:opacity-40',
                   active
-                    ? 'bg-primary-soft font-bold text-accent'
+                    ? 'bg-primary-soft font-bold text-accent nav-glow'
                     : 'text-foreground hover:bg-surface-hover'
                 )}
               >
-                {Icon !== undefined &&
-                  (typeof Icon === 'string' ? (
-                    <span className="w-5 shrink-0 text-center">{Icon}</span>
-                  ) : (
-                    <span className="w-5 shrink-0 text-center">{Icon}</span>
-                  ))}
+                {item.icon !== undefined && <span className="w-5 shrink-0 text-center">{item.icon}</span>}
                 <span className="truncate">{item.label}</span>
                 {active && <span className="ml-auto text-[10px] font-bold text-accent">▸</span>}
               </button>
@@ -119,8 +113,8 @@ export function MenuList({
       </ul>
 
       {selected && (
-        <div className="hidden w-44 shrink-0 flex-col justify-center sm:flex">
-          <div className="rounded-[3px] border border-border px-3 py-2">
+        <div className="hidden w-48 shrink-0 flex-col justify-center sm:flex">
+          <div className="rounded-md border border-accent/30 bg-accent-soft px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {selected.label}
             </p>
