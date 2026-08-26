@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { listen } from '@tauri-apps/api/event';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { AntumbraApi } from '../services/api/antumbraApi';
 import { ErrorHandler } from '../services/utils/errorHandler';
 import { WindowsErrorHandler } from '../services/utils/windowsErrorHandler';

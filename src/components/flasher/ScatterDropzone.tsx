@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FilePlus2, FolderOpen, Loader2, Package } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { Button } from '../ui/button';
@@ -82,14 +82,14 @@ export function ScatterDropzone({
         className={cn(
           'flex h-40 flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed transition-all duration-300',
           isDragOver
-            ? 'border-primary bg-primary-soft/50'
-            : 'border-border hover:border-accent hover:bg-surface-alt/50'
+            ? 'border-primary bg-accent-soft/50'
+            : 'border-border hover:border-trace-copper hover:bg-muted/50'
         )}
       >
       {isLoading ? (
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <Loader2 className="h-8 w-8 animate-spin text-trace-copper" />
       ) : (
-        <Package className="h-8 w-8 text-subtle-foreground" />
+        <Package className="h-8 w-8 text-muted-foreground" />
       )}
       <p className="px-6 text-center text-sm font-medium text-foreground">
         {isLoading

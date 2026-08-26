@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { ArrowDownToLine, Copy, Eraser, Minus, Plus, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useUIStore, type LogFilter } from '../store/uiStore';
 import { useOperationStore } from '../store/operationStore';
 import { FileDialogService } from '../services/dialogs/fileDialogService';
@@ -12,9 +12,9 @@ import { cn } from '../lib/utils';
 const FILTERS: Array<{ key: LogFilter; label: string; activeClass: string }> = [
   { key: 'all', label: 'ALL', activeClass: 'bg-primary text-primary-foreground' },
   { key: 'info', label: 'INFO', activeClass: 'bg-primary text-primary-foreground' },
-  { key: 'success', label: 'SUCCESS', activeClass: 'bg-success text-success-foreground' },
-  { key: 'warning', label: 'WARN', activeClass: 'bg-warning text-warning-foreground' },
-  { key: 'error', label: 'ERROR', activeClass: 'bg-danger text-danger-foreground' },
+  { key: 'success', label: 'SUCCESS', activeClass: 'bg-success text-foreground' },
+  { key: 'warning', label: 'WARN', activeClass: 'bg-warning text-foreground' },
+  { key: 'error', label: 'ERROR', activeClass: 'bg-error text-destructive-foreground' },
 ];
 
 const FILTER_BTN =
@@ -111,7 +111,7 @@ export function LogToolbar() {
               FILTER_BTN,
               logFilter === filter.key
                 ? filter.activeClass
-                : 'bg-surface-alt text-muted-foreground hover:bg-surface-hover'
+                : 'bg-muted text-muted-foreground hover:bg-accent/30'
             )}
           >
             {filter.label}
@@ -125,7 +125,7 @@ export function LogToolbar() {
           className={cn(
             FILTER_BTN,
             'flex items-center justify-center gap-1',
-            logAutoscroll ? 'bg-surface-alt text-primary' : 'bg-surface-alt text-muted-foreground'
+            logAutoscroll ? 'bg-muted text-primary' : 'bg-muted text-muted-foreground'
           )}
           title="Toggle autoscroll"
         >

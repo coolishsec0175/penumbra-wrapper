@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Eraser, GripHorizontal, Terminal } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useUIStore } from '../../store/uiStore';
 import { useOperationStore } from '../../store/operationStore';
 import { useDeviceStore } from '../../store/deviceStore';
@@ -66,7 +66,7 @@ export function OutputLogPanel({ className }: OutputLogPanelProps) {
       ref={panelRef}
       style={{ height: `${logPanelHeight}px` }}
       className={cn(
-        'flex flex-col overflow-hidden rounded-md border border-border bg-surface',
+        'flex flex-col overflow-hidden rounded-md border border-border bg-card',
         className
       )}
     >
@@ -81,7 +81,7 @@ export function OutputLogPanel({ className }: OutputLogPanelProps) {
         <span className="text-xs font-bold uppercase tracking-wider text-foreground">
           Output Log
         </span>
-        <span className="rounded bg-surface-alt px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
+        <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
           {visibleLogs.length}/{logs.length}
         </span>
         <div className="ml-auto flex items-center gap-2">
@@ -115,7 +115,7 @@ export function OutputLogPanel({ className }: OutputLogPanelProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2 font-mono">
         {visibleLogs.length === 0 ? (
-          <p className="mt-4 text-center text-xs text-subtle-foreground">
+          <p className="mt-4 text-center text-xs text-muted-foreground">
             No log output. Flashing logs will appear here.
           </p>
         ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { PGPT } from './pages/PGPT';
@@ -73,12 +73,12 @@ function AppContent() {
   return (
     <BrowserRouter>
         {isSettingsLoading && (
-          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] px-3 py-1.5 text-xs font-medium bg-surface-alt text-foreground border border-border rounded-full shadow">
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[200] px-3 py-1.5 text-xs font-medium bg-muted text-foreground border border-border rounded-full shadow">
             Loading settings...
           </div>
         )}
         {settingsError && (
-          <div className="fixed top-3 right-3 z-[200] px-3 py-1.5 text-xs font-medium bg-danger-soft text-danger border border-danger rounded shadow">
+          <div className="fixed top-3 right-3 z-[200] px-3 py-1.5 text-xs font-medium bg-error/10 text-error border border-error rounded shadow">
             Settings load failed: {settingsError}
           </div>
         )}
@@ -92,7 +92,7 @@ function AppContent() {
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
-      <Toaster position="top-center" />
+      <Toaster position="top-center" theme="dark" />
 
       <UpdateAvailableModal
         isOpen={isUpdateModalOpen}

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, memo } from 'react';
 import type { Partition } from '../types';
 import { Download, Upload, Search, Trash2, HardDriveDownload } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useUIStore } from '../store/uiStore';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -27,28 +27,28 @@ function getPartitionFlags(name: string): Flag[] {
   const flags: Flag[] = [];
 
   if (name.endsWith('_a')) {
-    flags.push({ label: 'A', className: 'bg-accent text-accent-foreground' });
+    flags.push({ label: 'A', className: 'bg-accent text-trace-copper-foreground' });
   } else if (name.endsWith('_b')) {
-    flags.push({ label: 'B', className: 'bg-surface-hover text-muted-foreground' });
+    flags.push({ label: 'B', className: 'bg-accent/30 text-muted-foreground' });
   }
 
   const baseName = name.replace(/_(a|b)$/, '');
 
   if (['system', 'vendor', 'product', 'system_ext', 'odm'].includes(baseName)) {
-    flags.push({ label: 'ext4', className: 'bg-success text-success-foreground' });
-    flags.push({ label: 'img', className: 'bg-surface-hover text-muted-foreground' });
+    flags.push({ label: 'ext4', className: 'bg-success text-foreground' });
+    flags.push({ label: 'img', className: 'bg-accent/30 text-muted-foreground' });
   } else if (baseName === 'userdata') {
-    flags.push({ label: 'f2fs', className: 'bg-success text-success-foreground' });
+    flags.push({ label: 'f2fs', className: 'bg-success text-foreground' });
   } else if (
     ['boot', 'init_boot', 'vendor_boot', 'recovery', 'vbmeta', 'logo', 'dtbo'].includes(baseName)
   ) {
-    flags.push({ label: 'img', className: 'bg-surface-hover text-muted-foreground' });
+    flags.push({ label: 'img', className: 'bg-accent/30 text-muted-foreground' });
   } else if (
     ['seccfg', 'otp', 'proinfo', 'nvcfg', 'nvram', 'protect1', 'protect2'].includes(baseName)
   ) {
-    flags.push({ label: 'Unreadable', className: 'bg-danger text-danger-foreground' });
+    flags.push({ label: 'Unreadable', className: 'bg-error text-destructive-foreground' });
   } else {
-    flags.push({ label: 'bin', className: 'bg-surface-hover text-muted-foreground' });
+    flags.push({ label: 'bin', className: 'bg-accent/30 text-muted-foreground' });
   }
 
   return flags;
@@ -104,8 +104,8 @@ export const PartitionTable = memo<PartitionTableProps>(
           />
         </div>
 
-        <div className="panel flex flex-1 flex-col overflow-hidden border-border bg-surface-alt">
-          <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border bg-surface px-3 py-2">
+        <div className="panel flex flex-1 flex-col overflow-hidden border-border bg-muted">
+          <div className="sticky top-0 z-10 grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border bg-card px-3 py-2">
             <input
               type="checkbox"
               checked={allSelected}
@@ -124,7 +124,7 @@ export const PartitionTable = memo<PartitionTableProps>(
 
           <div className="flex-1 overflow-y-auto">
             {filteredPartitions.length === 0 ? (
-              <div className="flex h-32 items-center justify-center text-subtle-foreground">
+              <div className="flex h-32 items-center justify-center text-muted-foreground">
                 {searchTerm ? 'No partitions found matching your search' : 'No partitions available'}
               </div>
             ) : (
@@ -132,7 +132,7 @@ export const PartitionTable = memo<PartitionTableProps>(
                 <div
                   key={partition.name}
                   className={cn(
-                    'grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border transition-colors hover:bg-surface-hover',
+                    'grid grid-cols-[auto_2fr_1.5fr_1.5fr_1fr_auto] items-center gap-3 border-b border-border transition-colors hover:bg-accent/30',
                     rowPadding
                   )}
                 >
@@ -198,7 +198,7 @@ export const PartitionTable = memo<PartitionTableProps>(
                       onClick={createFormatHandler(partition)}
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-danger"
+                      className="h-7 w-7 text-error"
                       title="Format"
                     >
                       <HardDriveDownload className="h-4 w-4" />
@@ -219,7 +219,7 @@ export const PartitionTable = memo<PartitionTableProps>(
           </div>
         </div>
 
-        <div className="flex-shrink-0 text-sm text-subtle-foreground">
+        <div className="flex-shrink-0 text-sm text-muted-foreground">
           Showing {filteredPartitions.length} of {partitions.length} partitions
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileDialogService, DialogType } from '../services/dialogs/fileDialogService';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 /**
  * Custom hook for file and folder selection dialogs.

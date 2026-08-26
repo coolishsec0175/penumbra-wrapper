@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle, Info, Package } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useDeviceStore } from '../store/deviceStore';
 import { useFileSelection } from '../hooks/useFileSelection';
 import type { WindowsDiagnostics } from '../types';
@@ -67,11 +67,11 @@ export function WindowsDiagnosticsPanel() {
   const getStatusIcon = (status: boolean) => {
     return status ?
       <CheckCircle className="h-4 w-4 text-success" /> :
-      <AlertCircle className="h-4 w-4 text-danger" />;
+      <AlertCircle className="h-4 w-4 text-error" />;
   };
 
   const getStatusColor = (status: boolean) => {
-    return status ? 'text-success' : 'text-danger';
+    return status ? 'text-success' : 'text-error';
   };
 
   return (
@@ -115,8 +115,8 @@ export function WindowsDiagnosticsPanel() {
           )}
 
           {error && (
-            <div className="rounded-md border border-danger bg-danger-soft p-4">
-              <div className="flex items-center gap-2 text-danger">
+            <div className="rounded-md border border-error bg-error/10 p-4">
+              <div className="flex items-center gap-2 text-error">
                 <AlertCircle className="h-4 w-4" />
                 <span className="font-medium">Diagnostics Error</span>
               </div>
@@ -128,7 +128,7 @@ export function WindowsDiagnosticsPanel() {
             <div className="space-y-4">
               <div>
                 <h4 className="mb-2 text-sm font-semibold text-foreground">System Information</h4>
-                <div className="rounded-md bg-surface-alt p-3">
+                <div className="rounded-md bg-muted p-3">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-muted-foreground">Operating System:</span>
@@ -149,7 +149,7 @@ export function WindowsDiagnosticsPanel() {
 
               <div>
                 <h4 className="mb-2 text-sm font-semibold text-foreground">Antumbra Binary</h4>
-                <div className="rounded-md bg-surface-alt p-3">
+                <div className="rounded-md bg-muted p-3">
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Location:</span>
@@ -185,7 +185,7 @@ export function WindowsDiagnosticsPanel() {
 
               <div>
                 <h4 className="mb-2 text-sm font-semibold text-foreground">Configuration</h4>
-                <div className="rounded-md bg-surface-alt p-3">
+                <div className="rounded-md bg-muted p-3">
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Config File:</span>
@@ -214,7 +214,7 @@ export function WindowsDiagnosticsPanel() {
               {diagnostics.recommendations.length > 0 && (
                 <div>
                   <h4 className="mb-2 text-sm font-semibold text-foreground">Recommendations</h4>
-                  <div className="rounded-md border border-warning bg-warning-soft p-3">
+                  <div className="rounded-md border border-warning bg-warning/10 p-3">
                     <div className="space-y-2">
                       {diagnostics.recommendations.map((recommendation, index) => (
                         <div key={index} className="flex items-start gap-2">
@@ -229,7 +229,7 @@ export function WindowsDiagnosticsPanel() {
             </div>
           )}
 
-          <div className="rounded-md border border-border bg-surface-alt p-3">
+          <div className="rounded-md border border-border bg-muted p-3">
             <h4 className="mb-2 text-sm font-semibold text-foreground">Driver Setup Help</h4>
             <p className="text-sm text-muted-foreground">
               MTK devices on Windows need the <span className="font-medium text-foreground">WinUSB</span> or{' '}
