@@ -30,7 +30,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4">
-      <div className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-border bg-surface shadow-xl">
+      <div className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-border bg-card shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <FileClock className="h-5 w-5 text-muted-foreground" />
@@ -40,14 +40,14 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
             <button
               onClick={loadChangelog}
               disabled={isLoading}
-              className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-foreground transition-colors hover:bg-surface-alt disabled:opacity-50"
+              className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-surface-alt hover:text-foreground"
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -58,7 +58,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
           {isLoading && (
             <p className="text-sm text-muted-foreground">Loading release notes...</p>
           )}
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-error">{error}</p>}
           {!isLoading && !error && notes === null && (
             <div className="flex flex-col items-start gap-3">
               <p className="text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ export function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
           )}
           {!isLoading &&
             notes?.map((note) => (
-              <div key={note.tag_name} className="mb-4 rounded-md border border-border bg-surface-alt p-3">
+              <div key={note.tag_name} className="mb-4 rounded-md border border-border bg-muted p-3">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-mono text-sm font-semibold text-foreground">{note.tag_name}</h3>
                   {note.published_at && (

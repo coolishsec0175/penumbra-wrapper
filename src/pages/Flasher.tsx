@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Loader2, Zap } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useDeviceStore } from '../store/deviceStore';
 import { useFlasherStore } from '../store/flasherStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
@@ -193,7 +193,7 @@ export function Flasher() {
       title: 'Flash scatter layout?',
       message: (
         <div className="space-y-2">
-          <p className="font-semibold text-danger">
+          <p className="font-semibold text-error">
             READ THIS BEFORE PROCEEDING
           </p>
           <ul className="list-inside list-disc space-y-1 text-sm">
@@ -340,17 +340,17 @@ export function Flasher() {
             />
 
             {isFlashing && (
-              <div className="flex flex-shrink-0 items-center gap-3 rounded-md border border-accent bg-accent-soft p-3">
-                <Loader2 className="h-5 w-5 animate-spin text-accent" />
+              <div className="flex flex-shrink-0 items-center gap-3 rounded-md border border-trace-copper bg-accent-soft p-3">
+                <Loader2 className="h-5 w-5 animate-spin text-trace-copper" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">
                     Flashing {currentFlashIndex} of {totalFlashCount}
                   </p>
-                  <p className="truncate font-mono text-xs text-accent">
+                  <p className="truncate font-mono text-xs text-trace-copper">
                     {currentFlashingPartition || 'Starting...'}
                   </p>
                 </div>
-                <span className="font-mono text-sm tabular-nums text-accent">
+                <span className="font-mono text-sm tabular-nums text-trace-copper">
                   {Math.round((currentFlashIndex / Math.max(totalFlashCount, 1)) * 100)}%
                 </span>
               </div>
@@ -380,7 +380,7 @@ export function Flasher() {
         )}
 
         {scatterError && (
-          <div className="flex-shrink-0 rounded-md border border-danger bg-danger-soft p-3 text-sm text-danger">
+          <div className="flex-shrink-0 rounded-md border border-error bg-error/10 p-3 text-sm text-error">
             <p className="flex items-center gap-2 font-semibold">
               <Zap className="h-4 w-4" />
               {scatterError}

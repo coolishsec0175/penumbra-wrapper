@@ -43,11 +43,11 @@ export function Dashboard() {
           <div className="grid grid-cols-3 gap-3">
             <SpotlightCard className="overflow-hidden">
               <div className="flex items-center gap-3 p-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary-soft">
-                  <Zap className="h-4 w-4 text-accent" />
+                <div className="flex size-9 items-center justify-center rounded-lg bg-accent-soft">
+                  <Zap className="h-4 w-4 text-trace-copper" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     DA Loader
                   </p>
                   <p className="truncate font-mono text-xs text-foreground">
@@ -59,11 +59,11 @@ export function Dashboard() {
 
             <SpotlightCard className="overflow-hidden">
               <div className="flex items-center gap-3 p-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-success-soft">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-success/10">
                   <HardDrive className="h-4 w-4 text-success" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Partitions
                   </p>
                   <p className="font-mono text-xs text-foreground">
@@ -75,11 +75,11 @@ export function Dashboard() {
 
             <SpotlightCard className="overflow-hidden">
               <div className="flex items-center gap-3 p-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-warning-soft">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-warning/10">
                   <Shield className="h-4 w-4 text-warning" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-subtle-foreground">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Preloader
                   </p>
                   <p className="truncate font-mono text-xs text-foreground">
@@ -94,7 +94,7 @@ export function Dashboard() {
           <SpotlightCard className="overflow-hidden">
             <div className="flex items-center justify-between gap-4 p-4">
               <div className="flex items-center gap-4">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-surface-alt">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-muted">
                   <FolderOpen className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
@@ -106,7 +106,7 @@ export function Dashboard() {
               </div>
               <button
                 onClick={() => navigate('/tools')}
-                className="shrink-0 rounded-lg bg-primary-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-accent transition-colors hover:bg-primary/20"
+                className="shrink-0 rounded-lg bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-trace-copper transition-colors hover:bg-primary/20"
               >
                 Back up now
               </button>
@@ -119,9 +119,9 @@ export function Dashboard() {
               <button
                 onClick={() => navigate('/pgpt')}
                 disabled={!isConnected}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-sm transition-all hover:border-accent hover:bg-surface-hover disabled:opacity-40"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30 disabled:opacity-40"
               >
-                <Zap className="h-4 w-4 text-accent" />
+                <Zap className="h-4 w-4 text-trace-copper" />
                 <div>
                   <p className="font-semibold text-foreground">Partition Manager</p>
                   <p className="text-[11px] text-muted-foreground">Read, write, format</p>
@@ -129,9 +129,9 @@ export function Dashboard() {
               </button>
               <button
                 onClick={() => navigate('/flasher')}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-sm transition-all hover:border-accent hover:bg-surface-hover"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30"
               >
-                <FolderOpen className="h-4 w-4 text-accent" />
+                <FolderOpen className="h-4 w-4 text-trace-copper" />
                 <div>
                   <p className="font-semibold text-foreground">Scatter Flasher</p>
                   <p className="text-[11px] text-muted-foreground">Flash firmware layouts</p>
@@ -139,9 +139,9 @@ export function Dashboard() {
               </button>
               <button
                 onClick={() => navigate('/tools')}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-sm transition-all hover:border-accent hover:bg-surface-hover"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30"
               >
-                <HardDrive className="h-4 w-4 text-accent" />
+                <HardDrive className="h-4 w-4 text-trace-copper" />
                 <div>
                   <p className="font-semibold text-foreground">Backup & Restore</p>
                   <p className="text-[11px] text-muted-foreground">Full device backup</p>
@@ -149,9 +149,9 @@ export function Dashboard() {
               </button>
               <button
                 onClick={() => navigate('/settings')}
-                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-sm transition-all hover:border-accent hover:bg-surface-hover"
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30"
               >
-                <Shield className="h-4 w-4 text-accent" />
+                <Shield className="h-4 w-4 text-trace-copper" />
                 <div>
                   <p className="font-semibold text-foreground">Settings</p>
                   <p className="text-[11px] text-muted-foreground">Theme, paths, options</p>

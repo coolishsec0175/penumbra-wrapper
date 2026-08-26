@@ -2,7 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 
 export function ConnectionWarning() {
   return (
-    <div className="flex items-start gap-3 rounded-none border border-warning bg-warning-soft p-4">
+    <div className="flex items-start gap-3 rounded-none border border-warning bg-warning/10 p-4">
       <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-warning" />
       <div>
         <h3 className="font-semibold text-warning">Not Connected</h3>

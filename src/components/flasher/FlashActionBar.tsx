@@ -42,7 +42,7 @@ export function FlashActionBar({
       <div className="flex flex-col gap-3 border-t border-border p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 text-sm text-muted-foreground">
           {isFlashing ? (
-            <span className="block truncate font-semibold text-accent">
+            <span className="block truncate font-semibold text-trace-copper">
               Flashing partition {currentFlashIndex} of {totalFlashCount}...
             </span>
           ) : (

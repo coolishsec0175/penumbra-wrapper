@@ -24,21 +24,21 @@ export function ProgressBar({ progress, className = '', written, total, speed }:
   const empty = BAR_CHARS - filled;
 
   return (
-    <div className={cn('font-mono text-accent', className)}>
+    <div className={cn('font-mono text-trace-copper', className)}>
       <div className="flex items-center gap-3 whitespace-pre">
         <span className="text-sm leading-none">
-          <span className="text-accent">{'█'.repeat(filled)}</span>
+          <span className="text-trace-copper">{'█'.repeat(filled)}</span>
           <span className="text-surface-hover">{'░'.repeat(empty)}</span>
         </span>
-        <span className="text-sm tabular-nums text-accent">{Math.round(clamped)}%</span>
+        <span className="text-sm tabular-nums text-trace-copper">{Math.round(clamped)}%</span>
       </div>
       {(written || total) && (
         <div className="mt-1 text-xs tabular-nums text-muted-foreground">
           <span>{written ?? '0 B'}</span>
-          <span className="text-subtle-foreground"> / {total ?? '0 B'}</span>
+          <span className="text-muted-foreground"> / {total ?? '0 B'}</span>
           {speed && (
             <>
-              <span className="px-1.5 text-subtle-foreground">•</span>
+              <span className="px-1.5 text-muted-foreground">•</span>
               <span>{speed}/s</span>
             </>
           )}

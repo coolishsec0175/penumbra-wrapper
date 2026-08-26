@@ -80,7 +80,7 @@ export function MenuList({
       onFocus={(e) => e.currentTarget.setAttribute('data-focused', 'true')}
       onBlur={(e) => e.currentTarget.removeAttribute('data-focused')}
       className={cn(
-        'flex w-full max-w-2xl gap-6 rounded-lg border border-border bg-surface/80 p-4 outline-none backdrop-blur-sm',
+        'flex w-full max-w-2xl gap-6 rounded-lg border border-border bg-card/80 p-4 outline-none backdrop-blur-sm',
         className
       )}
     >
@@ -99,13 +99,13 @@ export function MenuList({
                 className={cn(
                   'flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-all disabled:opacity-40',
                   active
-                    ? 'bg-primary-soft font-bold text-accent nav-glow'
-                    : 'text-foreground hover:bg-surface-hover'
+                    ? 'bg-accent-soft font-bold text-trace-copper nav-glow'
+                    : 'text-foreground hover:bg-accent/30'
                 )}
               >
                 {item.icon !== undefined && <span className="w-5 shrink-0 text-center">{item.icon}</span>}
                 <span className="truncate">{item.label}</span>
-                {active && <span className="ml-auto text-[10px] font-bold text-accent">▸</span>}
+                {active && <span className="ml-auto text-[10px] font-bold text-trace-copper">▸</span>}
               </button>
             </li>
           );
@@ -114,11 +114,11 @@ export function MenuList({
 
       {selected && (
         <div className="hidden w-48 shrink-0 flex-col justify-center sm:flex">
-          <div className="rounded-md border border-accent/30 bg-accent-soft px-3 py-2.5">
+          <div className="rounded-md border border-trace-copper/30 bg-accent-soft px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {selected.label}
             </p>
-            <p className="mt-1 text-xs font-medium italic leading-relaxed text-accent">
+            <p className="mt-1 text-xs font-medium italic leading-relaxed text-trace-copper">
               {selected.description}
             </p>
           </div>

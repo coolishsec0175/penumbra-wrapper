@@ -25,11 +25,11 @@ export function RiskDisclaimerModal() {
         isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
-      <Card className="mx-3 w-full max-w-lg overflow-hidden border-danger bg-surface shadow-2xl">
+      <Card className="mx-3 w-full max-w-lg overflow-hidden border-error bg-card shadow-2xl">
         <CardHeader className="border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="rounded-md bg-danger-soft p-3">
-              <ShieldAlert className="h-6 w-6 text-danger" />
+            <div className="rounded-md bg-error/10 p-3">
+              <ShieldAlert className="h-6 w-6 text-error" />
             </div>
             <div>
               <CardTitle className="text-xl">Welcome to Penumbra</CardTitle>
@@ -42,7 +42,7 @@ export function RiskDisclaimerModal() {
 
         <CardContent className="space-y-4 p-5">
           <div>
-            <p className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-danger">
+            <p className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-error">
               <AlertTriangle className="h-4 w-4" />
               Risk Warning
             </p>
@@ -56,7 +56,7 @@ export function RiskDisclaimerModal() {
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-bold uppercase tracking-wider text-accent">
+            <p className="mb-2 text-sm font-bold uppercase tracking-wider text-trace-copper">
               System Requirements
             </p>
             <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
@@ -72,8 +72,8 @@ export function RiskDisclaimerModal() {
           </div>
         </CardContent>
 
-        <div className="flex items-center justify-end gap-3 border-t border-border bg-surface p-4">
-          <span className="text-xs text-subtle-foreground">
+        <div className="flex items-center justify-end gap-3 border-t border-border bg-card p-4">
+          <span className="text-xs text-muted-foreground">
             Accept in {countdown}s
           </span>
           <Button

@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderOpen, Layers, Package, Wrench, X, Zap } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useOperationStore } from '../store/operationStore';
@@ -259,8 +259,8 @@ export function PGPT() {
         <PageTransition>
           <Panel title="PGPT" accent>
             <div className="flex flex-col items-center gap-4 py-6 text-center">
-              <div className="rounded-xl bg-surface-alt p-4">
-                <Zap className="h-8 w-8 text-accent" />
+              <div className="rounded-xl bg-muted p-4">
+                <Zap className="h-8 w-8 text-trace-copper" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground">No Device Connected</h3>
@@ -270,7 +270,7 @@ export function PGPT() {
               </div>
               <button
                 onClick={() => navigate('/')}
-                className="rounded-lg bg-primary-soft px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-primary/20"
+                className="rounded-lg bg-accent-soft px-4 py-2 text-sm font-semibold text-trace-copper transition-colors hover:bg-primary/20"
               >
                 Go to Dashboard
               </button>
@@ -293,9 +293,9 @@ export function PGPT() {
                   <button
                     onClick={handleFastBackup}
                     disabled={!isConnected || isConnecting || isBackupRunning}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-accent/30 disabled:opacity-40"
                   >
-                    <span className="text-accent">
+                    <span className="text-trace-copper">
                       <Zap className="h-4 w-4" />
                     </span>
                     <span className="flex-1">
@@ -310,9 +310,9 @@ export function PGPT() {
                       isBackupRunning ||
                       selectedPartitions.size === 0
                     }
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-accent/30 disabled:opacity-40"
                   >
-                    <span className="text-accent">
+                    <span className="text-trace-copper">
                       <Package className="h-4 w-4" />
                     </span>
                     <span className="flex-1">
@@ -325,7 +325,7 @@ export function PGPT() {
                   <button
                     onClick={handleSelectOutput}
                     disabled={isBackupRunning}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-accent/30 disabled:opacity-40"
                   >
                     <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1 truncate">
@@ -335,7 +335,7 @@ export function PGPT() {
                     </span>
                     {defaultOutputPath && !isBackupRunning && (
                       <X
-                        className="h-3.5 w-3.5 shrink-0 text-danger"
+                        className="h-3.5 w-3.5 shrink-0 text-error"
                         onClick={(e) => {
                           e.stopPropagation();
                           void handleClearOutput();
@@ -346,18 +346,18 @@ export function PGPT() {
                   <div className="my-1 border-t border-border" />
                   <button
                     onClick={() => navigate('/tools')}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-accent/30"
                   >
-                    <span className="text-accent">
+                    <span className="text-trace-copper">
                       <Wrench className="h-4 w-4" />
                     </span>
                     <span className="flex-1">Tools & Bootloader</span>
                   </button>
                   <button
                     onClick={() => navigate('/flasher')}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-surface-hover"
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground transition-all hover:bg-accent/30"
                   >
-                    <span className="text-accent">
+                    <span className="text-trace-copper">
                       <Layers className="h-4 w-4" />
                     </span>
                     <span className="flex-1">Scatter Flasher</span>

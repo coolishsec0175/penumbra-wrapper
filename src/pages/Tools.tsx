@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { listen } from '@tauri-apps/api/event';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import type { FastbootStatus, FastbootStatusEvent } from '../types';
@@ -108,7 +108,7 @@ export function Tools() {
       message: (
         <div>
           <p>This will backup {backupCount} partitions to:</p>
-          <p className="mt-2 rounded bg-surface-alt p-2 font-mono text-sm">
+          <p className="mt-2 rounded bg-muted p-2 font-mono text-sm">
             {outputDir}
           </p>
           {skipList.length > 0 && (
@@ -184,9 +184,9 @@ export function Tools() {
       title: 'Restore All Partitions',
       message: (
         <div>
-          <p className="mb-2 font-semibold text-danger">WARNING: THIS WILL OVERWRITE ALL PARTITIONS</p>
+          <p className="mb-2 font-semibold text-error">WARNING: THIS WILL OVERWRITE ALL PARTITIONS</p>
           <p>This will write every image from:</p>
-          <p className="mt-2 rounded bg-surface-alt p-2 font-mono text-sm">{restoreDir}</p>
+          <p className="mt-2 rounded bg-muted p-2 font-mono text-sm">{restoreDir}</p>
           <p className="mt-3 text-muted-foreground">All current data on matching partitions will be replaced. Continue?</p>
         </div>
       ),
@@ -237,7 +237,7 @@ export function Tools() {
       title: isUnlock ? 'Unlock Bootloader' : 'Lock Bootloader',
       message: isUnlock ? (
         <div>
-          <p className="mb-2 font-semibold text-danger">WARNING: UNLOCKING THE BOOTLOADER</p>
+          <p className="mb-2 font-semibold text-error">WARNING: UNLOCKING THE BOOTLOADER</p>
           <ul className="list-inside list-disc space-y-1 text-sm">
             <li>This may WIPE ALL DATA on your device</li>
             <li>Your warranty may be voided</li>
@@ -247,7 +247,7 @@ export function Tools() {
         </div>
       ) : (
         <div>
-          <p className="mb-2 font-semibold text-danger">WARNING: LOCKING THE BOOTLOADER</p>
+          <p className="mb-2 font-semibold text-error">WARNING: LOCKING THE BOOTLOADER</p>
           <ul className="list-inside list-disc space-y-1 text-sm">
             <li>This may WIPE ALL DATA on your device</li>
             <li>You will not be able to flash custom ROMs</li>

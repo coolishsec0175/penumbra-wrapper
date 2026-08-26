@@ -74,7 +74,7 @@ export function UpdateAvailableModal({
       case 'completed':
         return 'text-success';
       case 'failed':
-        return 'text-danger';
+        return 'text-error';
       case 'retrying':
       case 'fallback_blocking':
       case 'fallback_curl':
@@ -114,7 +114,7 @@ export function UpdateAvailableModal({
           isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         )}
       >
-        <Card variant="elevated" className="overflow-hidden border-primary bg-surface">
+        <Card variant="elevated" className="overflow-hidden border-primary bg-card">
           <CardHeader className="flex-row items-start justify-between gap-3 border-b border-border p-4">
             <div className="flex items-start gap-3">
               <Download className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
@@ -143,7 +143,7 @@ export function UpdateAvailableModal({
             {updateInfo.installed_path && (
               <div className="space-y-1 text-sm">
                 <span className="text-muted-foreground">Install location:</span>
-                <div className="overflow-x-auto rounded-md border border-border bg-surface-alt p-2 font-mono text-xs">
+                <div className="overflow-x-auto rounded-md border border-border bg-muted p-2 font-mono text-xs">
                   {updateInfo.installed_path}
                 </div>
               </div>
@@ -163,14 +163,14 @@ export function UpdateAvailableModal({
                   )}
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-surface-hover">
+                <div className="h-2 overflow-hidden rounded-full bg-accent/30">
                   <div
                     className="h-full bg-primary transition-all duration-300 ease-out"
                     style={{ width: `${downloadProgress.percentage}%` }}
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-subtle-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     {downloadProgress.total_bytes > 0
                       ? `${formatBytes(downloadProgress.bytes_downloaded)} / ${formatBytes(downloadProgress.total_bytes)}`
@@ -184,7 +184,7 @@ export function UpdateAvailableModal({
             )}
           </CardContent>
 
-          <CardFooter className="justify-end border-t border-border bg-surface p-4">
+          <CardFooter className="justify-end border-t border-border bg-card p-4">
             <Button onClick={onClose} disabled={isDownloading} variant="outline">
               Later
             </Button>

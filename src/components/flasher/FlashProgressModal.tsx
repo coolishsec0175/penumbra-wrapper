@@ -64,16 +64,16 @@ export function FlashProgressModal({
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
-        <div className="bg-surface rounded-md border-2 border-accent shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-md border-2 border-trace-copper shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-start gap-3 p-4 border-b border-border">
-            <Zap className="w-6 h-6 text-accent flex-shrink-0 mt-0.5" />
+            <Zap className="w-6 h-6 text-trace-copper flex-shrink-0 mt-0.5" />
             <h2 className="text-xl font-semibold text-foreground flex-1">Flashing Partitions</h2>
             <div className="flex items-center gap-1">
               {onMinimize && (
                 <button
                   onClick={onMinimize}
-                  className="rounded p-1 transition-colors hover:bg-surface-alt"
+                  className="rounded p-1 transition-colors hover:bg-muted"
                   title="Minimize to sidebar"
                 >
                   <Minus className="w-5 h-5 text-muted-foreground" />
@@ -91,7 +91,7 @@ export function FlashProgressModal({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Current:</span>
-                <span className="font-mono text-sm text-accent">
+                <span className="font-mono text-sm text-trace-copper">
                   {currentPartition}
                 </span>
               </div>
@@ -104,15 +104,15 @@ export function FlashProgressModal({
             </div>
 
             {/* Progress Bar */}
-            <div className="space-y-3 rounded-md border border-border bg-surface-alt p-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-accent">
+            <div className="space-y-3 rounded-md border border-border bg-muted p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-trace-copper">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Flashing...</span>
               </div>
 
               <Progress value={percentage} className="animate-pulse" />
 
-              <div className="flex items-center justify-between text-xs text-subtle-foreground">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{currentPartition}</span>
                 <span>{percentage.toFixed(0)}%</span>
               </div>
@@ -120,10 +120,10 @@ export function FlashProgressModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between gap-3 border-t border-border bg-surface p-4">
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-card p-4">
             <button
               onClick={onClose}
-              className="rounded bg-danger px-4 py-2 text-danger-foreground transition-colors hover:bg-danger-hover"
+              className="rounded bg-error px-4 py-2 text-destructive-foreground transition-colors hover:bg-error-hover"
             >
               Cancel
             </button>

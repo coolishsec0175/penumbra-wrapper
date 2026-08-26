@@ -16,10 +16,10 @@ const statusStyles: Record<FastbootStatus, string> = {
   start: 'text-muted-foreground',
   success: 'text-success',
   cancelled: 'text-muted-foreground',
-  no_device: 'text-danger',
-  open_error: 'text-danger',
-  no_ack: 'text-danger',
-  error: 'text-danger',
+  no_device: 'text-error',
+  open_error: 'text-error',
+  no_ack: 'text-error',
+  error: 'text-error',
 };
 
 export function FastbootSection({

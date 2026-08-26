@@ -127,7 +127,7 @@ export function WelcomeScreen({
             maxIterations={6}
             animateOn="view"
             className="text-muted-foreground"
-            encryptedClassName="text-subtle-foreground"
+            encryptedClassName="text-muted-foreground"
           />
         </p>
       </div>
@@ -150,12 +150,12 @@ export function WelcomeScreen({
         <StatusCard
           label="DA"
           value={daPath ? getBasename(daPath) : 'Not selected'}
-          icon={<Moon className="h-4 w-4 text-accent" />}
+          icon={<Moon className="h-4 w-4 text-trace-copper" />}
         />
         <StatusCard
           label="PL"
           value={preloaderPath ? getBasename(preloaderPath) : 'Not selected'}
-          icon={<Zap className="h-4 w-4 text-accent" />}
+          icon={<Zap className="h-4 w-4 text-trace-copper" />}
         />
       </div>
     </div>

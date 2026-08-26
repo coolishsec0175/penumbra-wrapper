@@ -177,11 +177,11 @@ export const OperationModal = memo<OperationModalProps>(
         >
           <Card
             variant="elevated"
-            className="relative w-full max-w-sm overflow-hidden border-border bg-surface"
+            className="relative w-full max-w-sm overflow-hidden border-border bg-card"
             onClick={(e) => e.stopPropagation()}
           >
             {showOverwriteConfirm && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md border-2 border-warning bg-surface p-4">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md border-2 border-warning bg-card p-4">
                 <AlertTriangle className="mb-4 h-12 w-12 text-warning" />
                 <h3 className="mb-2 text-center text-lg font-semibold text-foreground">
                   File Already Exists
@@ -189,7 +189,7 @@ export const OperationModal = memo<OperationModalProps>(
                 <p className="mb-6 text-center text-sm text-muted-foreground">
                   The output file already exists. Do you want to overwrite it?
                 </p>
-                <p className="mb-6 max-w-full break-all px-4 text-center font-mono text-xs text-subtle-foreground">
+                <p className="mb-6 max-w-full break-all px-4 text-center font-mono text-xs text-muted-foreground">
                   {filePath}
                 </p>
                 <div className="flex w-full gap-3">
@@ -212,7 +212,7 @@ export const OperationModal = memo<OperationModalProps>(
 
             <CardContent className="space-y-4 p-4">
               <Card variant="subtle" className="space-y-1 border-border p-3">
-                <div className="text-xs text-subtle-foreground">Partition</div>
+                <div className="text-xs text-muted-foreground">Partition</div>
                 <div className="font-mono text-sm text-foreground">{partition.name}</div>
                 {partition.display_size && (
                   <div className="text-xs text-muted-foreground">Size: {partition.display_size}</div>
@@ -239,7 +239,7 @@ export const OperationModal = memo<OperationModalProps>(
                   </Button>
                 </div>
                 {filePath && (
-                  <div className="mt-2 text-xs text-subtle-foreground break-all">{getFilename(filePath)}</div>
+                  <div className="mt-2 text-xs text-muted-foreground break-all">{getFilename(filePath)}</div>
                 )}
               </div>
             </CardContent>

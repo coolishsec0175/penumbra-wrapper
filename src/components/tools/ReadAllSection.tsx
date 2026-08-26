@@ -39,7 +39,7 @@ export function ReadAllSection({
           </p>
 
           {isConnected && partitions.length > 0 && (
-            <div className="rounded-md border border-border bg-surface-alt p-3">
+            <div className="rounded-md border border-border bg-muted p-3">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">
                   Select Partitions to Skip ({skipPartitions.size} skipped, {backupCount} will be
@@ -48,13 +48,13 @@ export function ReadAllSection({
                 <div className="flex gap-2">
                   <button
                     onClick={onSelectAllSkip}
-                    className="rounded px-3 py-1 text-xs transition-colors hover:bg-surface-hover"
+                    className="rounded px-3 py-1 text-xs transition-colors hover:bg-accent/30"
                   >
                     Skip All
                   </button>
                   <button
                     onClick={onClearAllSkip}
-                    className="rounded px-3 py-1 text-xs transition-colors hover:bg-surface-hover"
+                    className="rounded px-3 py-1 text-xs transition-colors hover:bg-accent/30"
                   >
                     Clear
                   </button>
@@ -70,12 +70,12 @@ export function ReadAllSection({
                       onClick={() => onToggleSkip(partition.name)}
                       className={`rounded px-3 py-2 text-left text-sm transition-colors ${
                         isSkipped
-                          ? 'border border-danger bg-danger-soft text-danger'
-                          : 'border border-success bg-success-soft text-success'
+                          ? 'border border-error bg-error/10 text-error'
+                          : 'border border-success bg-success/10 text-success'
                       }`}
                     >
                       <span className="font-mono">{partition.name}</span>
-                      <span className="mt-0.5 block text-xs text-subtle-foreground">
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
                         {partition.display_size || partition.size}
                       </span>
                     </button>

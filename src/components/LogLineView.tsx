@@ -2,10 +2,10 @@ import type { LogEvent } from '../types';
 import { cn } from '../lib/utils';
 
 const levelStyles: Record<LogEvent['level'], { badge: string; text: string }> = {
-  info: { badge: 'bg-primary-soft text-primary', text: 'text-foreground' },
-  success: { badge: 'bg-success-soft text-success', text: 'text-foreground' },
-  warning: { badge: 'bg-warning-soft text-warning', text: 'text-foreground' },
-  error: { badge: 'bg-danger-soft text-danger', text: 'text-foreground' },
+  info: { badge: 'bg-accent-soft text-primary', text: 'text-foreground' },
+  success: { badge: 'bg-success/10 text-success', text: 'text-foreground' },
+  warning: { badge: 'bg-warning/10 text-warning', text: 'text-foreground' },
+  error: { badge: 'bg-error/10 text-error', text: 'text-foreground' },
 };
 
 interface LogLineViewProps {
@@ -27,7 +27,7 @@ export function LogLineView({ log, showTimestamp = true, fontSize = 12, classNam
   return (
     <div className={cn('flex items-start gap-2 font-mono leading-relaxed', className)}>
       {showTimestamp && (
-        <span className="shrink-0 tabular-nums text-subtle-foreground">
+        <span className="shrink-0 tabular-nums text-muted-foreground">
           {new Date(log.timestamp).toLocaleTimeString()}
         </span>
       )}

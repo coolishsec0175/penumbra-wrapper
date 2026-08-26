@@ -15,7 +15,7 @@ export function StatusCard({ label, value, className, icon }: StatusCardProps) {
   return (
     <div
       className={cn(
-        'flex min-w-0 items-center gap-2.5 rounded-md border border-border bg-surface px-3 py-2',
+        'flex min-w-0 items-center gap-2.5 rounded-md border border-border bg-card px-3 py-2',
         className
       )}
     >

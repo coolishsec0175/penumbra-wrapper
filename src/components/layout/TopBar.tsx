@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ChevronDown, RotateCw, Usb, XCircle, Zap } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useOperationStore } from '../../store/operationStore';
 import { useFlasherStore } from '../../store/flasherStore';
@@ -139,13 +139,13 @@ export function TopBar() {
   const statusColor = isConnecting
     ? 'text-warning'
     : isRunning
-      ? 'text-accent'
+      ? 'text-trace-copper'
       : isConnected
         ? 'text-success'
         : 'text-muted-foreground';
 
   return (
-    <header className="flex h-12 flex-shrink-0 items-center justify-between border-b border-border bg-surface/60 px-4 backdrop-blur-md">
+    <header className="flex h-12 flex-shrink-0 items-center justify-between border-b border-border bg-card/60 px-4 backdrop-blur-md">
       <h2 className="font-mono text-sm font-bold uppercase tracking-widest text-foreground">
         {pageTitle}
       </h2>
@@ -154,7 +154,7 @@ export function TopBar() {
         {/* Status pill */}
         <div
           className={cn(
-            'flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11px] font-semibold',
+            'flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] font-semibold',
             statusColor
           )}
         >
@@ -184,12 +184,12 @@ export function TopBar() {
             <ChevronDown className="h-3 w-3" />
           </Button>
           {rebootOpen && (
-            <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-xl backdrop-blur-sm">
+            <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-border bg-card p-1 shadow-xl backdrop-blur-sm">
               {REBOOT_MODES.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => handleReboot(key)}
-                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-accent/30"
                 >
                   {label}
                 </button>
@@ -197,7 +197,7 @@ export function TopBar() {
               <div className="my-1 border-t border-border" />
               <button
                 onClick={handleShutdown}
-                className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
+                className="w-full rounded-md px-3 py-1.5 text-left text-sm text-error transition-colors hover:bg-accent/30"
               >
                 Shutdown
               </button>

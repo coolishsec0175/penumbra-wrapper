@@ -18,7 +18,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useOperationStore } from '../../store/operationStore';
 import { useFlasherStore } from '../../store/flasherStore';
@@ -159,30 +159,30 @@ export function PageHeader() {
   const statusColor = isConnecting
     ? 'text-warning'
     : isRunning
-      ? 'text-accent'
+      ? 'text-trace-copper'
       : isConnected
         ? 'text-success'
         : 'text-muted-foreground';
 
   return (
-    <header className="flex flex-shrink-0 flex-col border-b border-border bg-surface/70 backdrop-blur-md">
+    <header className="flex flex-shrink-0 flex-col border-b border-border bg-card/70 backdrop-blur-md">
       <div className="flex h-14 items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="relative flex size-7 items-center justify-center rounded-md border border-accent/40 bg-accent-soft font-mono text-xs font-bold text-accent">
+          <span className="relative flex size-7 items-center justify-center rounded-md border border-trace-copper/40 bg-accent-soft font-mono text-xs font-bold text-trace-copper">
             <span className="caret !h-3.5 !w-[7px]" />
           </span>
           <div className="min-w-0 font-mono">
             <h1 className="truncate text-sm font-bold uppercase tracking-widest text-foreground">
               Antumbra
             </h1>
-            <p className="truncate text-[10px] text-subtle-foreground">v{APP_VERSION}</p>
+            <p className="truncate text-[10px] text-muted-foreground">v{APP_VERSION}</p>
           </div>
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-2">
           <div
             className={cn(
-              'flex items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 font-mono text-xs font-semibold',
+              'flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 font-mono text-xs font-semibold',
               statusColor
             )}
           >
@@ -203,12 +203,12 @@ export function PageHeader() {
               <ChevronDown className="h-3.5 w-3.5" />
             </Button>
             {rebootOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-xl backdrop-blur-sm">
+              <div className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-lg border border-border bg-card p-1 shadow-xl backdrop-blur-sm">
                 {REBOOT_MODES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleReboot(key)}
-                    className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
+                    className="w-full rounded-md px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-accent/30"
                   >
                     {label}
                   </button>
@@ -216,7 +216,7 @@ export function PageHeader() {
                 <div className="my-1 border-t border-border" />
                 <button
                   onClick={handleShutdown}
-                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-danger transition-colors hover:bg-surface-hover"
+                  className="w-full rounded-md px-3 py-1.5 text-left text-sm text-error transition-colors hover:bg-accent/30"
                 >
                   Shutdown
                 </button>
@@ -232,7 +232,7 @@ export function PageHeader() {
             className="text-[11px] font-semibold uppercase"
             title="Shut down device"
           >
-            <Power className="h-3.5 w-3.5 text-danger" />
+            <Power className="h-3.5 w-3.5 text-error" />
             Shutdown
           </Button>
 
@@ -277,8 +277,8 @@ export function PageHeader() {
               cn(
                 'relative flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-sm transition-all',
                 isActive
-                  ? 'bg-primary-soft font-bold text-accent nav-glow'
-                  : 'text-muted-foreground hover:bg-surface-alt hover:text-foreground'
+                  ? 'bg-accent-soft font-bold text-trace-copper nav-glow'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )
             }
           >
@@ -286,7 +286,7 @@ export function PageHeader() {
               <>
                 <Icon className="h-4 w-4 shrink-0" />
                 {label}
-                {isActive && <span className="text-[10px] font-bold text-accent">▸</span>}
+                {isActive && <span className="text-[10px] font-bold text-trace-copper">▸</span>}
               </>
             )}
           </NavLink>

@@ -52,7 +52,7 @@ export const ProgressWidget = memo<ProgressWidgetProps>(({
     <Panel title="PROGRESS" accent padded className="mx-4 mt-3 flex-shrink-0">
       <div className="flex items-center justify-between">
         <p className="truncate text-sm font-semibold text-foreground">
-          {operationText} <span className="text-accent">{partitionName}</span>
+          {operationText} <span className="text-trace-copper">{partitionName}</span>
           {partitionSize && (
             <span className="ml-1.5 text-xs font-normal text-muted-foreground">
               ({partitionSize})
@@ -73,7 +73,7 @@ export const ProgressWidget = memo<ProgressWidgetProps>(({
           />
         ) : (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="text-base text-accent">{SPINNER_FRAMES[spinnerIndex]}</span>
+            <span className="text-base text-trace-copper">{SPINNER_FRAMES[spinnerIndex]}</span>
             <span>{directionText}...</span>
           </div>
         )}

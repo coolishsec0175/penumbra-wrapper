@@ -10,9 +10,7 @@ import { getBasename } from '../services/utils/pathUtils';
 import { Button } from '../components/ui/button';
 import { PenumbraDropdown, type DropdownOption } from '../components/penumbra/Dropdown';
 import { Panel } from '../components/penumbra/Panel';
-import { THEME_ACCENTS, THEME_PRESETS } from '../lib/theme';
 import { ChangelogModal } from '../components/ChangelogModal';
-import { PageTransition } from '../components/ui/PageTransition';
 
 interface PathRowProps {
   label: string;
@@ -32,7 +30,7 @@ function PathRow({ label, path, placeholder, title, loading, onBrowse, onClear }
         onClick={onBrowse}
         disabled={loading}
         title={title}
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:border-accent disabled:opacity-40"
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-left text-sm text-foreground transition-colors hover:border-trace-copper disabled:opacity-40"
       >
         <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate">{path ? getBasename(path) : placeholder}</span>
@@ -57,7 +55,7 @@ function OptionRow({ label, description, children }: OptionRowProps) {
     <div className="space-y-2">
       <p className="text-sm">
         <span className="font-bold text-foreground">{label}: </span>
-        <span className="text-subtle-foreground">{description}</span>
+        <span className="text-muted-foreground">{description}</span>
       </p>
       {children}
     </div>
@@ -90,10 +88,6 @@ function ToggleDropdown({
 export function Settings() {
   const theme = useUIStore((state) => state.theme);
   const setTheme = useUIStore((state) => state.setTheme);
-  const accent = useUIStore((state) => state.accent);
-  const setAccent = useUIStore((state) => state.setAccent);
-  const preset = useUIStore((state) => state.preset);
-  const setPreset = useUIStore((state) => state.setPreset);
   const compactView = useUIStore((state) => state.compactView);
   const setCompactView = useUIStore((state) => state.setCompactView);
   const logFontSize = useUIStore((state) => state.logFontSize);
@@ -129,16 +123,6 @@ export function Settings() {
     { label: 'Light', value: 'light' },
   ];
 
-  const presetOptions: DropdownOption[] = THEME_PRESETS.map(({ preset: value, label }) => ({
-    label,
-    value,
-  }));
-
-  const accentOptions: DropdownOption[] = THEME_ACCENTS.map((accentValue) => ({
-    label: accentValue.charAt(0).toUpperCase() + accentValue.slice(1),
-    value: accentValue,
-  }));
-
   const handleSelectDa = async () => {
     const path = await selectFile(DialogType.DA_FILE);
     if (path) {
@@ -172,37 +156,19 @@ export function Settings() {
 
   return (
     <div className="h-full overflow-y-auto bg-background text-foreground">
-      <PageTransition className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-5">
-        <p className="text-terminal text-center font-mono text-lg font-bold tracking-widest">
-          SETTINGS
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-5">
+        <p className="text-brand text-center font-display text-lg font-bold uppercase tracking-[0.2em]">
+          Settings
         </p>
 
         <Panel title="INTERFACE">
           <div className="flex flex-col gap-5">
-            <OptionRow label="Theme" description="Light or dark color mode">
+            <OptionRow label="Theme" description="Dark or light color mode">
               <PenumbraDropdown
                 label="Mode"
                 options={themeOptions}
                 value={theme}
                 onChange={(v) => setTheme(v as 'dark' | 'light')}
-              />
-            </OptionRow>
-
-            <OptionRow label="Antumbra Theme" description="Visual style for Penumbra">
-              <PenumbraDropdown
-                label="Theme"
-                options={presetOptions}
-                value={preset}
-                onChange={(v) => setPreset(v as typeof preset)}
-              />
-            </OptionRow>
-
-            <OptionRow label="Accent Color" description="Highlight color used across the UI">
-              <PenumbraDropdown
-                label="Accent"
-                options={accentOptions}
-                value={accent}
-                onChange={(v) => setAccent(v as typeof accent)}
               />
             </OptionRow>
 
@@ -221,7 +187,7 @@ export function Settings() {
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="w-14 rounded-md border border-border bg-surface px-2 py-1 text-center text-sm tabular-nums text-foreground">
+                <span className="w-14 rounded-md border border-border bg-muted px-2 py-1 text-center text-sm tabular-nums text-foreground">
                   {logFontSize}px
                 </span>
                 <Button
@@ -312,7 +278,7 @@ export function Settings() {
             </Button>
           </div>
         </Panel>
-      </PageTransition>
+      </div>
 
       <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
     </div>

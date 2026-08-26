@@ -40,24 +40,24 @@ export function ErrorBanner() {
         'fixed bottom-4 right-4 z-[150] w-96 max-w-[calc(100vw-2rem)] animate-[modalEnter_200ms_ease-out]'
       )}
     >
-      <div className="overflow-hidden rounded-md border border-danger bg-surface shadow-2xl">
+      <div className="overflow-hidden rounded-md border border-error bg-card shadow-2xl">
         <div className="flex items-start gap-3 p-4">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-error" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-danger">Error</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-error">Error</p>
             <p className="mt-1 break-words text-sm text-foreground">{error}</p>
           </div>
           <button
             onClick={clearError}
-            className="rounded p-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground"
             title="Dismiss"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="h-0.5 w-full bg-surface-hover">
+        <div className="h-0.5 w-full bg-accent/30">
           <div
-            className="h-full bg-danger transition-[width] duration-100 ease-linear"
+            className="h-full bg-error transition-[width] duration-100 ease-linear"
             style={{ width: `${progress * 100}%` }}
           />
         </div>

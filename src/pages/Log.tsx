@@ -51,7 +51,7 @@ export function Log() {
         <Panel title="CONSOLE" padded={false} className="h-full">
           <div className="h-full overflow-y-auto p-3 font-mono">
             {visibleLogs.length === 0 ? (
-              <div className="mt-16 text-center text-sm text-subtle-foreground">
+              <div className="mt-16 text-center text-sm text-muted-foreground">
                 {logs.length === 0 ? 'Console is empty.' : 'No logs match the current filter'}
               </div>
             ) : (

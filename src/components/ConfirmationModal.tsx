@@ -92,10 +92,10 @@ export function ConfirmationModal({
     switch (variant) {
       case 'danger':
         return {
-          borderColor: 'border-danger',
-          iconColor: 'text-danger',
-          buttonBg: 'bg-danger hover:bg-danger-hover',
-          buttonText: 'text-danger-foreground',
+          borderColor: 'border-error',
+          iconColor: 'text-error',
+          buttonBg: 'bg-error hover:bg-error-hover',
+          buttonText: 'text-destructive-foreground',
           icon: AlertTriangle,
         };
       case 'warning':
@@ -103,7 +103,7 @@ export function ConfirmationModal({
           borderColor: 'border-warning',
           iconColor: 'text-warning',
           buttonBg: 'bg-warning hover:bg-warning-hover',
-          buttonText: 'text-warning-foreground',
+          buttonText: 'text-foreground',
           icon: AlertCircle,
         };
       case 'info':
@@ -141,7 +141,7 @@ export function ConfirmationModal({
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
-        <div className={`bg-surface rounded-md border-2 ${styles.borderColor} shadow-2xl overflow-hidden`}>
+        <div className={`bg-card rounded-md border-2 ${styles.borderColor} shadow-2xl overflow-hidden`}>
           {/* Header */}
           <div className="flex items-start gap-3 p-4 border-b border-border">
             <Icon className={`w-6 h-6 ${styles.iconColor} flex-shrink-0 mt-0.5`} />
@@ -149,7 +149,7 @@ export function ConfirmationModal({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="rounded p-1 transition-colors hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded p-1 transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -165,11 +165,11 @@ export function ConfirmationModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-border bg-surface p-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border bg-card p-4">
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="rounded bg-surface-alt px-4 py-2 text-foreground transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded bg-muted px-4 py-2 text-foreground transition-colors hover:bg-accent/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {cancelText}
             </button>

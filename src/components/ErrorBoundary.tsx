@@ -34,9 +34,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="max-w-md rounded-md border border-danger bg-surface p-4 mx-3">
+          <div className="max-w-md rounded-md border border-error bg-card p-4 mx-3">
             <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-6 h-6 text-danger" />
+              <AlertTriangle className="w-6 h-6 text-error" />
               <h2 className="text-xl font-semibold text-foreground">
                 Something went wrong
               </h2>
@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
               The log panel encountered an error. Please try closing and reopening it.
             </p>
             {this.state.error && (
-              <pre className="max-h-32 overflow-auto rounded bg-surface-alt p-3 text-xs text-danger">
+              <pre className="max-h-32 overflow-auto rounded bg-muted p-3 text-xs text-error">
                 {this.state.error.message}
               </pre>
             )}

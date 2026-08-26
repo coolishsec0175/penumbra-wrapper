@@ -69,8 +69,8 @@ export function PenumbraDropdown({
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex min-w-0 items-center gap-2 rounded-md border bg-surface px-3 py-1.5 text-sm transition-colors',
-          open ? 'border-accent text-accent' : 'border-border text-foreground hover:border-accent',
+          'flex min-w-0 items-center gap-2 rounded-md border bg-card px-3 py-1.5 text-sm transition-colors',
+          open ? 'border-trace-copper text-trace-copper' : 'border-border text-foreground hover:border-trace-copper',
           disabled && 'cursor-not-allowed'
         )}
       >
@@ -81,7 +81,7 @@ export function PenumbraDropdown({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 min-w-48 overflow-hidden rounded-md border border-accent/40 bg-surface shadow-xl">
+        <div className="absolute z-50 mt-1 min-w-48 overflow-hidden rounded-md border border-trace-copper/40 bg-card shadow-xl">
           {options.map((option) => (
             <button
               key={option.value}
@@ -93,8 +93,8 @@ export function PenumbraDropdown({
               className={cn(
                 'block w-full px-3 py-1.5 text-left text-sm transition-colors',
                 option.value === value
-                  ? 'bg-primary-soft font-bold text-accent'
-                  : 'text-foreground hover:bg-surface-hover'
+                  ? 'bg-accent-soft font-bold text-trace-copper'
+                  : 'text-foreground hover:bg-accent/30'
               )}
             >
               {option.label}
