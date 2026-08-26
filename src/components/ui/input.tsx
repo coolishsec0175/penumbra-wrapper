@@ -3,11 +3,11 @@ import { cva } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 const inputVariants = cva(
-  'flex h-9 w-full rounded-md border border-border bg-surface-alt/70 px-3 py-2 font-mono text-sm text-foreground placeholder:text-subtle-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+  'flex h-9 w-full rounded-md border border-border bg-muted/70 px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       invalid: {
-        true: 'border-danger focus-visible:ring-danger',
+        true: 'border-error focus-visible:ring-error',
         false: '',
       },
     },
@@ -35,7 +35,7 @@ export function Input({ className, error, ref, wrapperClassName, ...props }: Inp
         {...props}
       />
       {error && (
-        <p className="text-xs text-danger" role="alert">
+        <p className="text-xs text-error" role="alert">
           {error}
         </p>
       )}

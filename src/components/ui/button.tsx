@@ -3,17 +3,17 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-mono text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-sans text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary-hover shadow-[0_0_12px_-2px_var(--accent-soft)]',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
-        ghost: 'bg-transparent text-foreground hover:bg-surface-hover',
-        outline: 'border border-border bg-surface/60 text-foreground hover:bg-surface-hover hover:border-accent/50 backdrop-blur-sm',
-        destructive: 'bg-danger text-danger-foreground hover:bg-danger-hover',
-        success: 'bg-success text-success-foreground hover:bg-success-hover',
-        warning: 'bg-warning text-warning-foreground hover:bg-warning-hover',
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-[var(--button-shadow)]',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'bg-transparent text-foreground hover:bg-accent',
+        outline: 'border border-border bg-card/60 text-foreground hover:bg-accent hover:border-trace-copper/50 backdrop-blur-sm',
+        destructive: 'bg-error text-destructive-foreground hover:bg-error/90',
+        success: 'bg-success text-foreground hover:bg-success/90',
+        warning: 'bg-warning text-foreground hover:bg-warning/90',
       },
       size: {
         default: 'h-9 px-3.5 py-2',
