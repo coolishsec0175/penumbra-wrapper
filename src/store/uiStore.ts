@@ -52,7 +52,7 @@ function loadStoredBoolean(key: string, fallback: boolean): boolean {
   return stored !== null ? stored === 'true' : fallback;
 }
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>((set) => ({
   logPanelHeight: loadStoredNumber('logPanelHeight', 200),
   logFilter: loadStoredValue<LogFilter>('logFilter', 'all'),
   logAutoscroll: loadStoredBoolean('logAutoscroll', true),

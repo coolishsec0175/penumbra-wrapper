@@ -4,7 +4,7 @@
 */
 
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -34,7 +34,6 @@ const NAV_ITEMS = [
 ] as const;
 
 export function Sidebar() {
-  const location = useLocation();
   const isConnected = useDeviceStore((state) => state.isConnected);
   const isConnecting = useDeviceStore((state) => state.isConnecting);
   const isRunning = useOperationStore((state) => state.isRunning);
@@ -65,10 +64,6 @@ export function Sidebar() {
       : isConnected
         ? 'bg-success'
         : 'bg-muted-foreground';
-
-  const pageTitle = NAV_ITEMS.find((item) =>
-    item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
-  )?.label ?? 'Antumbra';
 
   return (
     <aside
