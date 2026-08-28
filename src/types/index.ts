@@ -15,7 +15,11 @@ export interface FlashProgress {
   total: number;
   percentage: number;
   partition_name: string;
-  operation: 'read' | 'write';
+  operation: string;
+  speed_bytes_sec?: number | null;
+  elapsed_secs?: number | null;
+  eta_secs?: number | null;
+  message?: string | null;
 }
 
 export interface OperationProgressEvent {
@@ -23,7 +27,11 @@ export interface OperationProgressEvent {
   total: number;
   percentage: number;
   partition_name: string;
-  operation: 'read' | 'write';
+  operation: string;
+  speed_bytes_sec?: number | null;
+  elapsed_secs?: number | null;
+  eta_secs?: number | null;
+  message?: string | null;
 }
 
 export interface LogEvent {

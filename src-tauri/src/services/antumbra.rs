@@ -3,10 +3,11 @@
     SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
-use crate::commands::helpers::{emit_operation_progress, is_dir_writable};
+use crate::commands::helpers::{emit_operation_progress, emit_rich_progress, is_dir_writable};
 use crate::models::{OperationCompleteEvent, OperationOutputEvent};
 use anyhow::{Context, Result};
 use chrono::Utc;
+use regex::Regex;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -110,19 +111,30 @@ async fn stream_lines<R>(
     while reader.read_exact(&mut byte).await.is_ok() {
         last_output.store(now_millis(), Ordering::Relaxed);
         if byte[0] == b'\n' || byte[0] == b'\r' {
-            // Emit line if buffer is not empty
             if !buffer.is_empty() {
                 if let Ok(line) = String::from_utf8(buffer.clone()) {
                     let line = line.trim().to_string();
                     if !line.is_empty() {
-                        emit_stream_line(
-                            &app,
-                            &operation_id,
-                            is_stderr,
-                            &lines_storage,
-                            &seen_lines,
-                            line,
-                        );
+                        if let Some(progress) = parse_indicatif_line(&line) {
+                            emit_rich_progress(
+                                &app,
+                                progress.current,
+                                progress.total,
+                                progress.speed_bytes_sec,
+                                progress.elapsed_secs,
+                                progress.eta_secs,
+                                progress.message,
+                            );
+                        } else {
+                            emit_stream_line(
+                                &app,
+                                &operation_id,
+                                is_stderr,
+                                &lines_storage,
+                                &seen_lines,
+                                line,
+                            );
+                        }
                     }
                 }
                 buffer.clear();
@@ -132,22 +144,131 @@ async fn stream_lines<R>(
         }
     }
 
-    // Emit remaining buffer if any
     if !buffer.is_empty() {
         if let Ok(line) = String::from_utf8(buffer) {
             let line = line.trim().to_string();
             if !line.is_empty() {
-                emit_stream_line(
-                    &app,
-                    &operation_id,
-                    is_stderr,
-                    &lines_storage,
-                    &seen_lines,
-                    line,
-                );
+                if let Some(progress) = parse_indicatif_line(&line) {
+                    emit_rich_progress(
+                        &app,
+                        progress.current,
+                        progress.total,
+                        progress.speed_bytes_sec,
+                        progress.elapsed_secs,
+                        progress.eta_secs,
+                        progress.message,
+                    );
+                } else {
+                    emit_stream_line(
+                        &app,
+                        &operation_id,
+                        is_stderr,
+                        &lines_storage,
+                        &seen_lines,
+                        line,
+                    );
+                }
             }
         }
     }
+}
+
+struct ParsedProgress {
+    current: u64,
+    total: u64,
+    speed_bytes_sec: Option<f64>,
+    elapsed_secs: Option<f64>,
+    eta_secs: Option<f64>,
+    message: Option<String>,
+}
+
+fn parse_human_bytes(s: &str) -> Option<u64> {
+    let s = s.trim();
+    let re = Regex::new(r"([\d.]+)\s*(B|KiB|MiB|GiB|TiB|KB|MB|GB|TB)").ok()?;
+    let caps = re.captures(s)?;
+    let value: f64 = caps.get(1)?.as_str().parse().ok()?;
+    let unit = caps.get(2)?.as_str();
+    let multiplier = match unit {
+        "B" => 1.0,
+        "KiB" | "KB" => 1024.0,
+        "MiB" | "MB" => 1024.0 * 1024.0,
+        "GiB" | "GB" => 1024.0 * 1024.0 * 1024.0,
+        "TiB" | "TB" => 1024.0 * 1024.0 * 1024.0 * 1024.0,
+        _ => return None,
+    };
+    Some((value * multiplier) as u64)
+}
+
+fn parse_duration_to_secs(s: &str) -> Option<f64> {
+    let s = s.trim();
+    let parts: Vec<&str> = s.split(':').collect();
+    match parts.len() {
+        2 => {
+            let mins: f64 = parts[0].parse().ok()?;
+            let secs: f64 = parts[1].parse().ok()?;
+            Some(mins * 60.0 + secs)
+        }
+        3 => {
+            let hrs: f64 = parts[0].parse().ok()?;
+            let mins: f64 = parts[1].parse().ok()?;
+            let secs: f64 = parts[2].parse().ok()?;
+            Some(hrs * 3600.0 + mins * 60.0 + secs)
+        }
+        _ => None,
+    }
+}
+
+fn parse_speed(s: &str) -> Option<f64> {
+    let s = s.trim();
+    let re = Regex::new(r"([\d.]+)\s*(B|KiB|MiB|GiB|TiB|KB|MB|GB|TB)/s").ok()?;
+    let caps = re.captures(s)?;
+    let value: f64 = caps.get(1)?.as_str().parse().ok()?;
+    let unit = caps.get(2)?.as_str();
+    let multiplier = match unit {
+        "B" => 1.0,
+        "KiB" | "KB" => 1024.0,
+        "MiB" | "MB" => 1024.0 * 1024.0,
+        "GiB" | "GB" => 1024.0 * 1024.0 * 1024.0,
+        "TiB" | "TB" => 1024.0 * 1024.0 * 1024.0 * 1024.0,
+        _ => return None,
+    };
+    Some(value * multiplier)
+}
+
+fn parse_indicatif_line(line: &str) -> Option<ParsedProgress> {
+    let re = Regex::new(
+        r"([\d.]+\s*(?:B|KiB|MiB|GiB|TiB|KB|MB|GB|TB))\s*/\s*([\d.]+\s*(?:B|KiB|MiB|GiB|TiB|KB|MB|GB|TB))\s*\(([^)]*?)(?:,\s*([\d.]+\s*(?:B|KiB|MiB|GiB|TiB|KB|MB|GB|TB)/s))?\)\s*(.*?)$",
+    )
+    .ok()?;
+
+    let caps = re.captures(line)?;
+    let current = parse_human_bytes(caps.get(1)?.as_str())?;
+    let total = parse_human_bytes(caps.get(2)?.as_str())?;
+
+    let mut elapsed_secs = None;
+    let mut eta_secs = None;
+    let paren_content = caps.get(3)?.as_str();
+    if let Some(eta_pos) = paren_content.find("ETA:") {
+        let elapsed_part = paren_content[..eta_pos].trim().trim_end_matches('/').trim();
+        elapsed_secs = parse_duration_to_secs(elapsed_part);
+        let eta_part = &paren_content[eta_pos + 4..];
+        let eta_clean = eta_part.trim().trim_end_matches(')');
+        eta_secs = parse_duration_to_secs(eta_clean);
+    } else {
+        elapsed_secs = parse_duration_to_secs(paren_content.trim());
+    }
+
+    let speed_bytes_sec = caps.get(4).and_then(|m| parse_speed(m.as_str()));
+    let message = caps.get(5).map(|m| m.as_str().trim().to_string());
+
+    Some(ParsedProgress {
+        current,
+        total,
+        speed_bytes_sec,
+        elapsed_secs,
+        eta_secs,
+        message,
+    })
 }
 
 impl AntumbraExecutor {

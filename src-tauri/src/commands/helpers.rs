@@ -51,6 +51,38 @@ pub fn emit_operation_progress(
         percentage: pct,
         partition_name: partition_name.to_string(),
         operation: operation.to_string(),
+        speed_bytes_sec: None,
+        elapsed_secs: None,
+        eta_secs: None,
+        message: None,
+    };
+    let _ = app.emit("operation:progress", event);
+}
+
+pub fn emit_rich_progress(
+    app: &AppHandle,
+    current: u64,
+    total: u64,
+    speed_bytes_sec: Option<f64>,
+    elapsed_secs: Option<f64>,
+    eta_secs: Option<f64>,
+    message: Option<String>,
+) {
+    let pct = if total > 0 {
+        (current as f64 / total as f64 * 100.0).min(100.0) as f32
+    } else {
+        0.0
+    };
+    let event = FlashProgress {
+        current,
+        total,
+        percentage: pct,
+        partition_name: String::new(),
+        operation: "flash".to_string(),
+        speed_bytes_sec,
+        elapsed_secs,
+        eta_secs,
+        message,
     };
     let _ = app.emit("operation:progress", event);
 }

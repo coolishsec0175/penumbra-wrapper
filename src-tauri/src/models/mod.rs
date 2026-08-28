@@ -29,6 +29,14 @@ pub struct FlashProgress {
     pub percentage: f32,
     pub partition_name: String,
     pub operation: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed_bytes_sec: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elapsed_secs: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eta_secs: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
