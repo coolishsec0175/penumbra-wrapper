@@ -3,7 +3,6 @@ resolver = "3"
 members = [
     "penumbra-core/core",
     "penumbra-core/core/penumbra-macros",
-    "penumbra-core/core/xmlcmd_derive",
     "src-tauri",
     "src-tauri/mtk-scatter-parser",
 ]
