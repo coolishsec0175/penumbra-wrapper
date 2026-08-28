@@ -13,6 +13,7 @@ import { useOperationStore } from '../store/operationStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
 import { useFileSelection } from '../hooks/useFileSelection';
 import { useConfirmation } from '../hooks/useConfirmation';
+import { usePartitionOperations } from '../hooks/usePartitionOperations';
 import { DialogType } from '../services/dialogs/fileDialogService';
 import { PartitionApi } from '../services/api/partitionApi';
 import { executeOperation } from '../services/operations/executeOperation';
@@ -49,6 +50,7 @@ export function PGPT() {
   const { isConnected, isConnecting } = useDeviceConnection();
   const { selectFile } = useFileSelection();
   const { confirm } = useConfirmation();
+  const { formatPartition, erasePartition } = usePartitionOperations();
   const navigate = useNavigate();
 
   const [selectedPartitions, setSelectedPartitions] = useState<Set<string>>(new Set());
@@ -229,8 +231,6 @@ export function PGPT() {
       return;
     }
 
-    const { usePartitionOperations } = await import('../hooks/usePartitionOperations');
-    const { formatPartition } = usePartitionOperations();
     await formatPartition(partition);
   };
 
@@ -248,8 +248,6 @@ export function PGPT() {
       return;
     }
 
-    const { usePartitionOperations } = await import('../hooks/usePartitionOperations');
-    const { erasePartition } = usePartitionOperations();
     await erasePartition(partition);
   };
 

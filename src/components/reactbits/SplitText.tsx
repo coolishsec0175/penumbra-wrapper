@@ -52,13 +52,9 @@ export function SplitText({
   }, [onLetterAnimationComplete]);
 
   useEffect(() => {
-    if (document.fonts.status === 'loaded') {
+    document.fonts.ready.then(() => {
       setFontsLoaded(true);
-    } else {
-      document.fonts.ready.then(() => {
-        setFontsLoaded(true);
-      });
-    }
+    });
   }, []);
 
   useGSAP(
