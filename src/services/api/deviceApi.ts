@@ -109,4 +109,32 @@ export class DeviceApi {
       operationId: operationId || uuidv4(),
     });
   }
+
+  /**
+   * Boot a custom preloader in BootROM (boot-pl command).
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param filePath - Path to the preloader file to boot
+   * @param preloaderPath - Optional path to preloader file
+   * @param address - Optional jump address (hex or decimal)
+   * @param raw - Send file as raw binary instead of preloader format
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async bootPl(
+    daPath: string,
+    filePath: string,
+    preloaderPath?: string,
+    address?: string,
+    raw?: boolean,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('boot_pl', {
+      daPath,
+      filePath,
+      preloaderPath: preloaderPath || null,
+      address: address || null,
+      raw: raw || false,
+      operationId: operationId || uuidv4(),
+    });
+  }
 }

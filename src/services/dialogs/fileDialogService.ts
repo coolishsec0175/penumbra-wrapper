@@ -3,7 +3,7 @@ import { open, save } from '@tauri-apps/plugin-dialog';
 /**
  * Dialog types supported by the file dialog service.
  */
-export type DialogType = 'da' | 'preloader' | 'image' | 'scatter' | 'output' | 'backup';
+export type DialogType = 'da' | 'preloader' | 'image' | 'scatter' | 'output' | 'backup' | 'single_file';
 
 /**
  * Enum-like object for dialog types (provides better IDE autocomplete).
@@ -15,6 +15,7 @@ export const DialogType = {
   SCATTER_FILE: 'scatter' as const,
   OUTPUT_FOLDER: 'output' as const,
   BACKUP_FOLDER: 'backup' as const,
+  SINGLE_FILE: 'single_file' as const,
 };
 
 /**
@@ -67,6 +68,12 @@ export interface DialogConfig {
   'backup': {
     title: 'Select Backup Folder',
     directory: true,
+  },
+  'single_file': {
+    title: 'Select File',
+    filters: [
+      { name: 'All Files', extensions: ['*'] },
+    ],
   },
 };
 

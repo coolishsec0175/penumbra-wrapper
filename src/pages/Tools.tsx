@@ -19,6 +19,7 @@ import { ReadAllSection } from '../components/tools/ReadAllSection';
 import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
+import { BootPlSection } from '../components/tools/BootPlSection';
 import { WindowsDiagnosticsPanel } from '../components/WindowsDiagnosticsPanel';
 import { PageTransition } from '../components/ui/PageTransition';
 
@@ -40,6 +41,8 @@ export function Tools() {
   const [skipPartitions, setSkipPartitions] = useState<Set<string>>(new Set());
   const [isSlotRunning, setIsSlotRunning] = useState(false);
   const [isCrashRunning, setIsCrashRunning] = useState(false);
+  const [isBootPlRunning, setIsBootPlRunning] = useState(false);
+  const [bootPlFile, setBootPlFile] = useState<string | null>(null);
 
   useEffect(() => {
     let unlisten: UnlistenFn | null = null;
@@ -337,6 +340,81 @@ export function Tools() {
     }
   };
 
+  const handleSelectBootPlFile = async () => {
+    const file = await selectFile(DialogType.SINGLE_FILE);
+    if (file) {
+      setBootPlFile(file);
+    }
+  };
+
+  const handleClearBootPlFile = () => {
+    setBootPlFile(null);
+  };
+
+  const handleBootPl = async () => {
+    if (!daPath || !isConnected) {
+      toast.error('Please connect to device first');
+      return;
+    }
+    if (!bootPlFile) {
+      toast.error('Select a preloader file first');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Boot Custom Preloader',
+      message: (
+        <div>
+          <p className="mb-2 font-semibold text-warning">WARNING: BOOT CUSTOM PRELOADER</p>
+          <ul className="list-inside list-disc space-y-1 text-sm">
+            <li>This will temporarily boot a custom preloader in BootROM</li>
+            <li>The preloader is loaded without verification</li>
+            <li>Device must be in BootROM mode</li>
+          </ul>
+          <p className="mt-3">Continue?</p>
+        </div>
+      ),
+      variant: 'warning',
+      confirmText: 'Boot',
+    });
+
+    if (!confirmed) {
+      toast('Operation cancelled');
+      return;
+    }
+
+    setIsBootPlRunning(true);
+
+    try {
+      await executeOperation({
+        operation: 'Boot preloader',
+        type: 'write',
+        partitionName: 'boot-pl',
+        partitionSize: 'preloader',
+        successMessage: 'Preloader booted successfully!',
+        errorMessage: 'Failed to boot preloader',
+        onStart: () => {
+          addLog({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Booting custom preloader: ${bootPlFile.split(/[\\/]/).pop()}...`,
+          });
+        },
+        run: (operationId) =>
+          DeviceApi.bootPl(
+            daPath,
+            bootPlFile,
+            preloaderPath || undefined,
+            undefined,
+            false,
+            operationId
+          ),
+      });
+    } finally {
+      setIsBootPlRunning(false);
+    }
+  };
+
   const handleSetSlot = async (slot: 'a' | 'b') => {
     if (!daPath || !isConnected) {
       toast.error('Please connect to device first');
@@ -474,6 +552,16 @@ export function Tools() {
               onLock={() => handleSeccfg('lock')}
               onSetSlot={handleSetSlot}
               onCrash={handleCrash}
+            />
+
+            <BootPlSection
+              isConnected={isConnected}
+              isRunning={isBootPlRunning}
+              isSettingsLoading={isSettingsLoading}
+              filePath={bootPlFile}
+              onSelectFile={handleSelectBootPlFile}
+              onClearFile={handleClearBootPlFile}
+              onBoot={handleBootPl}
             />
 
             <WindowsDiagnosticsPanel />

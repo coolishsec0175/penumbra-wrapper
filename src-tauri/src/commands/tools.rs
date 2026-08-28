@@ -4,6 +4,7 @@
 */
 
 use crate::commands::execute_antumbra_command;
+use crate::commands::validate_input_file;
 use crate::commands::validate_output_dir;
 use crate::commands::validate_restore_dir;
 use crate::error::AppError;
@@ -109,6 +110,47 @@ pub async fn seccfg_operation(
         &da_path,
         preloader_path.as_deref(),
         vec!["seccfg".to_string(), action],
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn boot_pl(
+    app: AppHandle,
+    da_path: String,
+    preloader_path: Option<String>,
+    file_path: String,
+    address: Option<String>,
+    raw: bool,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    log::info!(
+        "Boot PL: file={}, address={:?}, raw={}, operation_id={}",
+        file_path,
+        address,
+        raw,
+        operation_id
+    );
+
+    validate_input_file(&file_path, "Preloader file")?;
+
+    let mut args = vec!["boot-pl".to_string(), file_path];
+
+    if let Some(addr) = &address {
+        args.push(addr.clone());
+    }
+
+    if raw {
+        args.push("--raw".to_string());
+    }
+
+    execute_antumbra_command(
+        app,
+        operation_id,
+        &da_path,
+        preloader_path.as_deref(),
+        args,
     )
     .await
 }

@@ -83,6 +83,7 @@ async fn main() {
             commands::tools::write_all_partitions,
             commands::tools::crash_command,
             commands::tools::seccfg_operation,
+            commands::tools::boot_pl,
             commands::scatter::parse_scatter_file,
             commands::scatter::detect_image_files,
             commands::settings::get_settings,
