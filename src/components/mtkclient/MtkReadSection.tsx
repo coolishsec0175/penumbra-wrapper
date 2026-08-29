@@ -4,7 +4,6 @@ import { Download } from 'lucide-react';
 import { SpotlightCard } from '../reactbits/SpotlightCard';
 import { Panel } from '../penumbra/Panel';
 import { useFileSelection } from '../../hooks/useFileSelection';
-import { DialogType } from '../../services/dialogs/fileDialogService';
 import { MtkClientApi } from '../../services/api/mtkclientApi';
 import { useMtkClientStore } from '../../store/mtkclientStore';
 import { useConfirmation } from '../../hooks/useConfirmation';
@@ -21,7 +20,7 @@ const COMMON_PARTITIONS = [
 export function MtkReadSection() {
   const { isIotMode } = useMtkClientStore();
   const { confirm } = useConfirmation();
-  const { selectFile, saveFile } = useFileSelection();
+  const { saveFile } = useFileSelection();
   const [partition, setPartition] = useState('');
   const [outputFile, setOutputFile] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -60,14 +59,9 @@ export function MtkReadSection() {
         type: 'read',
         partitionName: partition,
         successMessage: `Partition ${partition} read successfully`,
-        run: (opId) =>
-          MtkClientApi.readPartition(
-            partition,
-            outputFile,
-            isIotMode,
-            undefined,
-            undefined
-          ),
+        run: async () => {
+          await MtkClientApi.readPartition(partition, outputFile, isIotMode);
+        },
       });
     } finally {
       setIsRunning(false);

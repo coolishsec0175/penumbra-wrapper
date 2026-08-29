@@ -30,7 +30,7 @@ export function MtkKeysSection() {
         type: 'read',
         partitionName: 'keys',
         successMessage: 'Keys generated successfully',
-        run: () => MtkClientApi.generateKeys(isIotMode),
+        run: async () => { await MtkClientApi.generateKeys(isIotMode); },
       });
     } finally {
       setIsGenerating(false);
@@ -54,7 +54,7 @@ export function MtkKeysSection() {
         type: 'write',
         partitionName: 'seccfg-lock',
         successMessage: 'Bootloader locked',
-        run: () => MtkClientApi.seccfg('lock', isIotMode),
+        run: async () => { await MtkClientApi.seccfg('lock', isIotMode); },
       });
     } finally {
       setIsLockRunning(false);
@@ -78,7 +78,7 @@ export function MtkKeysSection() {
         type: 'write',
         partitionName: 'seccfg-unlock',
         successMessage: 'Bootloader unlocked',
-        run: () => MtkClientApi.seccfg('unlock', isIotMode),
+        run: async () => { await MtkClientApi.seccfg('unlock', isIotMode); },
       });
     } finally {
       setIsUnlockRunning(false);

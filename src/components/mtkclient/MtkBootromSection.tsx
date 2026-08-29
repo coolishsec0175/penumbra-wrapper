@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { Cpu, Download, Upload, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Download, AlertTriangle, RotateCcw } from 'lucide-react';
 import { SpotlightCard } from '../reactbits/SpotlightCard';
 import { Panel } from '../penumbra/Panel';
 import { useFileSelection } from '../../hooks/useFileSelection';
-import { DialogType } from '../../services/dialogs/fileDialogService';
 import { MtkClientApi } from '../../services/api/mtkclientApi';
 import { useMtkClientStore } from '../../store/mtkclientStore';
 import { useConfirmation } from '../../hooks/useConfirmation';
@@ -13,7 +11,7 @@ import { executeOperation } from '../../services/operations/executeOperation';
 export function MtkBootromSection() {
   const { isIotMode } = useMtkClientStore();
   const { confirm } = useConfirmation();
-  const { selectFile, saveFile } = useFileSelection();
+  const { saveFile } = useFileSelection();
   const [isDumpBromRunning, setIsDumpBromRunning] = useState(false);
   const [isDumpPreloaderRunning, setIsDumpPreloaderRunning] = useState(false);
   const [isDumpSramRunning, setIsDumpSramRunning] = useState(false);
@@ -35,7 +33,7 @@ export function MtkBootromSection() {
         type: 'read',
         partitionName: 'brom',
         successMessage: 'BROM dumped successfully',
-        run: () => MtkClientApi.dumpBrom(file, isIotMode),
+        run: async () => { await MtkClientApi.dumpBrom(file, isIotMode); },
       });
     } finally {
       setIsDumpBromRunning(false);
@@ -57,7 +55,7 @@ export function MtkBootromSection() {
         type: 'read',
         partitionName: 'preloader',
         successMessage: 'Preloader dumped successfully',
-        run: () => MtkClientApi.dumpPreloader(file, isIotMode),
+        run: async () => { await MtkClientApi.dumpPreloader(file, isIotMode); },
       });
     } finally {
       setIsDumpPreloaderRunning(false);
@@ -79,7 +77,7 @@ export function MtkBootromSection() {
         type: 'read',
         partitionName: 'sram',
         successMessage: 'SRAM dumped successfully',
-        run: () => MtkClientApi.dumpSram(file, isIotMode),
+        run: async () => { await MtkClientApi.dumpSram(file, isIotMode); },
       });
     } finally {
       setIsDumpSramRunning(false);
@@ -102,7 +100,7 @@ export function MtkBootromSection() {
         type: 'write',
         partitionName: 'crash',
         successMessage: 'Crash command sent',
-        run: () => MtkClientApi.crash(isIotMode),
+        run: async () => { await MtkClientApi.crash(isIotMode); },
       });
     } finally {
       setIsCrashRunning(false);
@@ -125,7 +123,7 @@ export function MtkBootromSection() {
         type: 'write',
         partitionName: 'reboot',
         successMessage: 'Reboot command sent',
-        run: () => MtkClientApi.reboot(isIotMode),
+        run: async () => { await MtkClientApi.reboot(isIotMode); },
       });
     } finally {
       setIsRebootRunning(false);

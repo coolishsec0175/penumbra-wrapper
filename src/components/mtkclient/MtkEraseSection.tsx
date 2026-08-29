@@ -44,13 +44,9 @@ export function MtkEraseSection() {
         type: 'write',
         partitionName: partition,
         successMessage: `Partition ${partition} erased successfully`,
-        run: () =>
-          MtkClientApi.erasePartition(
-            partition,
-            isIotMode,
-            undefined,
-            undefined
-          ),
+        run: async () => {
+          await MtkClientApi.erasePartition(partition, isIotMode);
+        },
       });
     } finally {
       setIsRunning(false);

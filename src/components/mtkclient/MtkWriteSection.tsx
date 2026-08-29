@@ -57,14 +57,9 @@ export function MtkWriteSection() {
         type: 'write',
         partitionName: partition,
         successMessage: `Partition ${partition} written successfully`,
-        run: () =>
-          MtkClientApi.writePartition(
-            partition,
-            inputFile,
-            isIotMode,
-            undefined,
-            undefined
-          ),
+        run: async () => {
+          await MtkClientApi.writePartition(partition, inputFile, isIotMode);
+        },
       });
     } finally {
       setIsRunning(false);
