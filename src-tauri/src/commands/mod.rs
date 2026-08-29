@@ -6,6 +6,7 @@
 pub mod device;
 pub mod erase;
 pub mod fastboot;
+pub mod fastboot_native;
 pub mod flash;
 pub mod format;
 pub mod helpers;
@@ -17,6 +18,8 @@ pub mod scatter;
 pub mod settings;
 pub mod tools;
 pub mod updates;
+pub mod amonet;
+pub mod adb;
 
 use crate::error::AppError;
 use crate::services::antumbra::{kill_current_process, AntumbraExecutor};

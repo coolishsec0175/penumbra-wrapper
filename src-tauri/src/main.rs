@@ -114,6 +114,32 @@ async fn main() {
             commands::mtkclient::mtk_read_all,
             commands::mtkclient::mtk_write_all,
             commands::mtkclient::mtk_set_active_slot,
+
+            commands::amonet::amonet_scan_ports,
+            commands::amonet::amonet_execute,
+            commands::amonet::amonet_cancel,
+
+            commands::adb::adb_list_devices,
+            commands::adb::adb_shell_command,
+            commands::adb::adb_get_device_props,
+            commands::adb::adb_reboot,
+            commands::adb::adb_push,
+            commands::adb::adb_pull,
+            commands::adb::adb_logcat,
+            commands::adb::adb_sideload,
+
+            commands::fastboot_native::fastboot_scan_devices,
+            commands::fastboot_native::fastboot_get_var,
+            commands::fastboot_native::fastboot_get_all_vars,
+            commands::fastboot_native::fastboot_flash,
+            commands::fastboot_native::fastboot_erase,
+            commands::fastboot_native::fastboot_boot,
+            commands::fastboot_native::fastboot_reboot,
+            commands::fastboot_native::fastboot_set_active_slot,
+            commands::fastboot_native::fastboot_oem,
+            commands::fastboot_native::fastboot_oem_unlock,
+            commands::fastboot_native::fastboot_oem_lock,
+            commands::fastboot_native::fastboot_wait_for_device,
         ])
         .manage(commands::fastboot::FastbootCancel::default())
         .setup(|_app| {
