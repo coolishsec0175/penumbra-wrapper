@@ -92,12 +92,7 @@ async fn main() {
             commands::updates::check_antumbra_update,
             commands::updates::download_antumbra_update,
             commands::updates::get_antumbra_changelog,
-            commands::diagnostics::get_wrapper_log_path,
-            commands::diagnostics::read_wrapper_log,
-            commands::diagnostics::read_antumbra_log,
-            commands::diagnostics::get_last_antumbra_command,
-            commands::diagnostics::check_windows_environment,
-            commands::diagnostics::export_diagnostics,
+
             commands::fastboot::force_fastboot,
             commands::fastboot::cancel_fastboot,
             commands::logs::export_log_file,

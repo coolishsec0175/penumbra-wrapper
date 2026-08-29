@@ -4,7 +4,7 @@
 */
 
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, HardDrive, Shield, Zap } from 'lucide-react';
+import { FolderOpen, HardDrive, Plug, Shield, Zap } from 'lucide-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { usePartitionStore } from '../store/partitionStore';
 import { useDeviceConnection } from '../hooks/useDeviceConnection';
@@ -17,7 +17,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { daPath, preloaderPath } = useDeviceStore();
   const { partitions } = usePartitionStore();
-  const { isConnected, isConnecting } = useDeviceConnection();
+  const { connect, isConnected, isConnecting } = useDeviceConnection();
 
   const connectedCount = partitions.length;
 
@@ -89,6 +89,32 @@ export function Dashboard() {
               </div>
             </SpotlightCard>
           </div>
+
+          {/* Connect Device */}
+          {!isConnected && (
+            <SpotlightCard className="overflow-hidden">
+              <div className="flex items-center justify-between gap-4 p-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-trace-copper/10">
+                    <Plug className="h-5 w-5 text-trace-copper" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">Connect a Device</h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Plug in your MediaTek device in BootROM/BROM mode.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={connect}
+                  disabled={isConnecting || !daPath}
+                  className="shrink-0 rounded-lg bg-trace-copper px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-trace-copper/80 disabled:opacity-40"
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect'}
+                </button>
+              </div>
+            </SpotlightCard>
+          )}
 
           {/* Backup card */}
           <SpotlightCard className="overflow-hidden">

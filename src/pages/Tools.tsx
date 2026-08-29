@@ -20,7 +20,6 @@ import { RestoreSection } from '../components/tools/RestoreSection';
 import { BootloaderSection } from '../components/tools/BootloaderSection';
 import { FastbootSection } from '../components/tools/FastbootSection';
 import { BootPlSection } from '../components/tools/BootPlSection';
-import { WindowsDiagnosticsPanel } from '../components/WindowsDiagnosticsPanel';
 import { PageTransition } from '../components/ui/PageTransition';
 
 export function Tools() {
@@ -564,7 +563,7 @@ export function Tools() {
               onBoot={handleBootPl}
             />
 
-            <WindowsDiagnosticsPanel />
+
           </div>
         </PageTransition>
       </main>
