@@ -278,6 +278,47 @@ export function Settings() {
             </Button>
           </div>
         </Panel>
+
+        <Panel title="MTKCLIENT">
+          <div className="flex flex-col gap-3">
+            <OptionRow
+              label="Python Path"
+              description="Path to Python interpreter (default: python)"
+            >
+              <PathRow
+                label="Python"
+                path={useDeviceStore.getState().mtkclientPythonPath}
+                placeholder="python (default)"
+                loading={isSettingsLoading}
+                onBrowse={async () => {
+                  const path = await selectFile(DialogType.SINGLE_FILE, undefined, {
+                    title: 'Select Python Executable',
+                  });
+                  if (path) await useDeviceStore.getState().setMtkclientPythonPath(path);
+                }}
+                onClear={() => void useDeviceStore.getState().setMtkclientPythonPath(null)}
+              />
+            </OptionRow>
+            <OptionRow
+              label="MTKClient Path"
+              description="Path to mtkclient directory"
+            >
+              <PathRow
+                label="MTKClient"
+                path={useDeviceStore.getState().mtkclientPath}
+                placeholder="Select mtkclient directory"
+                loading={isSettingsLoading}
+                onBrowse={async () => {
+                  const path = await selectFile(DialogType.OUTPUT_FOLDER, undefined, {
+                    title: 'Select MTKClient Directory',
+                  });
+                  if (path) await useDeviceStore.getState().setMtkclientPath(path);
+                }}
+                onClear={() => void useDeviceStore.getState().setMtkclientPath(null)}
+              />
+            </OptionRow>
+          </div>
+        </Panel>
       </div>
 
       <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />

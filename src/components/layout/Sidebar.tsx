@@ -8,6 +8,7 @@ import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
+  Cpu,
   FileStack,
   Grid,
   Moon,
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { to: '/pgpt', label: 'PGPT', icon: FileStack, end: false },
   { to: '/flasher', label: 'Flasher', icon: FileStack, end: false },
   { to: '/tools', label: 'Tools', icon: Wrench, end: false },
+  { to: '/mtkclient', label: 'MTKClient', icon: Cpu, end: false },
   { to: '/log', label: 'Activity Log', icon: Terminal, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ] as const;
