@@ -27,6 +27,12 @@ pub struct AppSettings {
     pub antumbra_version: Option<String>,
     #[serde(default)]
     pub backup_skip_partitions: Vec<String>,
+    #[serde(default)]
+    pub mtkclient_python_path: Option<String>,
+    #[serde(default)]
+    pub mtkclient_path: Option<String>,
+    #[serde(default)]
+    pub mtkclient_iot_mode: bool,
 }
 
 impl Default for AppSettings {
@@ -41,6 +47,9 @@ impl Default for AppSettings {
             auto_check_updates: true,
             antumbra_version: None,
             backup_skip_partitions: Vec::new(),
+            mtkclient_python_path: None,
+            mtkclient_path: None,
+            mtkclient_iot_mode: false,
         }
     }
 }

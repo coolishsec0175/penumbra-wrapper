@@ -97,6 +97,23 @@ async fn main() {
             commands::fastboot::cancel_fastboot,
             commands::logs::export_log_file,
             commands::raw::set_active_slot,
+
+            commands::mtkclient::mtk_status,
+            commands::mtkclient::mtk_cancel_operation,
+            commands::mtkclient::mtk_print_gpt,
+            commands::mtkclient::mtk_read_partition,
+            commands::mtkclient::mtk_write_partition,
+            commands::mtkclient::mtk_erase_partition,
+            commands::mtkclient::mtk_dump_brom,
+            commands::mtkclient::mtk_dump_preloader,
+            commands::mtkclient::mtk_dump_sram,
+            commands::mtkclient::mtk_crash,
+            commands::mtkclient::mtk_reboot,
+            commands::mtkclient::mtk_seccfg,
+            commands::mtkclient::mtk_generate_keys,
+            commands::mtkclient::mtk_read_all,
+            commands::mtkclient::mtk_write_all,
+            commands::mtkclient::mtk_set_active_slot,
         ])
         .manage(commands::fastboot::FastbootCancel::default())
         .setup(|_app| {
