@@ -1,17 +1,23 @@
 import { create } from 'zustand';
-import type { AmonetEvent, SerialPortInfo } from '../types/amonet';
+import type { AmonetEvent, PayloadType, SerialPortInfo } from '../types/amonet';
 
 interface AmonetState {
   ports: SerialPortInfo[];
   selectedPort: string | null;
-  exploitType: string;
+  payloadType: PayloadType;
+  customPayloadPath: string | null;
+  baudRate: number;
+  timeoutMs: number;
   isRunning: boolean;
   events: AmonetEvent[];
   error: string | null;
 
   setPorts: (ports: SerialPortInfo[]) => void;
   setSelectedPort: (port: string | null) => void;
-  setExploitType: (type: string) => void;
+  setPayloadType: (type: PayloadType) => void;
+  setCustomPayloadPath: (path: string | null) => void;
+  setBaudRate: (rate: number) => void;
+  setTimeoutMs: (ms: number) => void;
   setRunning: (running: boolean) => void;
   addEvent: (event: AmonetEvent) => void;
   clearEvents: () => void;
@@ -22,14 +28,20 @@ interface AmonetState {
 export const useAmonetStore = create<AmonetState>((set) => ({
   ports: [],
   selectedPort: null,
-  exploitType: 'kamakiri_v2',
+  payloadType: 'brom_defuse',
+  customPayloadPath: null,
+  baudRate: 115200,
+  timeoutMs: 30000,
   isRunning: false,
   events: [],
   error: null,
 
   setPorts: (ports) => set({ ports }),
   setSelectedPort: (selectedPort) => set({ selectedPort }),
-  setExploitType: (exploitType) => set({ exploitType }),
+  setPayloadType: (payloadType) => set({ payloadType }),
+  setCustomPayloadPath: (customPayloadPath) => set({ customPayloadPath }),
+  setBaudRate: (baudRate) => set({ baudRate }),
+  setTimeoutMs: (timeoutMs) => set({ timeoutMs }),
   setRunning: (isRunning) => set({ isRunning }),
   addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
   clearEvents: () => set({ events: [] }),
@@ -38,6 +50,7 @@ export const useAmonetStore = create<AmonetState>((set) => ({
     set({
       ports: [],
       selectedPort: null,
+      customPayloadPath: null,
       isRunning: false,
       events: [],
       error: null,

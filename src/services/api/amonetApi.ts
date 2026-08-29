@@ -1,8 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { SerialPortInfo } from '../../types/amonet';
+import type { PayloadType, SerialPortInfo } from '../../types/amonet';
 
 /**
- * Amonet API service - MTK BROM exploit operations
+ * Amonet API service - MTK BROM exploit and payload operations
  */
 export class AmonetApi {
   static async scanPorts(): Promise<SerialPortInfo[]> {
@@ -10,16 +10,18 @@ export class AmonetApi {
   }
 
   static async execute(
-    exploitType: string,
+    payloadType: PayloadType,
     port?: string,
     baudRate?: number,
-    timeoutMs?: number
+    timeoutMs?: number,
+    customPayloadPath?: string
   ): Promise<string> {
     return invoke('amonet_execute', {
-      exploitType,
+      payloadType,
       port: port || null,
       baudRate: baudRate || null,
       timeoutMs: timeoutMs || null,
+      customPayloadPath: customPayloadPath || null,
     });
   }
 
