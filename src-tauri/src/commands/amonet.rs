@@ -32,6 +32,9 @@ pub async fn amonet_execute(
         "hakujoudai_arm64" => PayloadType::HakujoudaiArm64,
         "sla_xml_arm" => PayloadType::SlaXmlArm,
         "sla_xml_arm64" => PayloadType::SlaXmlArm64,
+        "da_x" => PayloadType::DaX,
+        "da_xml_arm" => PayloadType::DaXmlArm,
+        "da_xml_arm64" => PayloadType::DaXmlArm64,
         _ => PayloadType::BromDefuse,
     };
 

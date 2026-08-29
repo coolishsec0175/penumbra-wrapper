@@ -6,7 +6,10 @@ export type PayloadType =
   | 'hakujoudai_arm'
   | 'hakujoudai_arm64'
   | 'sla_xml_arm'
-  | 'sla_xml_arm64';
+  | 'sla_xml_arm64'
+  | 'da_x'
+  | 'da_xml_arm'
+  | 'da_xml_arm64';
 
 export interface PayloadInfo {
   type: PayloadType;

@@ -57,6 +57,24 @@ const PAYLOADS: { type: PayloadType; label: string; description: string; categor
     description: 'SLA bypass for V6 XML devices (ARM64).',
     category: 'SLA Bypass',
   },
+  {
+    type: 'da_x',
+    label: 'DA Extensions (V5)',
+    description: 'DA extensions for V5/XFlash. Memory read/write, key derivation, RPMB.',
+    category: 'DA Extensions',
+  },
+  {
+    type: 'da_xml_arm',
+    label: 'DA Extensions (V6 ARM32)',
+    description: 'DA extensions for V6/XML (ARM32). Memory read/write, key derivation, RPMB.',
+    category: 'DA Extensions',
+  },
+  {
+    type: 'da_xml_arm64',
+    label: 'DA Extensions (V6 ARM64)',
+    description: 'DA extensions for V6/XML (ARM64). Memory read/write, key derivation, RPMB.',
+    category: 'DA Extensions',
+  },
 ];
 
 export function AmonetPage() {

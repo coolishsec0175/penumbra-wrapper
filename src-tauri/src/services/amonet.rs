@@ -45,6 +45,12 @@ pub enum PayloadType {
     SlaXmlArm,
     /// SLA bypass for V6 AArch64
     SlaXmlArm64,
+    /// DA extensions for V5/XFlash devices
+    DaX,
+    /// DA extensions for V6/XML devices ARM32
+    DaXmlArm,
+    /// DA extensions for V6/XML devices AArch64
+    DaXmlArm64,
 }
 
 impl PayloadType {
@@ -58,6 +64,9 @@ impl PayloadType {
             PayloadType::HakujoudaiArm64 => "hakujoudai_arm64.bin",
             PayloadType::SlaXmlArm => "sla_xml_arm.bin",
             PayloadType::SlaXmlArm64 => "sla_xml_arm64.bin",
+            PayloadType::DaX => "da_x.bin",
+            PayloadType::DaXmlArm => "da_xml_arm.bin",
+            PayloadType::DaXmlArm64 => "da_xml_arm64.bin",
         }
     }
 
@@ -71,6 +80,9 @@ impl PayloadType {
             PayloadType::HakujoudaiArm64 => "Hakujoudai (ARM64)",
             PayloadType::SlaXmlArm => "SLA XML (ARM32)",
             PayloadType::SlaXmlArm64 => "SLA XML (ARM64)",
+            PayloadType::DaX => "DA Extensions (V5/XFlash)",
+            PayloadType::DaXmlArm => "DA Extensions (V6/XML ARM32)",
+            PayloadType::DaXmlArm64 => "DA Extensions (V6/XML ARM64)",
         }
     }
 
@@ -84,6 +96,9 @@ impl PayloadType {
             PayloadType::HakujoudaiArm64 => "V6 heap exploit (heapb8 vulnerability) for AArch64. Enables arbitrary memory read/write.",
             PayloadType::SlaXmlArm => "SLA bypass for V6 XML devices (ARM32). Makes device accept dummy SLA authentication.",
             PayloadType::SlaXmlArm64 => "SLA bypass for V6 XML devices (ARM64). Makes device accept dummy SLA authentication.",
+            PayloadType::DaX => "DA extensions for V5/XFlash devices. Provides memory read/write, key derivation, RPMB access.",
+            PayloadType::DaXmlArm => "DA extensions for V6/XML devices (ARM32). Provides memory read/write, key derivation, RPMB.",
+            PayloadType::DaXmlArm64 => "DA extensions for V6/XML devices (ARM64). Provides memory read/write, key derivation, RPMB.",
         }
     }
 
@@ -97,6 +112,9 @@ impl PayloadType {
             Self::HakujoudaiArm64,
             Self::SlaXmlArm,
             Self::SlaXmlArm64,
+            Self::DaX,
+            Self::DaXmlArm,
+            Self::DaXmlArm64,
         ]
     }
 }
