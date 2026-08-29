@@ -1,0 +1,50 @@
+name: Build MTK Payloads
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-payloads.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Clone mtk-payloads
+        run: git clone --depth 1 https://github.com/shomykohai/mtk-payloads /tmp/mtk-payloads
+
+      - name: Build all payloads
+        working-directory: /tmp/mtk-payloads
+        run: |
+          nix develop --command bash -c "./build_all.sh"
+
+      - name: Copy payloads
+        run: |
+          rm -rf payloads
+          mkdir -p payloads
+          cp /tmp/mtk-payloads/payloads/*.bin payloads/
+          ls -la payloads/
+
+      - name: Upload payloads artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtk-payloads
+          path: payloads/*.bin
+          retention-days: 30
+
+      - name: Commit payloads
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add payloads/*.bin
+          git diff --cached --quiet || git commit -m "chore: update mtk-payloads binaries [skip ci]"
+          git push
