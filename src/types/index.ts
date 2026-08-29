@@ -52,6 +52,9 @@ export interface AppSettings {
   auto_check_updates: boolean;
   antumbra_version?: string;
   backup_skip_partitions?: string[];
+  mtkclient_python_path?: string;
+  mtkclient_path?: string;
+  mtkclient_iot_mode?: boolean;
 }
 
 export interface AntumbraUpdateInfo {

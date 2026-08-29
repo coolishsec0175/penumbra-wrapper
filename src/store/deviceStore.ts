@@ -14,6 +14,9 @@ interface DeviceState {
   antumbraVersion: string | null;
   autoCheckUpdates: boolean;
   backupSkipPartitions: string[];
+  mtkclientPythonPath: string | null;
+  mtkclientPath: string | null;
+  mtkclientIotMode: boolean;
 
   // Settings hydration
   isSettingsLoading: boolean;
@@ -34,6 +37,9 @@ interface DeviceState {
   setDefaultOutputPath: (path: string | null) => Promise<void>;
   setAutoCheckUpdates: (enabled: boolean) => Promise<void>;
   setBackupSkipPartitions: (partitions: string[]) => Promise<void>;
+  setMtkclientPythonPath: (path: string | null) => Promise<void>;
+  setMtkclientPath: (path: string | null) => Promise<void>;
+  setMtkclientIotMode: (enabled: boolean) => Promise<void>;
   updateSettings: (partial: Partial<DeviceState>) => Promise<void>;
   setConnecting: (connecting: boolean) => void;
   setConnected: (connected: boolean) => void;
@@ -55,6 +61,9 @@ const buildSettings = (state: DeviceState): AppSettings => ({
   auto_check_updates: state.autoCheckUpdates,
   antumbra_version: state.antumbraVersion || undefined,
   backup_skip_partitions: state.backupSkipPartitions,
+  mtkclient_python_path: state.mtkclientPythonPath || undefined,
+  mtkclient_path: state.mtkclientPath || undefined,
+  mtkclient_iot_mode: state.mtkclientIotMode,
 });
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
@@ -68,6 +77,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   antumbraVersion: null,
   autoCheckUpdates: true,
   backupSkipPartitions: [],
+  mtkclientPythonPath: null,
+  mtkclientPath: null,
+  mtkclientIotMode: false,
 
   // Connection State
   isConnecting: false,
@@ -110,6 +122,18 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   setBackupSkipPartitions: async (partitions) => {
     await get().updateSettings({ backupSkipPartitions: partitions });
+  },
+
+  setMtkclientPythonPath: async (path) => {
+    await get().updateSettings({ mtkclientPythonPath: path });
+  },
+
+  setMtkclientPath: async (path) => {
+    await get().updateSettings({ mtkclientPath: path });
+  },
+
+  setMtkclientIotMode: async (enabled) => {
+    await get().updateSettings({ mtkclientIotMode: enabled });
   },
 
   updateSettings: async (partial) => {
@@ -159,6 +183,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
         antumbraVersion: settings.antumbra_version || null,
         autoCheckUpdates: settings.auto_check_updates,
         backupSkipPartitions: settings.backup_skip_partitions || [],
+        mtkclientPythonPath: settings.mtkclient_python_path || null,
+        mtkclientPath: settings.mtkclient_path || null,
+        mtkclientIotMode: settings.mtkclient_iot_mode || false,
         isSettingsLoaded: true,
       });
     } catch (error) {
