@@ -4,7 +4,6 @@
 */
 
 use crate::error::AppError;
-use crate::models::Partition;
 use crate::services::mtkclient::{kill_mtk_process, MtkclientExecutor, MtkStatus};
 use tauri::AppHandle;
 use uuid::Uuid;
