@@ -9,7 +9,7 @@ use crate::services::amonet::{
 };
 use crate::services::config::load_settings;
 use std::sync::{Arc, Mutex};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[tauri::command]
 pub async fn amonet_scan_ports(app: AppHandle) -> Result<Vec<SerialPortInfo>, AppError> {
