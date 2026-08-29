@@ -30,7 +30,7 @@ impl FileSystemOp {
         match self {
             Self::MkDir => "MKDIR\u{0}".to_string(),
             Self::Exists => "NOT-EXISTS\u{0}".to_string(), // To avoid more reads
-            Self::FileSize(size) => format!("{:X}\u{0}", size),
+            Self::FileSize(size) => format!("0x{:X}\u{0}", size),
             Self::RemoveAll => "REMOVE-ALL\u{0}".to_string(),
             Self::Remove => "REMOVE\u{0}".to_string(),
         }
