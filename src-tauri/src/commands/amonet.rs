@@ -5,20 +5,30 @@
 
 use crate::error::AppError;
 use crate::services::amonet::{
-    cancel_exploit, AmonetConfig, AmonetEvent, AmonetExploit, AmonetStatus, PayloadType,
-    SerialPortInfo,
+    cancel_exploit, AmonetConfig, AmonetEvent, AmonetExploit, PayloadType, SerialPortInfo,
 };
-use crate::services::config::ConfigService;
+use crate::services::config::load_settings;
 use std::sync::{Arc, Mutex};
 use tauri::AppHandle;
 
 #[tauri::command]
 pub async fn amonet_scan_ports(app: AppHandle) -> Result<Vec<SerialPortInfo>, AppError> {
-    let config = ConfigService::get(&app).map_err(|e| AppError::command(e.to_string()))?;
+    let settings = load_settings().map_err(|e| AppError::command(e.to_string()))?;
     let amonet = AmonetExploit::new(
         AmonetConfig::default(),
-        config.settings.mtkclient_python_path.clone().into(),
-        config.settings.mtkclient_path.clone().into(),
+        settings
+            .mtkclient_python_path
+            .unwrap_or_else(|| "python".to_string())
+            .into(),
+        settings
+            .mtkclient_path
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                app.path()
+                    .app_config_dir()
+                    .unwrap_or_else(|_| std::env::temp_dir().join("penumbra-wrapper"))
+                    .join("mtkclient")
+            }),
     );
     amonet
         .scan_ports()
@@ -35,7 +45,7 @@ pub async fn amonet_execute(
     timeout_ms: Option<u64>,
     custom_payload_path: Option<String>,
 ) -> Result<String, AppError> {
-    let config = ConfigService::get(&app).map_err(|e| AppError::command(e.to_string()))?;
+    let settings = load_settings().map_err(|e| AppError::command(e.to_string()))?;
 
     let payload = match payload_type.as_str() {
         "brom_defuse" => PayloadType::BromDefuse,
@@ -62,8 +72,19 @@ pub async fn amonet_execute(
 
     let amonet = AmonetExploit::new(
         amonet_config,
-        config.settings.mtkclient_python_path.clone().into(),
-        config.settings.mtkclient_path.clone().into(),
+        settings
+            .mtkclient_python_path
+            .unwrap_or_else(|| "python".to_string())
+            .into(),
+        settings
+            .mtkclient_path
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                app.path()
+                    .app_config_dir()
+                    .unwrap_or_else(|_| std::env::temp_dir().join("penumbra-wrapper"))
+                    .join("mtkclient")
+            }),
     );
 
     let events = Arc::new(Mutex::new(Vec::<AmonetEvent>::new()));

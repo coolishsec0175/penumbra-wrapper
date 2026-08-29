@@ -81,11 +81,12 @@ impl FastbootConnection {
                         devices.push(FastbootDeviceInfo {
                             serial: device
                                 .serial_number()
+                                .unwrap_or("unknown")
                                 .to_string(),
                             usb_path: Some(format!(
                                 "Bus {:03} Device {:03}",
-                                device.bus_number(),
-                                device.address()
+                                device.bus_number().unwrap_or(0),
+                                device.device_address().unwrap_or(0)
                             )),
                             is_unlocked: false,
                             is_dynamic: false,

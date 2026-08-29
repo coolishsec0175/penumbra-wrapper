@@ -288,7 +288,8 @@ impl AmonetExploit {
 
         let mut stdout = child.stdout.take().context("No stdout")?;
         let mut stderr = child.stderr.take().context("No stderr")?;
-        let mut buf = vec![0u8; 4096];
+        let mut stdout_buf = vec![0u8; 4096];
+        let mut stderr_buf = vec![0u8; 4096];
         let mut accumulated = String::new();
 
         loop {
@@ -303,14 +304,19 @@ impl AmonetExploit {
                 break;
             }
 
-            let read = tokio::select! {
-                r = stdout.read(&mut buf) => r,
-                r = stderr.read(&mut buf) => r,
+            let read_result = tokio::select! {
+                r = stdout.read(&mut stdout_buf) => {
+                    r.map(|n| (n, true))
+                }
+                r = stderr.read(&mut stderr_buf) => {
+                    r.map(|n| (n, false))
+                }
             };
 
-            match read {
-                Ok(0) => break,
-                Ok(n) => {
+            match read_result {
+                Ok((0, _)) => break,
+                Ok((n, is_stdout)) => {
+                    let buf = if is_stdout { &stdout_buf } else { &stderr_buf };
                     let chunk = String::from_utf8_lossy(&buf[..n]).to_string();
                     accumulated.push_str(&chunk);
 
