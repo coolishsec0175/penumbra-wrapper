@@ -27,7 +27,7 @@ use crate::da::xml::{
 use crate::da::{NOOP_PROGRESS, ScatterFile, Xml};
 use crate::error::{PenumbraError, ProtocolError, XmlErrorKind};
 use crate::port::{MAX_TIMEOUT, MtkPort};
-use crate::storage::{is_pl_part, is_sparse};
+use crate::storage::is_sparse;
 use crate::traits::{
     FromBytes,
     Peekable,
@@ -143,8 +143,8 @@ pub fn write_partition<P, R, F>(
     port: &mut P,
     part_name: &str,
     size: usize,
-    reader: R,
-    progress: F,
+    mut reader: R,
+    mut progress: F,
 ) -> Result<()>
 where
     P: MtkPort,
@@ -155,20 +155,41 @@ where
 
     xmlcmd!(xml, port, WritePartition, part_name, part_name)?;
 
-    // Progress report is not needed for PL partitions,
-    // because the DA skips the erase process for them.
-    if !is_pl_part(part_name) {
-        xml.progress_report(port, size, NOOP_PROGRESS)?;
+    loop {
+        let resp = xml.read_data(port)?;
+        if memmem::find(&resp, CMD_END).is_some() {
+            xml.ack(port, None)?;
+            break;
+        }
+
+        let resp = String::from_utf8_lossy(&resp);
+        let cmd: String = get_tag(&resp, "command")?;
+
+        match cmd.as_str() {
+            CMD_PROGRESS_REPORT => {
+                xml.process_progress_report(port, &resp, NOOP_PROGRESS)?;
+            }
+            CMD_FILE_SYSTEM_OP => {
+                let op: String = get_tag(&resp, "arg/key")?;
+                let op = FileSystemOp::from(op.as_str());
+
+                xml.process_file_sys_op(port, &resp, op)?;
+            }
+            CMD_DOWNLOAD_FILE => {
+                xml.process_download_data(
+                    port,
+                    &resp,
+                    size,
+                    MAX_TIMEOUT,
+                    &mut reader,
+                    &mut progress,
+                )?;
+            }
+            _ => return Err(XmlErrorKind::UnsupportedCmd.into()),
+        }
     }
 
-    xml.file_system_op(port, FileSystemOp::Exists)?;
-    xml.file_system_op(port, FileSystemOp::Exists)?;
-
-    xml.download_data(port, size, reader, progress)?;
-    xml.lifetime_ack(port, XmlCmdLifetime::CmdEnd)?;
-
     debug!("Download completed, {:#X} bytes sent.", size);
-
     Ok(())
 }
 
