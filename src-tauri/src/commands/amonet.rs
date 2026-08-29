@@ -8,21 +8,35 @@ use crate::services::amonet::{
     cancel_exploit, AmonetConfig, AmonetEvent, AmonetExploit, AmonetStatus, PayloadType,
     SerialPortInfo,
 };
+use crate::services::config::ConfigService;
 use std::sync::{Arc, Mutex};
+use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn amonet_scan_ports() -> Result<Vec<SerialPortInfo>, AppError> {
-    AmonetExploit::scan_ports().map_err(|e| AppError::command(e.to_string()))
+pub async fn amonet_scan_ports(app: AppHandle) -> Result<Vec<SerialPortInfo>, AppError> {
+    let config = ConfigService::get(&app).map_err(|e| AppError::command(e.to_string()))?;
+    let amonet = AmonetExploit::new(
+        AmonetConfig::default(),
+        config.settings.mtkclient_python_path.clone().into(),
+        config.settings.mtkclient_path.clone().into(),
+    );
+    amonet
+        .scan_ports()
+        .await
+        .map_err(|e| AppError::command(e.to_string()))
 }
 
 #[tauri::command]
 pub async fn amonet_execute(
+    app: AppHandle,
     payload_type: String,
     port: Option<String>,
     baud_rate: Option<u32>,
     timeout_ms: Option<u64>,
     custom_payload_path: Option<String>,
 ) -> Result<String, AppError> {
+    let config = ConfigService::get(&app).map_err(|e| AppError::command(e.to_string()))?;
+
     let payload = match payload_type.as_str() {
         "brom_defuse" => PayloadType::BromDefuse,
         "extloader_v5" => PayloadType::ExtloaderV5,
@@ -38,7 +52,7 @@ pub async fn amonet_execute(
         _ => PayloadType::BromDefuse,
     };
 
-    let config = AmonetConfig {
+    let amonet_config = AmonetConfig {
         payload_type: payload,
         port,
         baud_rate: baud_rate.unwrap_or(115200),
@@ -46,7 +60,11 @@ pub async fn amonet_execute(
         timeout_ms: timeout_ms.unwrap_or(30000),
     };
 
-    let amonet = AmonetExploit::new(config);
+    let amonet = AmonetExploit::new(
+        amonet_config,
+        config.settings.mtkclient_python_path.clone().into(),
+        config.settings.mtkclient_path.clone().into(),
+    );
 
     let events = Arc::new(Mutex::new(Vec::<AmonetEvent>::new()));
     let events_clone = events.clone();
@@ -58,7 +76,7 @@ pub async fn amonet_execute(
         }
     }));
 
-    match amonet.execute(callback).await {
+    match amonet.execute(callback, app).await {
         Ok(()) => Ok("Exploit completed successfully".to_string()),
         Err(e) => {
             let error_msg = e.to_string();

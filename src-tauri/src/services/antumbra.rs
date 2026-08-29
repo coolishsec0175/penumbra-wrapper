@@ -245,7 +245,7 @@ fn parse_indicatif_line(line: &str) -> Option<ParsedProgress> {
     let current = parse_human_bytes(caps.get(1)?.as_str())?;
     let total = parse_human_bytes(caps.get(2)?.as_str())?;
 
-    let mut elapsed_secs;
+    let elapsed_secs;
     let mut eta_secs = None;
     let paren_content = caps.get(3)?.as_str();
     if let Some(eta_pos) = paren_content.find("ETA:") {

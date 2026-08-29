@@ -14,10 +14,7 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::io::{Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
 
 static FASTBOOT_RUNNING: AtomicBool = AtomicBool::new(false);
 
@@ -69,11 +66,11 @@ impl FastbootConnection {
     }
 
     /// Scan for fastboot devices using nusb
-    pub fn scan_devices() -> Result<Vec<FastbootDeviceInfo>> {
+    pub async fn scan_devices() -> Result<Vec<FastbootDeviceInfo>> {
         let mut devices = Vec::new();
 
         // Use nusb for USB device enumeration
-        match nusb::list_devices() {
+        match nusb::list_devices().await {
             Ok(device_list) => {
                 for device in device_list {
                     // Fastboot devices have specific VID:PID or interface class
@@ -167,7 +164,7 @@ impl FastbootConnection {
             "flash".to_string(),
             partition.to_string(),
             file_path.to_string(),
-        ]);
+        ])?;
 
         let success = output.success;
         let message = if success {
@@ -292,7 +289,7 @@ impl FastbootConnection {
     }
 
     /// Wait for device
-    pub fn wait_for_device(timeout_secs: u64) -> Result<()> {
+    pub fn wait_for_device(_timeout_secs: u64) -> Result<()> {
         let output = Self::execute_command(&[
             "wait-for-device".to_string(),
         ])?;

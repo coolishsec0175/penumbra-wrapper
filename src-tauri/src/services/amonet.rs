@@ -3,53 +3,39 @@
     SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
-//! Amonet - MTK BROM exploit and payload loader
+//! Amonet - MTK BROM exploit via mtkclient subprocess
 //!
-//! Integrates with shomykohai/mtk-payloads for:
-//! - brom_defuse: BROM security bypass (Legacy/V5, kamakiri2)
-//! - extloader: DA extension loader (V5 + V6)
-//! - hakujoudai: V6 heap exploit payload
-//! - sla_xml: SLA bypass for V6 devices
-//! - da_x: DA extensions for V5/XFlash
-//! - da_xml: DA extensions for V6/XML
-//!
-//! Uses USB serial communication via the serialport crate.
+//! Spawns mtkclient (Python) as a subprocess to perform BROM exploits.
+//! Supports all payload types from shomykohai/mtk-payloads.
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::process::Stdio;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::sync::{Arc, Mutex, OnceLock};
+use tauri::AppHandle;
+use tokio::io::AsyncReadExt;
+use tokio::process::Command as TokioCommand;
 
 static AMONET_RUNNING: AtomicBool = AtomicBool::new(false);
 static CANCEL_FLAG: AtomicBool = AtomicBool::new(false);
+static AMONET_PID: OnceLock<Mutex<Option<u32>>> = OnceLock::new();
 
 /// Payload types from shomykohai/mtk-payloads
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PayloadType {
-    /// BROM security bypass for Legacy/V5 devices (kamakiri2 exploit)
     BromDefuse,
-    /// DA extension loader for V5 devices (restores boot_to command)
     ExtloaderV5,
-    /// DA extension loader for V6 ARM32
     ExtloaderV6Arm,
-    /// DA extension loader for V6 AArch64
     ExtloaderV6Arm64,
-    /// V6 heap exploit payload ARM32
     HakujoudaiArm,
-    /// V6 heap exploit payload AArch64
     HakujoudaiArm64,
-    /// SLA bypass for V6 ARM32
     SlaXmlArm,
-    /// SLA bypass for V6 AArch64
     SlaXmlArm64,
-    /// DA extensions for V5/XFlash devices
     DaX,
-    /// DA extensions for V6/XML devices ARM32
     DaXmlArm,
-    /// DA extensions for V6/XML devices AArch64
     DaXmlArm64,
 }
 
@@ -88,17 +74,17 @@ impl PayloadType {
 
     pub fn description(&self) -> &str {
         match self {
-            PayloadType::BromDefuse => "Disables SLA/DAA/SBC security checks in BootROM. For legacy and V5 devices using kamakiri2 exploit.",
-            PayloadType::ExtloaderV5 => "Restores boot_to command to V5 DAs. Loads DA extensions via com_channel_struct.",
-            PayloadType::ExtloaderV6Arm => "DA extension loader for V6 XML devices (ARM32). Uses XML protocol.",
-            PayloadType::ExtloaderV6Arm64 => "DA extension loader for V6 XML devices (ARM64). Uses XML protocol.",
-            PayloadType::HakujoudaiArm => "V6 heap exploit (heapb8 vulnerability). Enables arbitrary memory read/write and function calls.",
-            PayloadType::HakujoudaiArm64 => "V6 heap exploit (heapb8 vulnerability) for AArch64. Enables arbitrary memory read/write.",
-            PayloadType::SlaXmlArm => "SLA bypass for V6 XML devices (ARM32). Makes device accept dummy SLA authentication.",
-            PayloadType::SlaXmlArm64 => "SLA bypass for V6 XML devices (ARM64). Makes device accept dummy SLA authentication.",
-            PayloadType::DaX => "DA extensions for V5/XFlash devices. Provides memory read/write, key derivation, RPMB access.",
-            PayloadType::DaXmlArm => "DA extensions for V6/XML devices (ARM32). Provides memory read/write, key derivation, RPMB.",
-            PayloadType::DaXmlArm64 => "DA extensions for V6/XML devices (ARM64). Provides memory read/write, key derivation, RPMB.",
+            PayloadType::BromDefuse => "Disables SLA/DAA/SBC security checks in BootROM.",
+            PayloadType::ExtloaderV5 => "Restores boot_to command to V5 DAs.",
+            PayloadType::ExtloaderV6Arm => "DA extension loader for V6 XML devices (ARM32).",
+            PayloadType::ExtloaderV6Arm64 => "DA extension loader for V6 XML devices (ARM64).",
+            PayloadType::HakujoudaiArm => "V6 heap exploit (heapb8) for ARM32.",
+            PayloadType::HakujoudaiArm64 => "V6 heap exploit (heapb8) for AArch64.",
+            PayloadType::SlaXmlArm => "SLA bypass for V6 XML devices (ARM32).",
+            PayloadType::SlaXmlArm64 => "SLA bypass for V6 XML devices (ARM64).",
+            PayloadType::DaX => "DA extensions for V5/XFlash devices.",
+            PayloadType::DaXmlArm => "DA extensions for V6/XML devices (ARM32).",
+            PayloadType::DaXmlArm64 => "DA extensions for V6/XML devices (ARM64).",
         }
     }
 
@@ -145,10 +131,7 @@ impl Default for AmonetConfig {
 pub enum AmonetStatus {
     Scanning,
     Connecting,
-    Handshake,
-    LoadingPayload,
-    SendingPayload,
-    WaitingResponse,
+    Exploiting,
     Success,
     Failed(String),
     Cancelled,
@@ -161,95 +144,78 @@ pub struct AmonetEvent {
     pub progress: Option<f32>,
 }
 
-/// MTK USB VCOM VID
-const MTK_VID: u16 = 0x0E8D;
-
-/// MTK BROM handshake magic
-const BROM_HANDSHAKE_MAGIC: [u8; 4] = [0xA0, 0x0A, 0x00, 0x00];
-
-/// DA protocol magic header
-const DA_MAGIC: [u8; 2] = [0xA0, 0xA0];
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SerialPortInfo {
+    pub port_name: String,
+    pub description: String,
+    pub vid: u16,
+    pub pid: u16,
+}
 
 pub struct AmonetExploit {
     config: AmonetConfig,
+    python_path: PathBuf,
+    mtkclient_dir: PathBuf,
+    payloads_dir: PathBuf,
 }
 
 impl AmonetExploit {
-    pub fn new(config: AmonetConfig) -> Self {
-        Self { config }
-    }
-
-    /// Get the payloads directory path
-    fn get_payloads_dir(app_dir: Option<&PathBuf>) -> PathBuf {
-        if let Some(dir) = app_dir {
-            dir.join("payloads")
-        } else {
-            // Default: look in current directory
-            PathBuf::from("payloads")
+    pub fn new(config: AmonetConfig, python_path: PathBuf, mtkclient_dir: PathBuf) -> Self {
+        let payloads_dir = mtkclient_dir.join("payloads");
+        Self {
+            config,
+            python_path,
+            mtkclient_dir,
+            payloads_dir,
         }
     }
 
-    /// Load payload bytes from file or embedded
-    fn load_payload(
-        &self,
-        payload_type: &PayloadType,
-        app_dir: Option<&PathBuf>,
-    ) -> Result<Vec<u8>> {
-        // Check custom payload path first
-        if let Some(ref custom_path) = self.config.custom_payload_path {
-            let path = PathBuf::from(custom_path);
-            if path.exists() {
-                log::info!("Loading custom payload from {:?}", path);
-                return std::fs::read(&path).context("Failed to read custom payload");
+    /// Scan for MTK USB serial ports via mtkclient
+    pub async fn scan_ports(&self) -> Result<Vec<SerialPortInfo>> {
+        let output = TokioCommand::new(&self.python_path)
+            .args([
+                "mtkclient",
+                "scan",
+                "--usb",
+            ])
+            .current_dir(&self.mtkclient_dir)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .await
+            .context("Failed to execute mtkclient scan")?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let mut ports = Vec::new();
+
+        for line in stdout.lines() {
+            // Parse lines like: "Port: /dev/ttyUSB0 (MediaTek USB VCOM) VID:0e8d PID:0003"
+            if line.contains("VID:") || line.contains("MediaTek") || line.contains("MTK") {
+                let port_name = line
+                    .split_whitespace()
+                    .find(|s| s.starts_with("/dev/") || s.starts_with("COM"))
+                    .unwrap_or("")
+                    .to_string();
+
+                if !port_name.is_empty() {
+                    ports.push(SerialPortInfo {
+                        port_name,
+                        description: line.trim().to_string(),
+                        vid: 0x0E8D,
+                        pid: 0x0003,
+                    });
+                }
             }
         }
 
-        // Check payloads directory
-        let payloads_dir = Self::get_payloads_dir(app_dir);
-        let payload_path = payloads_dir.join(payload_type.filename());
-
-        if payload_path.exists() {
-            log::info!("Loading payload from {:?}", payload_path);
-            return std::fs::read(&payload_path).context("Failed to read payload file");
-        }
-
-        // Return empty if not found - user needs to download payloads
-        log::warn!(
-            "Payload {} not found at {:?}",
-            payload_type.filename(),
-            payload_path
-        );
-        anyhow::bail!(
-            "Payload file '{}' not found. Download payloads from https://github.com/shomykohai/mtk-payloads and place them in the payloads/ directory.",
-            payload_type.filename()
-        )
+        Ok(ports)
     }
 
-    /// Scan for MTK USB serial ports
-    pub fn scan_ports() -> Result<Vec<SerialPortInfo>> {
-        let ports = serialport::available_ports().context("Failed to enumerate serial ports")?;
-
-        let mtk_ports: Vec<SerialPortInfo> = ports
-            .into_iter()
-            .filter(|p| match &p.port_type {
-                serialport::SerialPortType::UsbPort(info) => {
-                    info.vid == MTK_VID
-                        || info.pid == 0x0003
-                        || info.pid == 0x0023
-                        || info.pid == 0x2000
-                        || info.pid == 0x2001
-                }
-                _ => false,
-            })
-            .collect();
-
-        Ok(mtk_ports)
-    }
-
-    /// Execute the exploit
+    /// Execute the exploit via mtkclient subprocess
     pub async fn execute(
         &self,
         callback: Arc<Mutex<dyn FnMut(AmonetEvent) + Send>>,
+        _app: AppHandle,
     ) -> Result<()> {
         CANCEL_FLAG.store(false, Ordering::SeqCst);
         AMONET_RUNNING.store(true, Ordering::SeqCst);
@@ -257,15 +223,10 @@ impl AmonetExploit {
         let result = self.run_exploit(callback.clone()).await;
 
         AMONET_RUNNING.store(false, Ordering::SeqCst);
+        AMONET_PID.get_or_init(|| Mutex::new(None));
 
         if CANCEL_FLAG.load(Ordering::SeqCst) {
-            if let Ok(mut cb) = callback.lock() {
-                cb(AmonetEvent {
-                    status: AmonetStatus::Cancelled,
-                    message: "Operation cancelled by user".to_string(),
-                    progress: None,
-                });
-            }
+            Self::emit_event(&callback, AmonetStatus::Cancelled, "Cancelled by user", None);
             anyhow::bail!("Operation cancelled");
         }
 
@@ -276,220 +237,171 @@ impl AmonetExploit {
         &self,
         callback: Arc<Mutex<dyn FnMut(AmonetEvent) + Send>>,
     ) -> Result<()> {
-        let emit = |status: AmonetStatus, msg: &str, progress: Option<f32>| {
-            if let Ok(mut cb) = callback.lock() {
-                cb(AmonetEvent {
-                    status,
-                    message: msg.to_string(),
-                    progress,
-                });
-            }
-        };
-
-        // Step 1: Scan for ports
-        emit(
-            AmonetStatus::Scanning,
-            "Scanning for MTK devices...",
-            Some(0.0),
-        );
-
-        let ports = Self::scan_ports()?;
-        let port_info = if let Some(ref port_name) = self.config.port {
-            ports.iter().find(|p| &p.port_name == port_name)
-        } else {
-            ports.first()
-        };
-
-        let port_name = match port_info {
-            Some(p) => p.port_name.clone(),
-            None => {
-                emit(
-                    AmonetStatus::Failed("No MTK device found".to_string()),
-                    "No MTK USB serial port detected. Ensure device is in BootROM mode.",
-                    None,
-                );
-                anyhow::bail!("No MTK device found");
-            }
-        };
-
-        // Step 2: Load payload
-        emit(
-            AmonetStatus::LoadingPayload,
+        Self::emit_event(
+            &callback,
+            AmonetStatus::Exploiting,
             &format!(
-                "Loading {} payload...",
+                "Starting mtkclient with {} payload...",
                 self.config.payload_type.display_name()
             ),
             Some(0.1),
         );
 
-        let payload = self.load_payload(&self.config.payload_type, None)?;
+        // Build mtkclient arguments
+        let mut args = vec![
+            "mtkclient".to_string(),
+            "exploit".to_string(),
+            "--payload".to_string(),
+            self.config.payload_type.filename().to_string(),
+        ];
 
-        if payload.is_empty() {
-            emit(
-                AmonetStatus::Failed("Empty payload".to_string()),
-                "Payload file is empty",
-                None,
-            );
-            anyhow::bail!("Payload file is empty");
+        if let Some(ref port) = self.config.port {
+            args.push("--port".to_string());
+            args.push(port.clone());
         }
 
-        emit(
-            AmonetStatus::LoadingPayload,
-            &format!("Payload loaded ({} bytes)", payload.len()),
-            Some(0.15),
-        );
+        args.push("--brom".to_string());
 
-        // Step 3: Open serial port
-        emit(
-            AmonetStatus::Connecting,
-            &format!("Opening {}...", port_name),
+        Self::emit_event(
+            &callback,
+            AmonetStatus::Exploiting,
+            &format!("Executing: python {} {}", self.python_path.display(), args.join(" ")),
             Some(0.2),
         );
 
-        let mut port = serialport::new(&port_name, self.config.baud_rate)
-            .timeout(Duration::from_millis(self.config.timeout_ms))
-            .open()
-            .context("Failed to open serial port")?;
+        let mut child = TokioCommand::new(&self.python_path)
+            .args(&args)
+            .current_dir(&self.mtkclient_dir)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .kill_on_drop(true)
+            .spawn()
+            .context("Failed to spawn mtkclient")?;
 
-        tokio::time::sleep(Duration::from_millis(100)).await;
-
-        // Step 4: Preloader handshake
-        emit(
-            AmonetStatus::Handshake,
-            "Sending preloader handshake...",
-            Some(0.3),
-        );
-
-        self.send_handshake(&mut port)?;
-
-        // Step 5: Wait for BROM response
-        let mut response = vec![0u8; 64];
-        let bytes_read = port.read(&mut response).unwrap_or(0);
-
-        if bytes_read < 4 {
-            emit(
-                AmonetStatus::Failed("No response from BROM".to_string()),
-                "Device did not respond to handshake. Ensure device is in BootROM mode.",
-                None,
-            );
-            anyhow::bail!("No BROM response");
+        // Store PID for cancellation
+        if let Some(id) = child.id() {
+            AMONET_PID.get_or_init(|| Mutex::new(None));
+            if let Ok(mut pid) = AMONET_PID.get().unwrap().lock() {
+                *pid = Some(id);
+            }
         }
 
-        if response[..4] != BROM_HANDSHAKE_MAGIC {
-            log::warn!(
-                "Unexpected handshake response: {:02X?}",
-                &response[..4.min(bytes_read)]
-            );
+        let mut stdout = child.stdout.take().context("No stdout")?;
+        let mut stderr = child.stderr.take().context("No stderr")?;
+        let mut buf = vec![0u8; 4096];
+        let mut accumulated = String::new();
+
+        loop {
+            if CANCEL_FLAG.load(Ordering::SeqCst) {
+                let _ = child.kill().await;
+                Self::emit_event(
+                    &callback,
+                    AmonetStatus::Cancelled,
+                    "Cancelling...",
+                    None,
+                );
+                break;
+            }
+
+            let read = tokio::select! {
+                r = stdout.read(&mut buf) => r,
+                r = stderr.read(&mut buf) => r,
+            };
+
+            match read {
+                Ok(0) => break,
+                Ok(n) => {
+                    let chunk = String::from_utf8_lossy(&buf[..n]).to_string();
+                    accumulated.push_str(&chunk);
+
+                    for line in accumulated.lines() {
+                        let lower = line.to_lowercase();
+                        let (status, progress) = if lower.contains("error") || lower.contains("failed") {
+                            (AmonetStatus::Failed(line.to_string()), None)
+                        } else if lower.contains("success") || lower.contains("done") || lower.contains("complete") {
+                            (AmonetStatus::Success, Some(1.0))
+                        } else if lower.contains("exploit") || lower.contains("sending") {
+                            (AmonetStatus::Exploiting, Some(0.5))
+                        } else if lower.contains("scanning") || lower.contains("found") {
+                            (AmonetStatus::Scanning, Some(0.3))
+                        } else if lower.contains("connecting") || lower.contains("port") {
+                            (AmonetStatus::Connecting, Some(0.2))
+                        } else {
+                            continue;
+                        };
+
+                        Self::emit_event(&callback, status, line, progress);
+                    }
+                    accumulated.clear();
+                }
+                Err(_) => break,
+            }
         }
 
-        // Step 6: Send payload
-        emit(
-            AmonetStatus::SendingPayload,
-            &format!("Sending {} payload...", self.config.payload_type.display_name()),
-            Some(0.5),
-        );
+        let status = child.wait().await.context("Failed to wait for mtkclient")?;
 
-        self.send_payload(&mut port, &payload)?;
-
-        // Step 7: Wait for response
-        emit(
-            AmonetStatus::WaitingResponse,
-            "Waiting for device response...",
-            Some(0.8),
-        );
-
-        tokio::time::sleep(Duration::from_millis(500)).await;
-
-        let mut exploit_response = vec![0u8; 512];
-        let _read = port.read(&mut exploit_response).unwrap_or(0);
-
-        // Check for ACK response (0xA0 0x01 for success)
-        let success = exploit_response.windows(2).any(|w| w == [0xA0, 0x01])
-            || exploit_response.iter().any(|&b| b == 0x01);
-
-        if success {
-            emit(
+        if status.success() {
+            Self::emit_event(
+                &callback,
                 AmonetStatus::Success,
-                &format!(
-                    "{} payload executed successfully!",
-                    self.config.payload_type.display_name()
-                ),
+                "Exploit completed successfully",
                 Some(1.0),
             );
             Ok(())
         } else {
-            emit(
-                AmonetStatus::Failed("No ACK received".to_string()),
-                &format!(
-                    "Device did not acknowledge payload. Response: {:02X?}",
-                    &exploit_response[..16.min(exploit_response.len())]
-                ),
+            let code = status.code().unwrap_or(-1);
+            Self::emit_event(
+                &callback,
+                AmonetStatus::Failed(format!("Exit code: {}", code)),
+                &format!("mtkclient exited with code {}", code),
                 None,
             );
-            anyhow::bail!("No ACK from device after payload");
+            anyhow::bail!("mtkclient failed with exit code: {}", code)
         }
     }
 
-    fn send_handshake(&self, port: &mut Box<dyn serialport::SerialPort>) -> Result<()> {
-        let handshake = [0xA0, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-        port.write_all(&handshake)
-            .context("Failed to send handshake")?;
-        port.flush().context("Failed to flush handshake")?;
-        Ok(())
-    }
-
-    fn send_payload(
-        &self,
-        port: &mut Box<dyn serialport::SerialPort>,
-        payload: &[u8],
-    ) -> Result<()> {
-        // Send payload with DA protocol framing
-        // Header: magic (2) + length (2) + checksum (2)
-        let len = payload.len() as u16;
-        let checksum: u16 = payload.iter().fold(0u16, |acc, &b| acc.wrapping_add(b as u16));
-
-        let header = [
-            DA_MAGIC[0],
-            DA_MAGIC[1],
-            (len & 0xFF) as u8,
-            ((len >> 8) & 0xFF) as u8,
-            (checksum & 0xFF) as u8,
-            ((checksum >> 8) & 0xFF) as u8,
-        ];
-
-        port.write_all(&header)
-            .context("Failed to send payload header")?;
-
-        // Send payload in chunks
-        let chunk_size = 512;
-        for chunk in payload.chunks(chunk_size) {
-            if CANCEL_FLAG.load(Ordering::SeqCst) {
-                anyhow::bail!("Cancelled during payload transfer");
-            }
-            port.write_all(chunk)
-                .context("Failed to send payload chunk")?;
-            port.flush().context("Failed to flush payload chunk")?;
-            std::thread::sleep(Duration::from_millis(5));
+    fn emit_event(
+        callback: &Arc<Mutex<dyn FnMut(AmonetEvent) + Send>>,
+        status: AmonetStatus,
+        msg: &str,
+        progress: Option<f32>,
+    ) {
+        if let Ok(mut cb) = callback.lock() {
+            cb(AmonetEvent {
+                status,
+                message: msg.to_string(),
+                progress,
+            });
         }
-
-        port.flush().context("Failed to flush final payload")?;
-        Ok(())
     }
 }
 
 pub fn cancel_exploit() {
     CANCEL_FLAG.store(true, Ordering::SeqCst);
     AMONET_RUNNING.store(false, Ordering::SeqCst);
+
+    // Kill the mtkclient process
+    if let Some(pid_lock) = AMONET_PID.get() {
+        if let Ok(pid_guard) = pid_lock.lock() {
+            if let Some(pid) = *pid_guard {
+                #[cfg(target_os = "windows")]
+                {
+                    use std::process::Command;
+                    let _ = Command::new("taskkill")
+                        .args(["/F", "/PID", &pid.to_string()])
+                        .output();
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    unsafe {
+                        libc::kill(pid as i32, libc::SIGTERM);
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub fn is_running() -> bool {
     AMONET_RUNNING.load(Ordering::SeqCst)
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SerialPortInfo {
-    pub port_name: String,
-    pub description: String,
-    pub vid: u16,
-    pub pid: u16,
 }

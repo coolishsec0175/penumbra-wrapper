@@ -8,7 +8,9 @@ use crate::services::fastboot_native::{FastbootConnection, FastbootDeviceInfo, F
 
 #[tauri::command]
 pub async fn fastboot_scan_devices() -> Result<Vec<FastbootDeviceInfo>, AppError> {
-    FastbootConnection::scan_devices().map_err(|e| AppError::command(e.to_string()))
+    FastbootConnection::scan_devices()
+        .await
+        .map_err(|e| AppError::command(e.to_string()))
 }
 
 #[tauri::command]

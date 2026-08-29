@@ -3,18 +3,15 @@
     SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
-use crate::commands::helpers::{emit_operation_complete, emit_operation_output};
-use crate::error::AppError;
 use crate::models::{OperationCompleteEvent, OperationOutputEvent};
 use anyhow::{Context, Result};
 use chrono::Utc;
-use regex::Regex;
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Stdio;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::io::AsyncReadExt;
 use tokio::process::Command as TokioCommand;
