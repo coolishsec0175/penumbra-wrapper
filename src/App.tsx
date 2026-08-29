@@ -7,6 +7,9 @@ import { PGPT } from './pages/PGPT';
 import { Flasher } from './pages/Flasher';
 import { Tools } from './pages/Tools';
 import { MtkClient } from './pages/MtkClient';
+import { AmonetPage } from './pages/AmonetPage';
+import { AdbPage } from './pages/AdbPage';
+import { FastbootNativePage } from './pages/FastbootNativePage';
 import { Log } from './pages/Log';
 import { Settings } from './pages/Settings';
 import { UpdateAvailableModal } from './components/UpdateAvailableModal';
@@ -90,6 +93,9 @@ function AppContent() {
           <Route path="flasher" element={<Flasher />} />
           <Route path="tools" element={<Tools />} />
           <Route path="mtkclient" element={<MtkClient />} />
+          <Route path="amonet" element={<AmonetPage />} />
+          <Route path="adb" element={<AdbPage />} />
+          <Route path="fastboot" element={<FastbootNativePage />} />
           <Route path="log" element={<Log />} />
           <Route path="settings" element={<Settings />} />
         </Route>

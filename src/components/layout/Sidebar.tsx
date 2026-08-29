@@ -13,10 +13,12 @@ import {
   Grid,
   Moon,
   Settings,
+  Smartphone,
   Sun,
   Terminal,
   Usb,
   Wrench,
+  Zap,
 } from 'lucide-react';
 import { useDeviceStore } from '../../store/deviceStore';
 import { useOperationStore } from '../../store/operationStore';
@@ -31,6 +33,9 @@ const NAV_ITEMS = [
   { to: '/flasher', label: 'Flasher', icon: FileStack, end: false },
   { to: '/tools', label: 'Tools', icon: Wrench, end: false },
   { to: '/mtkclient', label: 'MTKClient', icon: Cpu, end: false },
+  { to: '/amonet', label: 'Amonet', icon: Zap, end: false },
+  { to: '/adb', label: 'ADB', icon: Smartphone, end: false },
+  { to: '/fastboot', label: 'Fastboot', icon: Usb, end: false },
   { to: '/log', label: 'Activity Log', icon: Terminal, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ] as const;
