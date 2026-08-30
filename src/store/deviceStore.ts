@@ -11,7 +11,7 @@ interface DeviceState {
   usbLog: boolean;
   verbose: boolean;
   defaultOutputPath: string | null;
-  antumbraVersion: string | null;
+  penumbraVersion: string | null;
   autoCheckUpdates: boolean;
   backupSkipPartitions: string[];
   mtkclientPythonPath: string | null;
@@ -59,7 +59,7 @@ const buildSettings = (state: DeviceState): AppSettings => ({
   verbose: state.verbose,
   default_output_path: state.defaultOutputPath || undefined,
   auto_check_updates: state.autoCheckUpdates,
-  antumbra_version: state.antumbraVersion || undefined,
+  penumbra_version: state.penumbraVersion || undefined,
   backup_skip_partitions: state.backupSkipPartitions,
   mtkclient_python_path: state.mtkclientPythonPath || undefined,
   mtkclient_path: state.mtkclientPath || undefined,
@@ -74,7 +74,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   usbLog: false,
   verbose: false,
   defaultOutputPath: null,
-  antumbraVersion: null,
+  penumbraVersion: null,
   autoCheckUpdates: true,
   backupSkipPartitions: [],
   mtkclientPythonPath: null,
@@ -166,13 +166,6 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       set({ isSettingsLoading: true, settingsError: null });
       const settings = await SettingsApi.getSettings();
       
-      // Auto-sync detected antumbra version if config version is null
-      // This ensures version consistency between binary and config
-      if (!settings.antumbra_version) {
-        console.log('Config version is null, attempting to sync from detected binary...');
-        // The backend will handle auto-syncing when binary is detected
-      }
-      
       set({
         daPath: settings.da_path || null,
         preloaderPath: settings.preloader_path || null,
@@ -180,7 +173,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
         usbLog: settings.usb_log,
         verbose: settings.verbose,
         defaultOutputPath: settings.default_output_path || null,
-        antumbraVersion: settings.antumbra_version || null,
+        penumbraVersion: settings.penumbra_version || null,
         autoCheckUpdates: settings.auto_check_updates,
         backupSkipPartitions: settings.backup_skip_partitions || [],
         mtkclientPythonPath: settings.mtkclient_python_path || null,

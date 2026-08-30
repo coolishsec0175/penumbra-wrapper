@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { v4 as uuidv4 } from 'uuid';
-import type { PartitionListResult } from '../../types';
+import type { PartitionListResult, DeviceInfo } from '../../types';
 
 /**
  * Device API service - Handles device connection and control operations.
@@ -92,7 +92,7 @@ export class DeviceApi {
   }
 
   /**
-   * Send the debug crash command to antumbra.
+   * Send the debug crash command to the device.
    *
    * @param daPath - Path to the Download Agent (DA) file
    * @param preloaderPath - Optional path to preloader file
@@ -135,6 +135,23 @@ export class DeviceApi {
       address: address || null,
       raw: raw || false,
       operationId: operationId || uuidv4(),
+    });
+  }
+
+  /**
+   * Get device information (chip, hw_code, storage, etc.).
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param preloaderPath - Optional path to preloader file
+   * @returns Promise resolving to device info
+   */
+  static async getDeviceInfo(
+    daPath: string,
+    preloaderPath?: string
+  ): Promise<DeviceInfo> {
+    return invoke('get_device_info', {
+      daPath,
+      preloaderPath: preloaderPath || null,
     });
   }
 }

@@ -171,4 +171,31 @@ export class PartitionApi {
     });
   }
 
+  /**
+   * Flash all partitions from a scatter file using the DA protocol.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param scatterPath - Path to the scatter file (.txt)
+   * @param firmwareDir - Directory containing firmware image files
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking (auto-generated if not provided)
+   * @returns Promise resolving when flash completes
+   * @throws Error if flash fails
+   */
+  static async flashScatter(
+    daPath: string,
+    scatterPath: string,
+    firmwareDir: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('flash_scatter', {
+      daPath,
+      scatterPath,
+      firmwareDir,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
+
 }

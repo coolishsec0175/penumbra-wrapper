@@ -50,52 +50,17 @@ export interface AppSettings {
   verbose: boolean;
   default_output_path?: string;
   auto_check_updates: boolean;
-  antumbra_version?: string;
+  penumbra_version?: string;
   backup_skip_partitions?: string[];
   mtkclient_python_path?: string;
   mtkclient_path?: string;
   mtkclient_iot_mode?: boolean;
 }
 
-export interface AntumbraUpdateInfo {
-  installed_version: string | null;
-  installed_path: string | null;
-  latest_version: string | null;
+export interface PenumbraUpdateInfo {
+  current_version: string;
+  latest_version: string;
   update_available: boolean;
-  supported: boolean;
-  asset_name: string | null;
-  asset_url: string | null;
-  checksum: string | null;
-  message: string | null;
-}
-
-export interface AntumbraCommandInfo {
-  command: string;
-  args: string[];
-  working_dir: string;
-  started_at: string;
-}
-
-export interface AntumbraUpdateResult {
-  version: string;
-  path: string;
-}
-
-export interface AntumbraReleaseNote {
-  tag_name: string;
-  name: string;
-  body: string | null;
-  published_at: string | null;
-}
-
-export interface DownloadProgress {
-  bytes_downloaded: number;
-  total_bytes: number;
-  percentage: number;
-  status: string;
-  attempt: number;
-  max_attempts: number;
-  message: string;
 }
 
 export type FastbootStatus = 'start' | 'success' | 'no_device' | 'open_error' | 'no_ack' | 'error' | 'cancelled';
@@ -204,6 +169,20 @@ export interface MtkBootCtrl {
   slot_a: boolean;
   slot_b: boolean;
   active_slot: string;
+}
+
+export interface DeviceInfo {
+  chip: string | null;
+  hw_code: number;
+  hw_subcode: number;
+  soc_id: number[];
+  meid: number[];
+  storage: string;
+  target_config: number;
+  sbc_enabled: boolean;
+  sla_enabled: boolean;
+  daa_enabled: boolean;
+  active_slot: string | null;
 }
 
 // Re-export error types
