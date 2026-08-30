@@ -96,7 +96,6 @@ async fn main() {
             commands::scatter::detect_image_files,
             commands::settings::get_settings,
             commands::settings::update_settings,
-            commands::updates::get_penumbra_version,
             commands::updates::check_penumbra_update,
 
             commands::fastboot::force_fastboot,

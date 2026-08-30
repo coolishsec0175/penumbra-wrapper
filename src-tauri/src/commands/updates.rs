@@ -5,12 +5,6 @@
 
 use crate::error::AppError;
 use penumbra_mtk::VERSION;
-use tauri::AppHandle;
-
-#[tauri::command]
-pub async fn get_penumbra_version() -> Result<String, AppError> {
-    Ok(format!("penumbra-mtk {}", VERSION))
-}
 
 #[tauri::command]
 pub async fn check_penumbra_update() -> Result<PenumbraUpdateInfo, AppError> {

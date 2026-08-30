@@ -4,7 +4,7 @@
 */
 
 use crate::error::AppError;
-use crate::models::{DeviceInfo, Partition, PartitionListResult};
+use crate::models::{DeviceInfo, PartitionListResult};
 use crate::services::device_service::{self, DeviceService};
 use tauri::{AppHandle, State, Window};
 use uuid::Uuid;

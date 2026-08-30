@@ -129,7 +129,7 @@ impl DeviceService {
 
 fn make_progress_callback(
     app: AppHandle,
-    operation_id: String,
+    _operation_id: String,
     partition_name: String,
     operation: String,
 ) -> impl FnMut(usize, usize) {
