@@ -53,3 +53,18 @@ pub struct OperationCompleteEvent {
     pub success: bool,
     pub error: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceInfo {
+    pub chip: Option<String>,
+    pub hw_code: u16,
+    pub hw_subcode: u16,
+    pub soc_id: Vec<u8>,
+    pub meid: Vec<u8>,
+    pub storage: String,
+    pub target_config: u32,
+    pub sbc_enabled: bool,
+    pub sla_enabled: bool,
+    pub daa_enabled: bool,
+    pub active_slot: Option<String>,
+}
