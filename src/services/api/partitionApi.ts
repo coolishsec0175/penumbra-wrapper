@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { v4 as uuidv4 } from 'uuid';
+import type { FlashSection } from '../../types';
 
 /**
  * Options for reading a partition.
@@ -193,6 +194,115 @@ export class PartitionApi {
       daPath,
       scatterPath,
       firmwareDir,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
+
+  /**
+   * Read raw flash at a specific offset and size.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param address - Start address (hex string, e.g. "0x0")
+   * @param size - Size in bytes (hex string, e.g. "0x40000")
+   * @param section - Storage section: 'user', 'boot1', 'boot2', 'lu0', 'lu1', 'lu2'
+   * @param outputPath - Output file path
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async readOffset(
+    daPath: string,
+    address: string,
+    size: string,
+    section: FlashSection,
+    outputPath: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('read_offset', {
+      daPath,
+      address,
+      size,
+      section,
+      outputPath,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
+
+  /**
+   * Write raw flash at a specific offset.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param address - Start address (hex string, e.g. "0x0")
+   * @param section - Storage section: 'user', 'boot1', 'boot2', 'lu0', 'lu1', 'lu2'
+   * @param inputPath - Input file to write
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async writeOffset(
+    daPath: string,
+    address: string,
+    section: FlashSection,
+    inputPath: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('write_offset', {
+      daPath,
+      address,
+      section,
+      inputPath,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
+
+  /**
+   * Erase raw flash at a specific offset.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param address - Start address (hex string, e.g. "0x0")
+   * @param size - Size in bytes (hex string, e.g. "0x40000")
+   * @param section - Storage section: 'user', 'boot1', 'boot2', 'lu0', 'lu1', 'lu2'
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async eraseOffset(
+    daPath: string,
+    address: string,
+    size: string,
+    section: FlashSection,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('erase_offset', {
+      daPath,
+      address,
+      size,
+      section,
+      preloaderPath: preloaderPath || null,
+      operationId: operationId || uuidv4(),
+    });
+  }
+
+  /**
+   * Read efuses from the device and save to file.
+   *
+   * @param daPath - Path to the Download Agent (DA) file
+   * @param outputPath - Output file path for efuse dump
+   * @param preloaderPath - Optional path to preloader file
+   * @param operationId - Optional operation ID for tracking
+   */
+  static async readEfuses(
+    daPath: string,
+    outputPath: string,
+    preloaderPath?: string,
+    operationId?: string
+  ): Promise<void> {
+    return invoke('read_efuses', {
+      daPath,
+      outputPath,
       preloaderPath: preloaderPath || null,
       operationId: operationId || uuidv4(),
     });

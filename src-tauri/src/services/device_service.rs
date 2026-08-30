@@ -684,6 +684,170 @@ pub fn flash_scatter_direct(
     })
 }
 
+fn parse_section(section: &str) -> Result<penumbra_mtk::PartitionKind, AppError> {
+    use penumbra_mtk::storage::{EmmcPartition, UfsPartition};
+    match section.to_lowercase().as_str() {
+        "emmc_user" | "user" => Ok(penumbra_mtk::PartitionKind::Emmc(EmmcPartition::User)),
+        "emmc_boot1" | "boot1" => Ok(penumbra_mtk::PartitionKind::Emmc(EmmcPartition::Boot1)),
+        "emmc_boot2" | "boot2" => Ok(penumbra_mtk::PartitionKind::Emmc(EmmcPartition::Boot2)),
+        "ufs_lu0" | "lu0" => Ok(penumbra_mtk::PartitionKind::Ufs(UfsPartition::Lu0)),
+        "ufs_lu1" | "lu1" => Ok(penumbra_mtk::PartitionKind::Ufs(UfsPartition::Lu1)),
+        "ufs_lu2" | "lu2" => Ok(penumbra_mtk::PartitionKind::Ufs(UfsPartition::Lu2)),
+        _ => Err(AppError::command(format!(
+            "Unknown section '{}'. Valid: user, boot1, boot2, lu0, lu1, lu2",
+            section
+        ))),
+    }
+}
+
+pub fn read_offset_direct(
+    service: &DeviceService,
+    app: &AppHandle,
+    operation_id: &str,
+    address: u64,
+    size: usize,
+    section: &str,
+    output_path: &str,
+) -> Result<(), AppError> {
+    let part_kind = parse_section(section)?;
+    let file = std::fs::File::create(output_path)
+        .context(format!("Failed to create output file: {}", output_path))?;
+    let writer = std::io::BufWriter::new(file);
+
+    let progress_cb = make_progress_callback(
+        app.clone(),
+        operation_id.to_string(),
+        format!("offset@0x{:X}", address),
+        "read-offset".to_string(),
+    );
+
+    emit_output(
+        app,
+        operation_id,
+        &format!("Reading {} bytes at offset 0x{:X} (section: {})...", size, address, section),
+        false,
+    );
+
+    service.with_device(|device| {
+        device
+            .read_offset(address, size, part_kind, writer, progress_cb)
+            .map_err(|e| AppError::command(format!("Read offset failed: {}", e)))?;
+        emit_output(
+            app,
+            operation_id,
+            &format!("Read {} bytes to {}", size, output_path),
+            false,
+        );
+        Ok(())
+    })
+}
+
+pub fn write_offset_direct(
+    service: &DeviceService,
+    app: &AppHandle,
+    operation_id: &str,
+    address: u64,
+    section: &str,
+    input_path: &str,
+) -> Result<(), AppError> {
+    let part_kind = parse_section(section)?;
+    let file = std::fs::File::open(input_path)
+        .context(format!("Failed to open input file: {}", input_path))?;
+    let file_size = file.metadata().map(|m| m.len() as usize).unwrap_or(0);
+    let reader = std::io::BufReader::new(file);
+
+    let progress_cb = make_progress_callback(
+        app.clone(),
+        operation_id.to_string(),
+        format!("offset@0x{:X}", address),
+        "write-offset".to_string(),
+    );
+
+    emit_output(
+        app,
+        operation_id,
+        &format!("Writing {} bytes at offset 0x{:X} (section: {})...", file_size, address, section),
+        false,
+    );
+
+    service.with_device(|device| {
+        device
+            .write_offset(address, file_size, part_kind, reader, progress_cb)
+            .map_err(|e| AppError::command(format!("Write offset failed: {}", e)))?;
+        emit_output(
+            app,
+            operation_id,
+            &format!("Wrote {} bytes at offset 0x{:X}", file_size, address),
+            false,
+        );
+        Ok(())
+    })
+}
+
+pub fn erase_offset_direct(
+    service: &DeviceService,
+    app: &AppHandle,
+    operation_id: &str,
+    address: u64,
+    size: usize,
+    section: &str,
+) -> Result<(), AppError> {
+    let part_kind = parse_section(section)?;
+
+    let progress_cb = make_progress_callback(
+        app.clone(),
+        operation_id.to_string(),
+        format!("offset@0x{:X}", address),
+        "erase-offset".to_string(),
+    );
+
+    emit_output(
+        app,
+        operation_id,
+        &format!("Erasing {} bytes at offset 0x{:X} (section: {})...", size, address, section),
+        false,
+    );
+
+    service.with_device(|device| {
+        device
+            .erase_offset(address, size, part_kind, progress_cb)
+            .map_err(|e| AppError::command(format!("Erase offset failed: {}", e)))?;
+        emit_output(
+            app,
+            operation_id,
+            &format!("Erased {} bytes at offset 0x{:X}", size, address),
+            false,
+        );
+        Ok(())
+    })
+}
+
+pub fn read_efuses_direct(
+    service: &DeviceService,
+    app: &AppHandle,
+    operation_id: &str,
+    output_path: &str,
+) -> Result<(), AppError> {
+    let file = std::fs::File::create(output_path)
+        .context(format!("Failed to create efuse dump file: {}", output_path))?;
+    let writer = std::io::BufWriter::new(file);
+
+    emit_output(app, operation_id, "Reading efuses...", false);
+
+    service.with_device(|device| {
+        device
+            .read_efuses(writer)
+            .map_err(|e| AppError::command(format!("Efuse read failed: {}", e)))?;
+        emit_output(
+            app,
+            operation_id,
+            &format!("Efuse dump saved to {}", output_path),
+            false,
+        );
+        Ok(())
+    })
+}
+
 fn format_size(bytes: usize) -> String {
     const KB: usize = 1024;
     const MB: usize = 1024 * KB;

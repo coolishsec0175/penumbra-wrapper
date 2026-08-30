@@ -5,6 +5,7 @@
 
 use crate::commands::validate_input_file;
 use crate::commands::validate_output_dir;
+use crate::commands::validate_output_parent;
 use crate::commands::validate_restore_dir;
 use crate::error::AppError;
 use crate::services::device_service::{self, DeviceService};
@@ -139,4 +140,107 @@ pub async fn boot_pl(
         crate::services::device_service::emit_output(&app, &operation_id, "Preloader booted", false);
         Ok(())
     })
+}
+
+#[tauri::command]
+pub async fn read_offset(
+    app: AppHandle,
+    device_service: State<'_, DeviceService>,
+    da_path: String,
+    address: String,
+    size: String,
+    section: String,
+    output_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    let addr = u64::from_str_radix(address.trim_start_matches("0x").trim_start_matches("0X"), 16)
+        .map_err(|_| AppError::command(format!("Invalid address: {}", address)))?;
+    let sz = usize::from_str_radix(size.trim_start_matches("0x").trim_start_matches("0X"), 16)
+        .map_err(|_| AppError::command(format!("Invalid size: {}", size)))?;
+
+    log::info!(
+        "Read offset: addr=0x{:X}, size=0x{:X}, section={}, output={}",
+        addr, sz, section, output_path
+    );
+
+    validate_output_parent(&output_path, "Output file")?;
+
+    super::flash::ensure_connected(&device_service, &da_path, preloader_path.as_deref())?;
+
+    device_service::read_offset_direct(&device_service, &app, &operation_id, addr, sz, &section, &output_path)
+}
+
+#[tauri::command]
+pub async fn write_offset(
+    app: AppHandle,
+    device_service: State<'_, DeviceService>,
+    da_path: String,
+    address: String,
+    section: String,
+    input_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    let addr = u64::from_str_radix(address.trim_start_matches("0x").trim_start_matches("0X"), 16)
+        .map_err(|_| AppError::command(format!("Invalid address: {}", address)))?;
+
+    log::info!(
+        "Write offset: addr=0x{:X}, section={}, input={}",
+        addr, section, input_path
+    );
+
+    validate_input_file(&input_path, "Input file")?;
+
+    super::flash::ensure_connected(&device_service, &da_path, preloader_path.as_deref())?;
+
+    device_service::write_offset_direct(&device_service, &app, &operation_id, addr, &section, &input_path)
+}
+
+#[tauri::command]
+pub async fn erase_offset(
+    app: AppHandle,
+    device_service: State<'_, DeviceService>,
+    da_path: String,
+    address: String,
+    size: String,
+    section: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    let addr = u64::from_str_radix(address.trim_start_matches("0x").trim_start_matches("0X"), 16)
+        .map_err(|_| AppError::command(format!("Invalid address: {}", address)))?;
+    let sz = usize::from_str_radix(size.trim_start_matches("0x").trim_start_matches("0X"), 16)
+        .map_err(|_| AppError::command(format!("Invalid size: {}", size)))?;
+
+    log::info!(
+        "Erase offset: addr=0x{:X}, size=0x{:X}, section={}",
+        addr, sz, section
+    );
+
+    super::flash::ensure_connected(&device_service, &da_path, preloader_path.as_deref())?;
+
+    device_service::erase_offset_direct(&device_service, &app, &operation_id, addr, sz, &section)
+}
+
+#[tauri::command]
+pub async fn read_efuses(
+    app: AppHandle,
+    device_service: State<'_, DeviceService>,
+    da_path: String,
+    output_path: String,
+    preloader_path: Option<String>,
+    operation_id: String,
+    _window: Window,
+) -> Result<(), AppError> {
+    log::info!("Read efuses to {} (operation_id: {})", output_path, operation_id);
+
+    validate_output_parent(&output_path, "Output file")?;
+
+    super::flash::ensure_connected(&device_service, &da_path, preloader_path.as_deref())?;
+
+    device_service::read_efuses_direct(&device_service, &app, &operation_id, &output_path)
 }

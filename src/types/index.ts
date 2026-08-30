@@ -185,5 +185,7 @@ export interface DeviceInfo {
   active_slot: string | null;
 }
 
+export type FlashSection = 'user' | 'boot1' | 'boot2' | 'lu0' | 'lu1' | 'lu2';
+
 // Re-export error types
 export * from './errors';
