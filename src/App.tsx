@@ -30,28 +30,8 @@ function AppContent() {
   const hasPromptedUpdate = useRef(false);
   const updateInfo = useUpdateStore((state) => state.updateInfo);
   const isUpdateModalOpen = useUpdateStore((state) => state.isUpdateModalOpen);
-  const isDownloadingUpdate = useUpdateStore((state) => state.isDownloadingUpdate);
-  const downloadProgress = useUpdateStore((state) => state.downloadProgress);
   const checkUpdate = useUpdateStore((state) => state.checkUpdate);
-  const downloadUpdate = useUpdateStore((state) => state.downloadUpdate);
   const setUpdateModalOpen = useUpdateStore((state) => state.setUpdateModalOpen);
-  const startProgressListener = useUpdateStore((state) => state.startProgressListener);
-
-  useEffect(() => {
-    let cleanup: (() => void) | null = null;
-
-    startProgressListener()
-      .then((unlisten) => {
-        cleanup = unlisten;
-      })
-      .catch(() => undefined);
-
-    return () => {
-      if (cleanup) {
-        cleanup();
-      }
-    };
-  }, [startProgressListener]);
 
   useEffect(() => {
     if (!isSettingsLoaded || !autoCheckUpdates) return;
@@ -105,10 +85,7 @@ function AppContent() {
       <UpdateAvailableModal
         isOpen={isUpdateModalOpen}
         onClose={() => setUpdateModalOpen(false)}
-        onDownload={downloadUpdate}
         updateInfo={updateInfo}
-        isDownloading={isDownloadingUpdate}
-        downloadProgress={downloadProgress}
       />
 
       <RiskDisclaimerModal />
