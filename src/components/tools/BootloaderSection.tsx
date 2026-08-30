@@ -82,7 +82,7 @@ export function BootloaderSection({
 
           <div className="border-t border-border pt-4">
             <p className="mb-2 text-sm text-muted-foreground">
-              Send the debug crash command to the antumbra CLI.
+              Send the debug crash command to the device.
             </p>
             <Button
               onClick={onCrash}

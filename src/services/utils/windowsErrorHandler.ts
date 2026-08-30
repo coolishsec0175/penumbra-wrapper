@@ -25,8 +25,8 @@ const TROUBLESHOOTING_RULES: Array<{
   {
     category: [ErrorCategory.Permission],
     steps: [
-      'Close any running instances of antumbra.exe',
-      'Check Task Manager for antumbra.exe processes',
+      'Close any running instances of PenumbraWrapper',
+      'Check Task Manager for PenumbraWrapper processes',
       'Try updating again after closing all instances',
     ],
   },
@@ -77,7 +77,7 @@ export class WindowsErrorHandler {
       return categorySuggestion;
     }
 
-    return `Download antumbra update failed: ${err.message || error}`;
+    return `Update check failed: ${err.message || error}`;
   }
   
   /**

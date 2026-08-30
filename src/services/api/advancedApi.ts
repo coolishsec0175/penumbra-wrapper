@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Advanced API service - Boot slot operations.
- * Mirrors the corresponding antumbra CLI commands.
+ * Mirrors the corresponding penumbra CLI commands.
  */
 export class AdvancedApi {
   /**

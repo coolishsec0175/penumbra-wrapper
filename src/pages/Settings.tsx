@@ -257,7 +257,7 @@ export function Settings() {
               label="Verbose"
               description={
                 <span>
-                  Pass <span className="font-mono text-xs">--verbose</span> for detailed antumbra output.
+                  Pass <span className="font-mono text-xs">--verbose</span> for detailed device output.
                 </span>
               }
             >

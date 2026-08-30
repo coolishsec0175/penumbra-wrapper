@@ -466,7 +466,7 @@ export function Tools() {
     const confirmed = await confirm({
       title: 'Send Crash Command',
       message:
-        'Send the debug crash command to the antumbra CLI. This will cause the CLI to crash on purpose. Continue?',
+        'Send the debug crash command to the device. This will cause the device to crash on purpose. Continue?',
       variant: 'danger',
       confirmText: 'Send',
     });
@@ -490,7 +490,7 @@ export function Tools() {
           addLog({
             timestamp: new Date().toISOString(),
             level: 'info',
-            message: 'Sending crash command to antumbra...',
+            message: 'Sending crash command...',
           });
         },
         run: (operationId) =>
