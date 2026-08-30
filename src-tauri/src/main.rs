@@ -11,6 +11,8 @@ mod error;
 mod models;
 mod services;
 
+use services::device_service::DeviceService;
+
 fn init_logging() {
     let log_dir = dirs::config_dir()
         .map(|dir| dir.join("penumbra-wrapper"))
@@ -70,12 +72,14 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
-            commands::get_antumbra_version,
+            commands::get_penumbra_version,
             commands::cancel_operation,
             commands::device::list_partitions,
             commands::device::reboot_device,
             commands::device::shutdown_device,
+            commands::device::get_device_info,
             commands::flash::flash_partition,
+            commands::flash::flash_scatter,
             commands::read::read_partition,
             commands::format::format_partition,
             commands::erase::erase_partition,
@@ -88,10 +92,8 @@ async fn main() {
             commands::scatter::detect_image_files,
             commands::settings::get_settings,
             commands::settings::update_settings,
-            commands::updates::get_antumbra_updatable_path,
-            commands::updates::check_antumbra_update,
-            commands::updates::download_antumbra_update,
-            commands::updates::get_antumbra_changelog,
+            commands::updates::get_penumbra_version,
+            commands::updates::check_penumbra_update,
 
             commands::fastboot::force_fastboot,
             commands::fastboot::cancel_fastboot,
@@ -141,15 +143,18 @@ async fn main() {
             commands::fastboot_native::fastboot_oem_lock,
             commands::fastboot_native::fastboot_wait_for_device,
         ])
+        .manage(DeviceService::new())
         .manage(commands::fastboot::FastbootCancel::default())
         .setup(|_app| {
-            // Initialize services on startup
             log::info!("PenumbraWrapper starting...");
             Ok(())
         })
-        .on_window_event(|_window, event| {
+        .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
-                let _ = services::antumbra::kill_current_process();
+                // Disconnect the device when the window is closed
+                if let Some(service) = window.try_state::<DeviceService>() {
+                    service.disconnect();
+                }
             }
         })
         .run(tauri::generate_context!())

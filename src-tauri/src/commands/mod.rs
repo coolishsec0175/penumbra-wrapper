@@ -22,26 +22,23 @@ pub mod amonet;
 pub mod adb;
 
 use crate::error::AppError;
-use crate::services::antumbra::{kill_current_process, AntumbraExecutor};
+use crate::services::device_service::DeviceService;
+use penumbra_mtk::VERSION;
 use tauri::AppHandle;
 
 pub use helpers::{
-    build_antumbra_args, emit_operation_complete, emit_operation_output, execute_antumbra_command,
+    emit_operation_complete, emit_operation_output,
     validate_da_preloader_paths, validate_input_file, validate_output_dir, validate_output_parent,
     validate_restore_dir,
 };
 
 #[tauri::command]
-pub async fn get_antumbra_version(app: AppHandle) -> Result<String, AppError> {
-    let executor = AntumbraExecutor::new(&app)?;
-    executor
-        .get_version()
-        .map_err(|e| AppError::command(e.to_string()))
+pub async fn get_penumbra_version(_app: AppHandle) -> Result<String, AppError> {
+    Ok(format!("penumbra-mtk {}", VERSION))
 }
 
 #[tauri::command]
-pub async fn cancel_operation(app: AppHandle) -> Result<(), AppError> {
-    let _ = AntumbraExecutor::new(&app)?;
-    kill_current_process().map_err(|e| AppError::command(e.to_string()))?;
+pub async fn cancel_operation(device_service: tauri::State<'_, DeviceService>) -> Result<(), AppError> {
+    device_service.disconnect();
     Ok(())
 }

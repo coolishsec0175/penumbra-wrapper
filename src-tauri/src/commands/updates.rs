@@ -4,40 +4,28 @@
 */
 
 use crate::error::AppError;
-use crate::services::antumbra::get_antumbra_updatable_path as resolve_antumbra_updatable_path;
-use crate::services::antumbra_update::{
-    AntumbraUpdateInfo, AntumbraUpdateResult, check_for_updates, download_and_install,
-};
+use penumbra_mtk::VERSION;
 use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn get_antumbra_updatable_path(app: AppHandle) -> Result<String, AppError> {
-    let path = resolve_antumbra_updatable_path(&app)?;
-    Ok(path.display().to_string())
+pub async fn get_penumbra_version() -> Result<String, AppError> {
+    Ok(format!("penumbra-mtk {}", VERSION))
 }
 
 #[tauri::command]
-pub async fn check_antumbra_update(app: AppHandle) -> Result<AntumbraUpdateInfo, AppError> {
-    check_for_updates(&app).await.map_err(|e| e.into())
-}
-
-#[tauri::command]
-pub async fn download_antumbra_update(app: AppHandle) -> Result<AntumbraUpdateResult, AppError> {
-    download_and_install(&app).await.map_err(|e| e.into())
+pub async fn check_penumbra_update() -> Result<PenumbraUpdateInfo, AppError> {
+    // TODO: Check GitHub releases of the wrapper repo for updates
+    Ok(PenumbraUpdateInfo {
+        current_version: VERSION.to_string(),
+        latest_version: VERSION.to_string(),
+        update_available: false,
+    })
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AntumbraReleaseNote {
-    pub tag_name: String,
-    pub name: String,
-    pub body: Option<String>,
-    pub published_at: Option<String>,
-}
-
-#[tauri::command]
-pub async fn get_antumbra_changelog() -> Result<Vec<AntumbraReleaseNote>, AppError> {
-    crate::services::antumbra_update::fetch_release_notes()
-        .await
-        .map_err(|e| AppError::command(e.to_string()))
+pub struct PenumbraUpdateInfo {
+    pub current_version: String,
+    pub latest_version: String,
+    pub update_available: bool,
 }

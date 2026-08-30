@@ -3,14 +3,15 @@
     SPDX-FileCopyrightText: 2026 coolishsec0175
 */
 
-use crate::commands::execute_antumbra_command;
 use crate::commands::validate_output_parent;
 use crate::error::AppError;
-use tauri::{AppHandle, Window};
+use crate::services::device_service::{self, DeviceService};
+use tauri::{AppHandle, State, Window};
 
 #[tauri::command]
 pub async fn read_partition(
     app: AppHandle,
+    device_service: State<'_, DeviceService>,
     da_path: String,
     partition: String,
     output_path: String,
@@ -26,12 +27,7 @@ pub async fn read_partition(
         operation_id
     );
 
-    execute_antumbra_command(
-        app,
-        operation_id,
-        &da_path,
-        preloader_path.as_deref(),
-        vec!["upload".to_string(), partition, output_path],
-    )
-    .await
+    super::flash::ensure_connected(&device_service, &da_path, preloader_path.as_deref())?;
+
+    device_service::read_partition_to_file(&device_service, &app, &operation_id, &partition, &output_path)
 }

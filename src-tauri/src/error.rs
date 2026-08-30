@@ -154,7 +154,7 @@ impl From<anyhow::Error> for AppError {
             return AppError::Update {
                 message: err_str,
                 category: ErrorCategory::Permission,
-                suggestion: Some("Close antumbra.exe and try again".to_string()),
+                suggestion: Some("Close other instances of PenumbraWrapper and try again".to_string()),
             };
         }
 
