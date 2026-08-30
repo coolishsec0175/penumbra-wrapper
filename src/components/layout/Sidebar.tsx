@@ -8,7 +8,6 @@ import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
-  Cpu,
   FileStack,
   Grid,
   Moon,
@@ -17,7 +16,6 @@ import {
   Sun,
   Terminal,
   Usb,
-  Wrench,
   Zap,
 } from 'lucide-react';
 import { useDeviceStore } from '../../store/deviceStore';
@@ -29,13 +27,9 @@ const APP_VERSION = '1.1.0';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: Grid, end: true },
-  { to: '/pgpt', label: 'PGPT', icon: FileStack, end: false },
-  { to: '/flasher', label: 'Flasher', icon: FileStack, end: false },
-  { to: '/tools', label: 'Tools', icon: Wrench, end: false },
-  { to: '/mtkclient', label: 'MTKClient', icon: Cpu, end: false },
-  { to: '/amonet', label: 'Amonet', icon: Zap, end: false },
-  { to: '/adb', label: 'ADB', icon: Smartphone, end: false },
-  { to: '/fastboot', label: 'Fastboot', icon: Usb, end: false },
+  { to: '/flash', label: 'Flash', icon: FileStack, end: false },
+  { to: '/exploit', label: 'Exploit', icon: Zap, end: false },
+  { to: '/device', label: 'Device', icon: Smartphone, end: false },
   { to: '/log', label: 'Activity Log', icon: Terminal, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ] as const;

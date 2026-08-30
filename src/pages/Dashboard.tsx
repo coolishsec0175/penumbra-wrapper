@@ -131,7 +131,7 @@ export function Dashboard() {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/tools')}
+                onClick={() => navigate('/flash')}
                 className="shrink-0 rounded-lg bg-accent-soft px-4 py-2 text-xs font-bold uppercase tracking-wider text-trace-copper transition-colors hover:bg-primary/20"
               >
                 Back up now
@@ -143,7 +143,7 @@ export function Dashboard() {
           <Panel title="QUICK ACTIONS" accent>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => navigate('/pgpt')}
+                onClick={() => navigate('/flash')}
                 disabled={!isConnected}
                 className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30 disabled:opacity-40"
               >
@@ -154,7 +154,7 @@ export function Dashboard() {
                 </div>
               </button>
               <button
-                onClick={() => navigate('/flasher')}
+                onClick={() => navigate('/flash')}
                 className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30"
               >
                 <FolderOpen className="h-4 w-4 text-trace-copper" />
@@ -164,7 +164,7 @@ export function Dashboard() {
                 </div>
               </button>
               <button
-                onClick={() => navigate('/tools')}
+                onClick={() => navigate('/flash')}
                 className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-all hover:border-trace-copper hover:bg-accent/30"
               >
                 <HardDrive className="h-4 w-4 text-trace-copper" />

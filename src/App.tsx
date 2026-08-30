@@ -3,13 +3,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
-import { PGPT } from './pages/PGPT';
-import { Flasher } from './pages/Flasher';
-import { Tools } from './pages/Tools';
-import { MtkClient } from './pages/MtkClient';
-import { AmonetPage } from './pages/AmonetPage';
-import { AdbPage } from './pages/AdbPage';
-import { FastbootNativePage } from './pages/FastbootNativePage';
+import { Flash } from './pages/Flash';
+import { Exploit } from './pages/Exploit';
+import { Device } from './pages/Device';
 import { Log } from './pages/Log';
 import { Settings } from './pages/Settings';
 import { UpdateAvailableModal } from './components/UpdateAvailableModal';
@@ -69,13 +65,9 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="pgpt" element={<PGPT />} />
-          <Route path="flasher" element={<Flasher />} />
-          <Route path="tools" element={<Tools />} />
-          <Route path="mtkclient" element={<MtkClient />} />
-          <Route path="amonet" element={<AmonetPage />} />
-          <Route path="adb" element={<AdbPage />} />
-          <Route path="fastboot" element={<FastbootNativePage />} />
+          <Route path="flash" element={<Flash />} />
+          <Route path="exploit" element={<Exploit />} />
+          <Route path="device" element={<Device />} />
           <Route path="log" element={<Log />} />
           <Route path="settings" element={<Settings />} />
         </Route>
