@@ -24,7 +24,7 @@ pub struct AppSettings {
     #[serde(default)]
     pub auto_check_updates: bool,
     #[serde(default)]
-    pub antumbra_version: Option<String>,
+    pub penumbra_version: Option<String>,
     #[serde(default)]
     pub backup_skip_partitions: Vec<String>,
     #[serde(default)]
@@ -45,7 +45,7 @@ impl Default for AppSettings {
             verbose: false,
             default_output_path: None,
             auto_check_updates: true,
-            antumbra_version: None,
+            penumbra_version: None,
             backup_skip_partitions: Vec::new(),
             mtkclient_python_path: None,
             mtkclient_path: None,
