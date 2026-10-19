@@ -118,10 +118,7 @@ impl ArmAnalyzer {
 
     const fn is_prologue(&self, instr: u32) -> bool {
         // PUSH with LR: STMDB SP!, {..., LR}
-        if (instr & 0xFFFF0000) == 0xE92D0000 && (instr & (1 << 14)) != 0 {
-            return true;
-        }
-        false
+        (instr & 0xFFFF0000) == 0xE92D0000 && (instr & (1 << 14)) != 0
     }
 
     fn find_string(&self, target: &str) -> Option<usize> {
